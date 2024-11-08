@@ -148,13 +148,15 @@ ModeratorSettings:
 At runtime, load configurations as needed:
 
 ```python
-from confflow import config_manager
+from confflow import ConfflowManager
+
+confflog_manager: ConfflowManager = ConfflowManager()
 
 # Load configurations from a predefined source
-config_manager.load_config('path_to_config.yaml')
+confflog_manager.load_config('path_to_config.yaml')
 
 # Access specific configurations
-user_profile = config_manager["UserProfile"]
+user_profile = confflog_manager["UserProfile"]
 print(user_profile.username)
 ```
 
