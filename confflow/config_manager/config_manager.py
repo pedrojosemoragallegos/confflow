@@ -2,13 +2,14 @@ import itertools
 from collections import OrderedDict
 from functools import wraps
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, Dict, List, Optional, Type, Union
 
 import yaml
 from pydantic import BaseModel
 
+from confflow.types import ensure_path
+
 from ..yaml_creator import create_yaml
-from .config import Config
 
 
 class ConfigProxy:
@@ -105,7 +106,8 @@ class ConfigManager:
 
         self._mutually_exclusive_groups = groups
 
-    def load_yaml(self, input_path: Path):
+    @ensure_path
+    def load_yaml(self, input_path: Union[str, Path]):
         raw_configs: Dict[str, Dict[str, Any]]
 
         with input_path.open("r") as file:
@@ -122,13 +124,14 @@ class ConfigManager:
                     )
 
         for config_name, config_data in raw_configs.items():
-            config_class: Optional[Type[Config]] = self._schema_map.get(config_name)
+            config_class: Optional[Type[BaseModel]] = self._schema_map.get(config_name)
             if not config_class:
                 raise ValueError(f"Unknown config type: {config_name}")
 
             self._configs[config_name] = config_class(**config_data)
 
-    def save_config(self, output_path: Path):
+    @ensure_path
+    def save_config(self, output_path: Union[str, Path]):
         if not self._configs:
             raise ValueError("No configurations loaded to save.")
 
@@ -137,6 +140,7 @@ class ConfigManager:
                 create_yaml(schema_map=self._schema_map, configs=self._configs)
             )
 
+    @ensure_path
     def create_template(self, output_path: Path):
         HEADER: List[str] = [
             "# ================================================================================",

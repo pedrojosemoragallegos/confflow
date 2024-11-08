@@ -2,7 +2,7 @@ from typing import Callable, List, Optional
 
 from pydantic import BaseModel
 
-from confflow.typings import NestedDict
+from confflow.types import NestedDict
 
 
 def create_yaml(
@@ -67,10 +67,10 @@ def _schema_formatter(
             callback(f"{intent}{title}:")
             _schema_formatter(content, callback, level + 1)
         else:
-            base_line = f"{intent}{title}: "
-            default_value = content.get("default", "")
-            value_type = content.get("type", "")
-            description = content.get("description", "")
+            base_line: str = f"{intent}{title}: "
+            default_value: str = content.get("default", "")
+            value_type: str = content.get("type", "")
+            description: str = content.get("description", "")
 
             callback(
                 base_line
