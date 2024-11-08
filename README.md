@@ -6,20 +6,11 @@ This package provides a comprehensive framework for managing configuration files
 
 ## Features
 
-- **Schema Registration**: Register `pydantic` models as configuration schemas.
-- **Mutual Exclusivity**: Define groups of mutually exclusive configurations.
-- **Template Generation**: Generate a configuration template to guide users.
-- **Validation**: Validate configuration data against predefined schemas.
-- **Dynamic Updates**: Update configuration values at runtime.
-- **Example Config Generator**: Generate example configuration files for reference.
+[TODO: complete]
 
 ## Installation
 
-```bash
-pip install confflow
-```
-
-Here’s an updated guide tailored specifically to the content and functionality demonstrated in your notebook:
+[TODO: complete]
 
 ---
 
