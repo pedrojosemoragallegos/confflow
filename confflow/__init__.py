@@ -1,3 +1,3 @@
-from .config_manager.config_manager import Config, ConfigManager as ConfflowManager
+from .config_manager.config_manager import ConfigManager as ConfflowManager
 
-__all__ = ["ConfflowManager", "Config"]
+__all__ = ["ConfflowManager"]
