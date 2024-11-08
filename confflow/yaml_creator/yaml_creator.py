@@ -12,8 +12,8 @@ def create_yaml(
     yaml_lines: List[str] = []
     for schema in schemas:
         schema_structure: NestedDict = schema.model_json_schema()
-        structured_schema: NestedDict = _get_structured_schema(schema_structure)
-        _schema_formatter(structured_schema, lambda x: yaml_lines.append(x))
+        structured_schema: NestedDict = get_structured_schema(schema_structure)
+        schema_formatter(structured_schema, lambda x: yaml_lines.append(x))
 
     if header:
         header_content: str = "\n".join(header) + "\n"
@@ -22,8 +22,8 @@ def create_yaml(
     return "\n".join(yaml_lines)
 
 
-# TODO separation of concerns
-def _get_structured_schema(schema: NestedDict) -> NestedDict:
+# TODO extract into a standalone service/module responsible for schema resolution
+def get_structured_schema(schema: NestedDict) -> NestedDict:
     def resolve_ref(ref: str, schema: NestedDict) -> NestedDict:
         ref_key: str = ref.split("/")[-1]
         return schema.get("$defs").get(ref_key, {})
@@ -55,9 +55,8 @@ def _get_structured_schema(schema: NestedDict) -> NestedDict:
     return result
 
 
-def _schema_formatter(
-    structured_schema: NestedDict, callback: Callable, level: int = 0
-):
+# TODO extract into own module for handling schema formatting
+def schema_formatter(structured_schema: NestedDict, callback: Callable, level: int = 0):
     DEFAULT_INTENT: str = "  "
 
     intent: str = DEFAULT_INTENT * level
@@ -65,7 +64,7 @@ def _schema_formatter(
     for title, content in structured_schema.items():
         if any(isinstance(value, dict) for value in content.values()):
             callback(f"{intent}{title}:")
-            _schema_formatter(content, callback, level + 1)
+            schema_formatter(content, callback, level + 1)
         else:
             base_line: str = f"{intent}{title}: "
             default_value: str = content.get("default", "")
