@@ -69,27 +69,34 @@ def singleton(cls: Type) -> Type:
 @singleton
 class ConfigManager:
     def __init__(self):
-        self._schema_map: Dict[str, Config] = self._generate_schema_map()
-        self._configs: OrderedDict[str, Config] = OrderedDict()
-        self._path: Optional[Path] = None
+        self._schema_map: OrderedDict[str, BaseModel] = OrderedDict()
+        self._configs: OrderedDict[str, BaseModel] = {}
         self._mutually_exclusive_groups: Optional[List[List[str]]] = None
 
-    def register_schemas(self, schema_classes: List[Type[BaseModel]]):
-        for schema_class in schema_classes:
+    def register_schemas(self, *args: Type[BaseModel]):
+        for schema_class in args:
+            if not issubclass(schema_class, BaseModel):
+                raise TypeError(
+                    f"{schema_class} must be a subclass of Pydantic BaseModel."
+                )
+
             class_name: str = schema_class.__name__
             if class_name in self._schema_map:
                 raise ValueError(f"Schema '{class_name}' is already registered.")
+
             self._schema_map[class_name] = schema_class
 
-    def set_mutual_exclusive_groups(self, groups: List[List[str]]):
+    def set_mutual_exclusive_groups(self, *args: List[str]):
         def has_conflicting_groups(groups: List[List[str]]) -> bool:
             for group1, group2 in itertools.combinations(groups, 2):
                 if not set(group1).isdisjoint(group2):
                     return True
             return False
 
+        groups = list(args)  # Convert *args to a list of lists
         flattened_groups: List[str] = [item for sublist in groups for item in sublist]
         self._validate_config_classes(flattened_groups)
+
         if len(flattened_groups) != len(set(flattened_groups)):
             raise ValueError("Duplicate items found in mutually exclusive groups.")
 
