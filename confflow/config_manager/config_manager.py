@@ -1,9 +1,11 @@
 import itertools
+from collections import OrderedDict
 from functools import wraps
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 
 import yaml
+from pydantic import BaseModel
 
 from ..yaml_creator import create_yaml
 from .config import Config
@@ -68,9 +70,16 @@ def singleton(cls: Type) -> Type:
 class ConfigManager:
     def __init__(self):
         self._schema_map: Dict[str, Config] = self._generate_schema_map()
-        self._configs: Dict[str, Config] = {}
+        self._configs: OrderedDict[str, Config] = OrderedDict()
         self._path: Optional[Path] = None
         self._mutually_exclusive_groups: Optional[List[List[str]]] = None
+
+    def register_schemas(self, schema_classes: List[Type[BaseModel]]):
+        for schema_class in schema_classes:
+            class_name: str = schema_class.__name__
+            if class_name in self._schema_map:
+                raise ValueError(f"Schema '{class_name}' is already registered.")
+            self._schema_map[class_name] = schema_class
 
     def set_mutual_exclusive_groups(self, groups: List[List[str]]):
         def has_conflicting_groups(groups: List[List[str]]) -> bool:
@@ -165,9 +174,6 @@ class ConfigManager:
             raise ValueError(
                 f"The following classes are not valid: {', '.join(invalid_classes)}"
             )
-
-    def _generate_schema_map(self) -> Dict[str, Type[Config]]:
-        return {cls.__name__: cls for cls in Config.__subclasses__()}
 
     def __getitem__(self, name: str) -> ConfigProxy:
         if name not in self._configs:
