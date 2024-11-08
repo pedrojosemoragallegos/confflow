@@ -1,1 +1,10 @@
 notebooks
+
+# Ignore Python bytecode files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore macOS system files
+.DS_Store
