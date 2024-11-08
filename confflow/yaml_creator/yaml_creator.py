@@ -8,6 +8,7 @@ from confflow.types import NestedDict
 def create_yaml(
     schemas: List[BaseModel],
     header: Optional[List[str]] = None,
+    mutually_exclusive_groups: Optional[List[List[str]]] = None,
 ) -> str:
     yaml_lines: List[str] = []
     for schema in schemas:
@@ -52,7 +53,7 @@ def get_structured_schema(schema: NestedDict) -> NestedDict:
         else:
             result[title] = filtered_dict(properties.get(title, {}), "title")
 
-    return result
+    return {schema.get("title"): result}
 
 
 # TODO extract into own module for handling schema formatting

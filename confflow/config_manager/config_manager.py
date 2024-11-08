@@ -166,6 +166,7 @@ class ConfigManager:
             yaml_file.write(
                 create_yaml(
                     schemas=list(self._schema_map.values()),
+                    mutually_exclusive_groups=self._mutually_exclusive_groups,
                     header=HEADER,
                 )
             )
