@@ -12,13 +12,13 @@ repository = "https://github.com/pedrojosemoragallegos/confflow"
 python = "^3.10"
 pyyaml = "^6.0.2"
 pydantic = "^2.9.2"
-ruff = "^0.7.2"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^4.0.1"
 twine = "^5.1.1"
 ipython = "^8.29.0"
 ipykernel = "^6.29.5"
+ruff = "^0.7.2"
 
 [build-system]
 requires = ["poetry-core"]
