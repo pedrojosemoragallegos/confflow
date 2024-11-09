@@ -1,4 +1,4 @@
-from typing import Callable, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from pydantic import BaseModel
 
@@ -10,11 +10,54 @@ def create_yaml(
     header: Optional[List[str]] = None,
     mutually_exclusive_groups: Optional[List[List[str]]] = None,
 ) -> str:
+    print(schemas)
+
+    mutually_exlusive_grouped_indices: List[List[str]] = sorted(
+        [
+            sorted([schemas.index(item) for item in mutually_exclusive_group])
+            for mutually_exclusive_group in mutually_exclusive_groups
+        ],
+        key=lambda x: x[0],
+    )
+
+    index_to_group_map: Dict[int, str] = {
+        index: group_id
+        for group_id, indices in enumerate(mutually_exlusive_grouped_indices)
+        for index in indices
+    }
+
+    skipped_indices: List[int] = []
     yaml_lines: List[str] = []
-    for schema in schemas:
-        schema_structure: NestedDict = schema.model_json_schema()
-        structured_schema: NestedDict = get_structured_schema(schema_structure)
-        schema_formatter(structured_schema, lambda x: yaml_lines.append(x))
+    for current_index, schema in enumerate(schemas):
+        if current_index in skipped_indices:
+            continue
+
+        group_index: Optional[int] = index_to_group_map.get(current_index)
+        if group_index is not None:  # schema is part of a mutual excluisve group
+            BLOCK_START: List[str] = [
+                "# -------------------------------------",
+                "# Mutual exclusive group: Pick only one",
+                "# -------------------------------------",
+            ]
+            yaml_lines.extend(BLOCK_START)
+
+            for index in mutually_exlusive_grouped_indices[
+                group_index
+            ]:  # index of schema in schemas
+                print(schemas[index])
+                schema_formatter(
+                    get_structured_schema(schemas[index].model_json_schema()),
+                    lambda x: yaml_lines.append(x),
+                )
+                skipped_indices.append(index)
+
+            BLOCK_END: List[str] = "# -------------------------------------"
+            yaml_lines.append(BLOCK_END)
+        else:
+            schema_formatter(
+                get_structured_schema(schema.model_json_schema()),
+                lambda x: yaml_lines.append(x),
+            )
 
     if header:
         header_content: str = "\n".join(header) + "\n"
@@ -57,9 +100,10 @@ def get_structured_schema(schema: NestedDict) -> NestedDict:
 
 
 # TODO extract into own module for handling schema formatting
-def schema_formatter(structured_schema: NestedDict, callback: Callable, level: int = 0):
+def schema_formatter(
+    structured_schema: NestedDict, callback: Callable[[str], Any], level: int = 0
+):
     DEFAULT_INTENT: str = "  "
-
     intent: str = DEFAULT_INTENT * level
 
     for title, content in structured_schema.items():
@@ -76,8 +120,12 @@ def schema_formatter(structured_schema: NestedDict, callback: Callable, level: i
                 base_line
                 + (str(default_value) if default_value else "")
                 + (
-                    f"  # {value_type} - {description}"
+                    f"  # Type: {value_type} - Description: {description}"
+                    if value_type and description
+                    else f"  # Type: {value_type}"
+                    if value_type
+                    else f" # Description: {description}"
                     if description
-                    else f"  # {value_type}"
+                    else ""
                 )
             )
