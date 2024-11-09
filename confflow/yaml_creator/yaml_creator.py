@@ -39,7 +39,7 @@ def create_yaml(
             continue
 
         group_index: Optional[int] = index_to_group_map.get(current_index)
-        if group_index is not None:  # schema is part of a mutual excluisve group
+        if group_index is not None:
             BLOCK_START: List[str] = [
                 "# -------------------------------------",
                 "# Mutual exclusive group: Pick only one",
@@ -53,7 +53,7 @@ def create_yaml(
                     index: int = next(iterator)
                     schema_formatter(
                         get_structured_schema(
-                            schema=schemas[index].model_json_schema()
+                            schema=schemas[index].model_json_schema(mode="validation")
                         ),
                         callback=lambda x: yaml_lines.append(x),
                     )
@@ -65,7 +65,9 @@ def create_yaml(
                     break
         else:
             schema_formatter(
-                get_structured_schema(schema=schema.model_json_schema()),
+                get_structured_schema(
+                    schema=schema.model_json_schema(mode="validation")
+                ),
                 callback=lambda x: yaml_lines.append(x),
                 default_values=default_values.get(schema.__name__, {}),
             )
@@ -130,22 +132,22 @@ def schema_formatter(
             )
         else:
             base_line: str = f"{intent}{title}: "
-            default_value: Any = default_values.get(
-                title, content.get("default", "")
-            )  # content.get("default", "")
-            value_type: str = content.get("type", "")
-            description: str = content.get("description", "")
+            default_value: Any = default_values.get(title, content.get("default", ""))
+
+            comment: str = " # "
+            if (value_type := content.get("type")) and (
+                enum_values := content.get("enum")
+            ):
+                comment += f"Type: {value_type} {enum_values}  "
+            if value_type := content.get("type"):
+                comment += f"Type: {value_type}  "
+            if enum_values := content.get("enum"):
+                comment += f"Enum: {enum_values}  "
+            if literal := content.get("anyOf"):
+                comment += f"Types: {[item['type'] for item in literal]}  "
+            if description := content.get("description"):
+                comment += f"Description: {description}  "
 
             callback(
-                base_line
-                + (str(default_value) if default_value else "")
-                + (
-                    f"  # Type: {value_type} - Description: {description}"
-                    if value_type and description
-                    else f"  # Type: {value_type}"
-                    if value_type
-                    else f" # Description: {description}"
-                    if description
-                    else ""
-                )
+                base_line + (str(default_value) if default_value else "") + comment
             )
