@@ -2,7 +2,7 @@ import itertools
 from collections import OrderedDict
 from functools import wraps
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any, Dict, List, Optional, Set, Type, Union
 
 import yaml
 from pydantic import BaseModel
@@ -113,13 +113,16 @@ class ConfigManager:
         raw_configs: Dict[str, Dict[str, Any]]
 
         with input_path.open("r") as file:
-            raw_configs = yaml.safe_load(file)
+            raw_configs: Dict[str, Any] = yaml.safe_load(file)
 
-        loaded_config_names = set(raw_configs.keys())
+        loaded_config_names: Set[str] = set(raw_configs.keys())
 
         if self._mutually_exclusive_groups:
             for group in self._mutually_exclusive_groups:
-                active_configs = [name for name in group if name in loaded_config_names]
+                group: List[str] = [cls.__name__ for cls in group]
+                active_configs: List[str] = [
+                    name for name in group if name in loaded_config_names
+                ]
                 if len(active_configs) > 1:
                     raise ValueError(
                         f"Mutually exclusive conflict: Multiple configurations from the group {group} are loaded: {active_configs}"
