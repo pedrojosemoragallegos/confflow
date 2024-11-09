@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, Iterator, List, Optional
 
 from pydantic import BaseModel
 
@@ -39,23 +39,26 @@ def create_yaml(
             ]
             yaml_lines.extend(BLOCK_START)
 
-            for index in mutually_exlusive_grouped_indices[
-                group_index
-            ]:  # index of schema in schemas
-                schema_formatter(
-                    get_structured_schema(schemas[index].model_json_schema()),
-                    lambda x: yaml_lines.append(x),
-                )
-                skipped_indices.append(index)
-
-            BLOCK_END: List[str] = "# -------------------------------------"
-            yaml_lines.append(BLOCK_END)
+            iterator: Iterator = iter(mutually_exlusive_grouped_indices[group_index])
+            while True:
+                try:
+                    index: int = next(iterator)
+                    schema_formatter(
+                        get_structured_schema(schemas[index].model_json_schema()),
+                        lambda x: yaml_lines.append(x),
+                    )
+                    skipped_indices.append(index)
+                    yaml_lines.append("\n")
+                except StopIteration:
+                    BLOCK_END: List[str] = "# -------------------------------------\n"
+                    yaml_lines[-1] = BLOCK_END
+                    break
         else:
             schema_formatter(
                 get_structured_schema(schema.model_json_schema()),
                 lambda x: yaml_lines.append(x),
             )
-
+            yaml_lines.append("\n")
     if header:
         header_content: str = "\n".join(header) + "\n"
         return header_content + "\n".join(yaml_lines)

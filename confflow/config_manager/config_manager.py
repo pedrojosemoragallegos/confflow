@@ -160,8 +160,7 @@ class ConfigManager:
             "#   - Only one configuration per mutually exclusive group can be active at a time.",
             "#   - Ensure data types match the specified type for each field.",
             "#",
-            "# ================================================================================",
-            "",
+            "# ================================================================================\n\n",
         ]
 
         with open(output_path, "w") as yaml_file:
