@@ -13,7 +13,7 @@ from ..yaml_creator import create_yaml
 
 
 class ConfigProxy:
-    def __init__(self, name: str, manager: "ConfigManager") -> None:
+    def __init__(self, name: str, manager: "ConfflowManager") -> None:
         super().__setattr__("name", name)
         super().__setattr__("_manager", manager)
 
@@ -68,7 +68,7 @@ def singleton(cls: Type) -> Type:
 
 
 @singleton
-class ConfigManager:
+class ConfflowManager:
     def __init__(self):
         self._schema_map: OrderedDict[str, BaseModel] = OrderedDict()
         self._configs: OrderedDict[str, BaseModel] = {}
