@@ -10,6 +10,8 @@ def create_yaml(
     header: Optional[List[str]] = None,
     mutually_exclusive_groups: Optional[List[List[str]]] = None,
 ) -> str:
+    mutually_exclusive_groups = mutually_exclusive_groups or []
+
     mutually_exlusive_grouped_indices: List[List[str]] = sorted(
         [
             sorted([schemas.index(item) for item in mutually_exclusive_group])

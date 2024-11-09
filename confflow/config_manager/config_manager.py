@@ -138,9 +138,7 @@ class ConfigManager:
             raise ValueError("No configurations loaded to save.")
 
         with open(output_path, "w") as yaml_file:
-            yaml_file.write(
-                create_yaml(schema_map=self._schema_map, configs=self._configs)
-            )
+            yaml_file.write(create_yaml(schemas=self._schema_map.values()))
 
     @ensure_path
     def create_template(self, output_path: Path):
