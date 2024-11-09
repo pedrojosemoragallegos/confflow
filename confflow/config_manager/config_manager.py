@@ -87,15 +87,17 @@ class ConfigManager:
 
             self._schema_map[class_name] = schema_class
 
-    def set_mutual_exclusive_groups(self, *args: List[str]):
-        def has_conflicting_groups(groups: List[List[str]]) -> bool:
+    def set_mutual_exclusive_groups(self, *args: List[BaseModel]):
+        def has_conflicting_groups(groups: List[List[BaseModel]]) -> bool:
             for group1, group2 in itertools.combinations(groups, 2):
                 if not set(group1).isdisjoint(group2):
                     return True
             return False
 
-        groups = list(args)  # Convert *args to a list of lists
-        flattened_groups: List[str] = [item for sublist in groups for item in sublist]
+        groups: List[BaseModel] = list(args)
+        flattened_groups: List[BaseModel] = [
+            item for sublist in groups for item in sublist
+        ]
         self._validate_config_classes(flattened_groups)
 
         if len(flattened_groups) != len(set(flattened_groups)):
@@ -171,14 +173,15 @@ class ConfigManager:
                 )
             )
 
-    def _is_valid_class(self, class_name: str) -> bool:
+    def _is_valid_class_name(self, class_name: str) -> bool:
         return class_name in self._schema_map
 
-    def _validate_config_classes(self, class_names: List[str]):
-        invalid_classes: List[str] = [
-            class_name
-            for class_name in class_names
-            if not self._is_valid_class(class_name)
+    def _is_valid_class(self, cls: BaseModel) -> bool:
+        return cls in self._schema_map.values()
+
+    def _validate_config_classes(self, classes: List[BaseModel]):
+        invalid_classes: List[BaseModel] = [
+            class_name for class_name in classes if not self._is_valid_class(class_name)
         ]
 
         if invalid_classes:

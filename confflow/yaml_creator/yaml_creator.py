@@ -10,8 +10,6 @@ def create_yaml(
     header: Optional[List[str]] = None,
     mutually_exclusive_groups: Optional[List[List[str]]] = None,
 ) -> str:
-    print(schemas)
-
     mutually_exlusive_grouped_indices: List[List[str]] = sorted(
         [
             sorted([schemas.index(item) for item in mutually_exclusive_group])
@@ -44,7 +42,6 @@ def create_yaml(
             for index in mutually_exlusive_grouped_indices[
                 group_index
             ]:  # index of schema in schemas
-                print(schemas[index])
                 schema_formatter(
                     get_structured_schema(schemas[index].model_json_schema()),
                     lambda x: yaml_lines.append(x),
