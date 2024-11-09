@@ -1,6 +1,6 @@
 # Confflow
 
-![Python](https://img.shields.io/badge/python-^3.10-blue)  
+![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13-blue)
 ![License](https://img.shields.io/github/license/pedrojosemoragallegos/confflow)
 
 ## Overview
