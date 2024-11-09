@@ -140,8 +140,17 @@ class ConfflowManager:
         if not self._configs:
             raise ValueError("No configurations loaded to save.")
 
+        default_values: Dict[str, Dict[str, Any]] = {
+            config.__class__.__name__: config.model_dump()
+            for config in self._configs.values()
+        }
+
         with open(output_path, "w") as yaml_file:
-            yaml_file.write(create_yaml(schemas=self._schema_map.values()))
+            yaml_file.write(
+                create_yaml(
+                    schemas=self._schema_map.values(), default_values=default_values
+                )
+            )
 
     @ensure_path
     def create_template(self, output_path: Path):

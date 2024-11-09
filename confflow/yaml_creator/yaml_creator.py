@@ -8,10 +8,9 @@ from confflow.types import NestedDict
 def create_yaml(
     schemas: List[BaseModel],
     header: Optional[List[str]] = None,
-    mutually_exclusive_groups: Optional[List[List[str]]] = None,
+    default_values: Optional[Dict[str, Dict[str, Any]]] = {},
+    mutually_exclusive_groups: Optional[List[List[str]]] = [],
 ) -> str:
-    mutually_exclusive_groups = mutually_exclusive_groups or []
-
     mutually_exlusive_grouped_indices: List[List[str]] = sorted(
         [
             sorted([schemas.index(item) for item in mutually_exclusive_group])
@@ -46,9 +45,12 @@ def create_yaml(
                 try:
                     index: int = next(iterator)
                     schema_formatter(
-                        get_structured_schema(schemas[index].model_json_schema()),
-                        lambda x: yaml_lines.append(x),
+                        get_structured_schema(
+                            schema=schemas[index].model_json_schema()
+                        ),
+                        callback=lambda x: yaml_lines.append(x),
                     )
+                    print(default_values.get(schema.__name__))
                     skipped_indices.append(index)
                     yaml_lines.append("\n")
                 except StopIteration:
@@ -57,8 +59,9 @@ def create_yaml(
                     break
         else:
             schema_formatter(
-                get_structured_schema(schema.model_json_schema()),
-                lambda x: yaml_lines.append(x),
+                get_structured_schema(schema=schema.model_json_schema()),
+                callback=lambda x: yaml_lines.append(x),
+                default_values=default_values.get(schema.__name__, {}),
             )
             yaml_lines.append("\n")
     if header:
@@ -103,18 +106,27 @@ def get_structured_schema(schema: NestedDict) -> NestedDict:
 
 # TODO extract into own module for handling schema formatting
 def schema_formatter(
-    structured_schema: NestedDict, callback: Callable[[str], Any], level: int = 0
+    structured_schema: NestedDict,
+    callback: Callable[[str], Any],
+    default_values: Optional[Dict[str, Any]] = {},
+    level: int = 0,
 ):
     DEFAULT_INTENT: str = "  "
     intent: str = DEFAULT_INTENT * level
-
     for title, content in structured_schema.items():
         if any(isinstance(value, dict) for value in content.values()):
             callback(f"{intent}{title}:")
-            schema_formatter(content, callback, level + 1)
+            schema_formatter(
+                structured_schema=content,
+                callback=callback,
+                level=level + 1,
+                default_values=default_values,
+            )
         else:
             base_line: str = f"{intent}{title}: "
-            default_value: str = content.get("default", "")
+            default_value: Any = default_values.get(
+                title, content.get("default", "")
+            )  # content.get("default", "")
             value_type: str = content.get("type", "")
             description: str = content.get("description", "")
 
