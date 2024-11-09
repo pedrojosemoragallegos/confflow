@@ -8,7 +8,7 @@ from confflow.types import NestedDict
 def create_yaml(
     schemas: List[BaseModel],
     header: Optional[List[str]] = None,
-    default_values: Optional[Dict[str, Dict[str, Any]]] = {},
+    default_values: Optional[Dict[str, Dict[str, Any]]] = None,
     mutually_exclusive_groups: Optional[List[List[str]]] = [],
 ) -> str:
     mutually_exlusive_grouped_indices: List[List[str]] = sorted(
@@ -24,6 +24,13 @@ def create_yaml(
         for group_id, indices in enumerate(mutually_exlusive_grouped_indices)
         for index in indices
     }
+
+    if default_values:
+        schemas: List[BaseModel] = [
+            schema for schema in schemas if schema.__name__ in default_values
+        ]
+    else:
+        default_values = {}
 
     skipped_indices: List[int] = []
     yaml_lines: List[str] = []
@@ -50,7 +57,6 @@ def create_yaml(
                         ),
                         callback=lambda x: yaml_lines.append(x),
                     )
-                    print(default_values.get(schema.__name__))
                     skipped_indices.append(index)
                     yaml_lines.append("\n")
                 except StopIteration:

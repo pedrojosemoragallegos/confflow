@@ -148,7 +148,8 @@ class ConfflowManager:
         with open(output_path, "w") as yaml_file:
             yaml_file.write(
                 create_yaml(
-                    schemas=self._schema_map.values(), default_values=default_values
+                    schemas=list(self._schema_map.values()),
+                    default_values=default_values,
                 )
             )
 
