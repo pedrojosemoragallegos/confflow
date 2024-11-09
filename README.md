@@ -1,166 +1,152 @@
-# Configuration Manager Package
+# Confflow
+
+![Python](https://img.shields.io/badge/python-^3.10-blue)  
+![License](https://img.shields.io/github/license/pedrojosemoragallegos/confflow)
 
 ## Overview
 
-This package provides a comprehensive framework for managing configuration files in Python projects. It ensures validation, mutual exclusivity, and easy template generation for configurations using `pydantic` models.
+**Confflow** is a robust configuration management library designed for Python projects. It provides seamless management of configurations using YAML files and integrates validation via Pydantic models. Confflow ensures that your configurations are logically consistent and simplifies the process of creating, loading, and saving configuration files.
 
 ## Features
 
-[TODO: complete]
+- **Pydantic Integration**: Validate configurations using Pydantic models.
+- **YAML Support**: Load and save configurations in YAML format.
+- **Mutually Exclusive Groups**: Enforce logical constraints across configuration options.
+- **Singleton Pattern**: Manage configuration instances efficiently.
+- **Template Generation**: Automatically generate YAML templates for your configurations.
 
 ## Installation
 
-[TODO: complete]
+### Clone the Repository
 
----
-
-## Getting Started with Confflow
-
-### 1. **Define Configuration Schemas**
-
-Configuration schemas are defined using `Config` from `confflow`, with field-level validations provided by `Pydantic`.
-
-```python
-from pydantic import Field
-from confflow import Config
-
-class UserProfile(Config):
-    username: str = Field(..., max_length=15, description="Unique username for the user")
-    full_name: str = Field(..., description="Full legal name of the user")
-    age: int = Field(..., ge=18, le=100, description="Age of the user, must be between 18 and 100")
-    email: str = Field(..., pattern=r'^\S+@\S+\.\S+$', description="User's email address")
-    phone_number: str = Field(..., pattern=r'^\+\d{1,3}-\d{3}-\d{7,10}$', description="User's contact phone number")
+```bash
+git clone https://github.com/pedrojosemoragallegos/confflow.git
 ```
 
-Define more schemas similarly:
+Navigate to the project directory and install the dependencies:
 
-```python
-class AdminSettings(Config):
-    admin_id: str = Field(..., description="Unique identifier for the admin")
-    permissions: list[str] = Field(..., description="List of permissions assigned to the admin")
-    active: bool = Field(True, description="Account active status")
+```bash
+cd confflow
+poetry install
 ```
 
----
+## Usage
 
-### 2. **Register Mutually Exclusive Groups**
+### 1. Define Your Schemas
 
-To ensure certain configurations don’t coexist, use `set_mutual_exclusive_groups` as shown in the notebook:
+Confflow uses Pydantic models to define configuration schemas:
+
+```python
+from pydantic import BaseModel
+
+class DatabaseConfig(BaseModel):
+    host: str
+    port: int
+    username: str
+    password: str
+```
+
+### 2. Register Schemas
+
+Register your schemas with the `ConfflowManager`:
 
 ```python
 from confflow import ConfflowManager
 
-confflow_manager = ConfflowManager()
-
-# Define mutual exclusivity between schemas
-confflow_manager.set_mutual_exclusive_groups(
-    [
-        ["AdminSettings", "ModeratorSettings"],
-        ["UserProfile", "GuestProfile"]
-    ]
-)
+manager = ConfflowManager()
+manager.register_schemas(DatabaseConfig)
 ```
 
----
+### 3. Load Configurations from YAML
 
-### 3. **Generate a Configuration Template**
-
-You can create a YAML template file to guide users on how to structure their configurations.
-
-```python
-from pathlib import Path
-
-# Save template to 'template_config.yaml'
-confflow_manager.create_template(output_path=Path('template_config.yaml'))
-```
-
-Below is an example of a configuration template that Confflow generates when you use the `create_template` method, it will include placeholders for all configuration fields, enforcing mutual exclusivity between specific configuration sets.
+Load configurations from a YAML file:
 
 ```yaml
-# ================================================================================
-#                                   Configuration Template                        
-# ================================================================================
-# 
-# Purpose:
-#   - Use this template to set up configuration values for your environment.
-#
-# Instructions:
-#   - Fill in each field with appropriate values.
-#   - Refer to the documentation for detailed descriptions of each field.
-#
-# Notes:
-#   - Only one configuration per mutually exclusive group can be active at a time.
-#   - Ensure data types match the specified type for each field.
-#
-# ================================================================================
-
-# -------------------------------------
-# Mutual exclusive group: Pick only one
-# -------------------------------------
-UserProfile:
-  username:            # Type: string (maxLength=15)    Description: Unique username for the user
-  full_name:           # Type: string                   Description: Full legal name of the user
-  age:                 # Type: integer (minimum=18, maximum=100)  Description: Age of the user, must be between 18 and 100
-  email:               # Type: string (pattern='^\S+@\S+\.\S+$')  Description: User's email address
-  phone_number:        # Type: string (pattern='^\+\d{1,3}-\d{3}-\d{7,10}$')  Description: User's contact phone number
-
-GuestProfile:
-  guest_id:            # Type: string                   Description: Unique identifier for the guest user
-  visit_purpose:       # Type: string                   Description: Purpose of the guest's visit
-  email:               # Type: string (pattern='^\S+@\S+\.\S+$')  Description: Guest's email address
-  access_duration:     # Type: integer                  Description: Allowed access duration in hours
-
-# -------------------------------------
-
-# -------------------------------------
-# Mutual exclusive group: Pick only one
-# -------------------------------------
-AdminSettings:
-  admin_id:            # Type: string                   Description: Unique identifier for the admin
-  permissions:         # Type: array of strings         Description: List of permissions assigned to the admin
-  active: true         # Type: boolean                  Description: Status of the admin account, active or inactive
-  email:               # Type: string (pattern='^\S+@\S+\.\S+$')  Description: Admin's email address
-  contact_number:      # Type: string (pattern='^\+\d{1,3}-\d{3}-\d{7,10}$')  Description: Admin's contact number
-
-ModeratorSettings:
-  mod_id:              # Type: string                   Description: Unique identifier for the moderator
-  moderation_areas:    # Type: array of strings         Description: Areas or topics the moderator oversees
-  is_active: true      # Type: boolean                  Description: Status of the moderator account
-  email:               # Type: string (pattern='^\S+@\S+\.\S+$')  Description: Moderator's email address
-  contact_number:      # Type: string (pattern='^\+\d{1,3}-\d{3}-\d{7,10}$')  Description: Moderator's contact number
-
-# -------------------------------------
+DatabaseConfig:
+  host: "localhost"
+  port: 5432
+  username: "admin"
+  password: "secret"
 ```
-
----
-
-### 4. **Load and Use Configurations**
-
-At runtime, load configurations as needed:
 
 ```python
-from confflow import ConfflowManager
-
-confflog_manager: ConfflowManager = ConfflowManager()
-
-# Load configurations from a predefined source
-confflog_manager.load_config('path_to_config.yaml')
-
-# Access specific configurations
-user_profile = confflog_manager["UserProfile"]
-print(user_profile.username)
+manager.load_yaml("config.yaml")
+db_config = manager["DatabaseConfig"]
+print(db_config.host)
 ```
 
----
+### 4. Save Configurations
 
-## License
+Save your current configurations back to a YAML file:
 
-[MIT License](LICENSE)
+```python
+manager.save_config("output_config.yaml")
+```
+
+### 5. Create YAML Templates
+
+Generate a YAML template with instructions:
+
+```python
+manager.create_template("template.yaml")
+```
+
+## Configuration Groups
+
+Confflow allows you to define mutually exclusive configuration groups:
+
+```python
+manager.set_mutual_exclusive_groups([DatabaseConfig, AnotherConfig])
+```
+
+This ensures only one configuration in the group can be active at a time.
+
+## Development
+
+### Requirements
+
+- Python 3.10+
+- Poetry
+
+### Setup
+
+Clone the repository:
+
+```bash
+git clone https://github.com/pedrojosemoragallegos/confflow.git
+cd confflow
+```
+
+Install dependencies:
+
+```bash
+poetry install
+```
+
+Run tests:
+
+```bash
+poetry run pytest
+```
 
 ## Contributing
 
-Contributions are welcome! Please submit issues and pull requests via the GitHub repository.
+Contributions are welcome! Please follow these steps:
 
-## Support
+1. Fork the repository.
+2. Create a feature branch.
+3. Commit your changes.
+4. Submit a pull request.
 
-For questions or issues, contact [developmentbypedrojose@gmail.com](mailto:developmentbypedrojose@gmail.com).
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Author
+
+Developed by [Pedro José Mora Gallegos](https://www.linkedin.com/in/pedro-jose-mora-gallegos).
+
+## Links
+
+- **Homepage**: [LinkedIn](https://www.linkedin.com/in/pedro-jose-mora-gallegos)  
+- **Repository**: [GitHub](https://github.com/pedrojosemoragallegos/confflow)
