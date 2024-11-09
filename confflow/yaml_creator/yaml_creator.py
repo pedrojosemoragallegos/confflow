@@ -139,10 +139,11 @@ def schema_formatter(
                 enum_values := content.get("enum")
             ):
                 comment += f"Type: {value_type} {enum_values}  "
-            if value_type := content.get("type"):
-                comment += f"Type: {value_type}  "
-            if enum_values := content.get("enum"):
-                comment += f"Enum: {enum_values}  "
+            else:
+                if value_type := content.get("type"):
+                    comment += f"Type: {value_type}  "
+                if enum_values := content.get("enum"):
+                    comment += f"Enum: {enum_values}  "
             if literal := content.get("anyOf"):
                 comment += f"Types: {[item['type'] for item in literal]}  "
             if description := content.get("description"):
