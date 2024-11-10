@@ -12,7 +12,7 @@
 - **Pydantic Integration**: Validate configurations using Pydantic models.
 - **YAML Support**: Load and save configurations in YAML format.
 - **Mutually Exclusive Groups**: Enforce logical constraints across configuration options.
-- **Singleton Pattern**: Manage configuration instances efficiently.
+- **Singleton Module**: Configure a single instance of Confflow in your entry point and access it anywhere.
 - **Template Generation**: Automatically generate YAML templates for your configurations.
 
 ## Installation
@@ -37,35 +37,35 @@ poetry install
 Define configuration schemas using Pydantic:
 
 ```python
-from pydantic import BaseModel, Field
+from confflow import BaseConfig, Field
 from typing import Optional, Literal
 
-class CommonSettings(BaseModel):
+class CommonSettings(BaseConfig):
     name: str = Field(..., min_length=3, max_length=50, description="The name of the configuration.")
     enabled: bool = Field(default=True, description="Indicates if this configuration is enabled.")
     priority: int = Field(default=1, ge=1, le=10, description="Priority level, must be between 1 and 10.")
 
-class DatabaseConfig(BaseModel):
+class DatabaseConfig(BaseConfig):
     db_url: str = Field(..., pattern=r"^(postgres|mysql|sqlite)://", description="Database connection URL.")
     max_connections: int = Field(default=10, ge=1, le=100, description="Max number of connections.")
     timeout: Optional[int] = Field(default=30, ge=10, le=300, description="Timeout in seconds.")
 
-class APIConfig(BaseModel):
+class APIConfig(BaseConfig):
     endpoint: str = Field(..., pattern=r"^https?://", description="API endpoint URL.")
     auth_token: Optional[str] = Field(None, description="Optional authentication token.")
     retries: int = Field(default=3, ge=0, le=10, description="Number of retries in case of failure.")
 
-class FeatureFlags(BaseModel):
+class FeatureFlags(BaseConfig):
     experimental_feature: bool = Field(default=False, description="Toggle for experimental feature.")
     legacy_mode: bool = Field(default=False, description="Enable legacy mode for backward compatibility.")
 
 # Mutually Exclusive Models
-class FileStorageConfig(BaseModel):
+class FileStorageConfig(BaseConfig):
     storage_path: str = Field(..., description="Path to the storage directory.")
     max_size_mb: int = Field(default=100, ge=10, le=1024, description="Maximum storage size in MB.")
     backup_enabled: bool = Field(default=True, description="Enable backup for stored files.")
 
-class CloudStorageConfig(BaseModel):
+class CloudStorageConfig(BaseConfig):
     provider: Literal['aws', 'gcp', 'azure'] = Field(..., description="Cloud storage provider.")
     bucket_name: str = Field(..., min_length=3, description="Name of the cloud storage bucket.")
     region: Optional[str] = Field(None, description="Optional region of the cloud storage bucket.")
@@ -74,10 +74,9 @@ class CloudStorageConfig(BaseModel):
 ### 2. Register Schemas and Define Mutually Exclusive Groups
 
 ```python
-from confflow import ConfflowManager
+from confflow import confflow_manager
 
-# Initialize and register schemas
-confflow_manager = ConfflowManager()
+# No initialisation needed as `confflow_manager`is a module instance (Singelton Module Pattern)
 confflow_manager.register_schemas(CommonSettings, FeatureFlags, CloudStorageConfig, DatabaseConfig)
 
 # Set mutually exclusive groups
@@ -145,7 +144,7 @@ confflow_manager.save_config('output_config.yaml')
 
 ### Requirements
 
-- Python 3.10+
+- Python 3.10–3.13
 - Poetry
 
 ### Setup
