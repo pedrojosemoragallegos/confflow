@@ -1,3 +1,5 @@
-from .config_manager.confflow_manager import ConfflowManager
+from .config_manager import BaseConfig, ConfflowManager as _ConfflowManager, Field
 
-__all__ = ["ConfflowManager"]
+confflow_manager: _ConfflowManager = _ConfflowManager()
+
+__all__ = ["BaseConfig", "Field", "confflow_manager"]

@@ -1,3 +1,12 @@
+from pydantic import BaseModel as _BaseModel, Field
+
 from .confflow_manager import ConfflowManager
 
-__all__ = ["ConfflowManager"]
+
+class BaseConfig(_BaseModel):
+    """Base configuration model, extend as necessary."""
+
+    pass
+
+
+__all__ = ["BaseConfig", "Field", "ConfflowManager"]

@@ -1,6 +1,5 @@
 import itertools
 from collections import OrderedDict
-from functools import wraps
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Type, Union
 
@@ -55,19 +54,6 @@ class ConfigProxy:
             return default
 
 
-def singleton(cls: Type) -> Type:
-    instances: Dict[Type, Any] = {}
-
-    @wraps(cls)
-    def get_instance(*args, **kwargs):
-        if cls not in instances:
-            instances[cls] = cls(*args, **kwargs)
-        return instances[cls]
-
-    return get_instance
-
-
-@singleton
 class ConfflowManager:
     def __init__(self):
         self._schema_map: OrderedDict[str, BaseModel] = OrderedDict()
