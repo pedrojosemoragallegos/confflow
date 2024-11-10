@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "confflow"
-version = "0.1.0"
+version = "1.0.0"
 description = "A configuration manager for Python projects"
 authors = ["Pedro José Mora Gallegos <pedrojosemoragallegos@outlook.de>"]
 license = "MIT"
@@ -9,7 +9,7 @@ homepage = "https://www.linkedin.com/in/pedro-jose-mora-gallegos"
 repository = "https://github.com/pedrojosemoragallegos/confflow"
 
 [tool.poetry.dependencies]
-python = ">=3.10,<4.0"
+python = ">=3.10, <3.14"
 pyyaml = "^6.0.2"
 pydantic = "^2.9.2"
 
