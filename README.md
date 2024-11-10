@@ -17,24 +17,51 @@
 
 ## Installation
 
-### Clone the Repository
+### Using `pip` (Recommended)
+
+The easiest way to install **Confflow** is via pip:
 
 ```bash
-git clone https://github.com/pedrojosemoragallegos/confflow.git
+pip install confflow
 ```
 
-Navigate to the project directory and install the dependencies:
+This will install Confflow and its dependencies.
 
-```bash
-cd confflow
-poetry install
-```
+### From Source
+
+If you prefer to install from source, you can clone the repository and install the dependencies manually:
+
+1. Clone the repository
+
+    ```bash
+    git clone https://github.com/pedrojosemoragallegos/confflow.git
+    ```
+
+1. Navigate to the project directory:
+
+    ```bash
+    cd confflow
+    ```
+
+1. Install dependencies
+
+    If you use **Poetry**:
+
+    ```bash
+    poetry install
+    ```
+
+    Or, if you prefer **pip**:
+  
+      ```bash
+      pip isntall .
+      ```
 
 ## Usage
 
 ### 1. Define Your Configuration Models
 
-Define configuration schemas using Pydantic:
+Define configuration schemas using BaseConfig:
 
 ```python
 from confflow import BaseConfig, Field
