@@ -32,7 +32,7 @@ class ConfigHandler:
         self.__setattr__(key, value)
 
     def _get_config(self) -> Dict[str, Any]:
-        config = self._manager._configs.get(self.name)
+        config = self._manager._configurations.get(self.name)
         if not config:
             raise ValueError(f"Configuration for '{self.name}' is not loaded.")
         return config
