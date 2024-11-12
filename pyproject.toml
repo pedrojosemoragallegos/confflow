@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "confflow"
-version = "1.1.1"
+version = "2.0.0"
 description = "A configuration manager for Python projects"
 authors = ["Pedro José Mora Gallegos <pedrojosemoragallegos@outlook.de>"]
 license = "MIT"
