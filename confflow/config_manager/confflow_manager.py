@@ -62,7 +62,9 @@ class ConfflowManager:
 
         save_configuration(type="yaml", output_path=output_path, data=data)
 
-    def create_template(self, output_path: PathLike):
+    def create_template(
+        self, output_path: PathLike
+    ):  # TODO pass type="yaml | json ..."
         HEADER: List[str] = [
             "# ================================================================================",
             "#                                   Configuration Template                        ",
