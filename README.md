@@ -164,7 +164,7 @@ print(f"Database URL: {database_config.db_url}")
 Save the current configurations back to a YAML file:
 
 ```python
-confflow_manager.save_config('output_config.yaml')
+confflow_manager.to_yaml('output_config.yaml')
 ```
 
 ## Development
