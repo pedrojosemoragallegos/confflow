@@ -6,7 +6,7 @@ from pydantic import BaseModel as BaseConfig
 
 from confflow.types import PathLike
 
-from ..yaml_creator.yaml_creator import create_yaml
+from ..formatter.factory import formatter_factory
 from .config_handler import ConfigHandler
 from .config_loader import load_configuration
 from .config_saver import save_configuration
@@ -55,7 +55,7 @@ class ConfflowManager:
             for config in self._configurations.values()
         }
 
-        data: str = create_yaml(
+        data: str = formatter_factory(type="yaml").generate(
             schemas=self._schema_registry.values(),
             default_values=default_values,
         )
@@ -82,7 +82,7 @@ class ConfflowManager:
             "# ================================================================================\n\n",
         ]
 
-        data: str = create_yaml(
+        data: str = formatter_factory(type="yaml").generate(
             schemas=self._schema_registry.values(),
             header=HEADER,
             mutually_exclusive_groups=self._mutually_exclusive_groups,
