@@ -4,9 +4,9 @@ from typing import List, Literal, Optional, Set, Type
 
 from pydantic import BaseModel as BaseConfig
 
-from confflow.config_manager.schema_registry import SchemaRegistry
+from confflow.core.schema_registry import SchemaRegistry
 from confflow.file_handler.factory import file_hanlder_factory
-from confflow.types import ParsedData, PathLike
+from confflow.utils.types import ParsedData, PathLike
 
 
 def load_configuration(

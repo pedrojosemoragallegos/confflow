@@ -3,7 +3,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 from pydantic import BaseModel as BaseConfig
 
-from confflow.types import NestedDict
+from confflow.utils.types import NestedDict
 
 
 class Formatter(ABC):

@@ -1,6 +1,6 @@
 from pydantic import BaseModel as _BaseModel, Field
 
-from .confflow_manager import ConfflowManager
+from .config_manager import ConfigManager
 
 
 class BaseConfig(_BaseModel):
@@ -9,4 +9,4 @@ class BaseConfig(_BaseModel):
     pass
 
 
-__all__ = ["BaseConfig", "Field", "ConfflowManager"]
+__all__ = ["BaseConfig", "Field", "ConfigManager"]

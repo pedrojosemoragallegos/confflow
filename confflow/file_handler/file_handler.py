@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from confflow.types import ParsedData, PathLike
+from confflow.utils.types import ParsedData, PathLike
 
 
 class FileHandler(ABC):

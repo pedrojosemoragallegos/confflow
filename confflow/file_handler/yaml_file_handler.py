@@ -2,7 +2,7 @@ from pathlib import Path
 
 import yaml
 
-from confflow.types import ParsedData, PathLike
+from confflow.utils.types import ParsedData, PathLike
 
 from .file_handler import FileHandler
 
