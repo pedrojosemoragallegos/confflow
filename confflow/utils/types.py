@@ -13,5 +13,6 @@ PathLike = Union[str, Path]
 
 SchemaName: TypeAlias = str
 SchemaMap: TypeAlias = OrderedDict[SchemaName, BaseModel]
-SchemaGroup: TypeAlias = List[BaseModel]
-ConfigType: TypeAlias = Type[BaseModel]
+SchemaType: TypeAlias = Type[BaseModel]
+SchemaGroup: TypeAlias = List[SchemaType]
+SchemaInstance: TypeAlias = BaseModel

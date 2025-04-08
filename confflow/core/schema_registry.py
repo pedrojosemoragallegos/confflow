@@ -6,11 +6,13 @@ from ..utils.types import SchemaMap, SchemaName
 
 
 class SchemaRegistry:
-    def __init__(self):
+    def __init__(self) -> None:
         self._schema_map: SchemaMap = SchemaMap()
         self._schema_descriptions: Dict[SchemaName, str] = {}
 
-    def register(self, schema: Type[BaseModel], description: Optional[str] = None):
+    def register(
+        self, schema: Type[BaseModel], description: Optional[str] = None
+    ) -> None:
         name: SchemaName = schema.__name__
 
         if name in self._schema_map:

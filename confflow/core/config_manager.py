@@ -1,12 +1,16 @@
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, Dict, List, Optional, TypeAlias
 
+import yaml
 from pydantic import BaseModel
 
 from ..io import to_file
-from ..utils.types import PathLike, SchemaGroup
+from ..utils.types import PathLike, SchemaGroup, SchemaName, SchemaType
 from .exclusive_schema_manager import ExclusiveSchemaManager
 from .schema_registry import SchemaRegistry
+
+ConfigurationMap: TypeAlias = Dict[SchemaName, BaseModel]
+DefaultsMap: TypeAlias = Dict[SchemaType, Dict[str, Any]]
 
 TEMPLE_HEADER: List[str] = [
     "================================================================================",
@@ -41,12 +45,12 @@ class ConfigManager:
         if not self._initialized:
             self._schema_registry = SchemaRegistry()
             self._exclusivity_manager = ExclusiveSchemaManager()
-            self._configurations: Dict[str, BaseModel] = {}
+            self._configurations: ConfigurationMap = {}
             ConfigManager._initialized = True
 
     def register_schema(
         self,
-        schema: Type[BaseModel],
+        schema: SchemaType,
         description: Optional[str] = None,
         exclusive_group: Optional[str] = None,
     ) -> None:
@@ -59,7 +63,7 @@ class ConfigManager:
 
     def set_configs(self, *instances: BaseModel) -> None:
         for instance in instances:
-            name: str = instance.__class__.__name__
+            name: SchemaName = instance.__class__.__name__
 
             if name not in self._schema_registry:
                 raise ValueError(f"Schema '{name}' is not registered.")
@@ -69,52 +73,37 @@ class ConfigManager:
         self._exclusivity_manager.validate(list(self._configurations.values()))
 
     @property
-    def configurations(self) -> Dict[str, BaseModel]:
+    def configurations(self) -> ConfigurationMap:
         return self._configurations
 
     @property
-    def schemas(self) -> List[BaseModel]:
+    def schemas(self) -> List[SchemaType]:
         return self._schema_registry.schemas
 
     @property
     def exclusive_groups(self) -> List[SchemaGroup]:
         return self._exclusivity_manager.exclusive_groups
 
-    # def load_yaml(self, input_path: PathLike):
-    #     load_configuration(
-    #         type="yaml",
-    #         input_path=input_path,
-    #         mutually_exclusive_groups=self._mutually_exclusive_groups,
-    #         configurations=self._schema_map,
-    #         schema_registry=self._schema_registry,
-    #     )
-
-    def save(self, output_path: PathLike):
+    def save(self, output_path: PathLike) -> None:
         output_path: Path = Path(output_path)
 
         if not self._configurations:
             raise ValueError("No configurations to save.")
 
-        config_values: Dict[str, Dict[str, Any]] = {  # TODO check typing
-            config.__class__.__name__: config.model_dump()
+        defaults: DefaultsMap = {
+            type(config): config.model_dump()
             for config in self._configurations.values()
         }
 
-        schemas: List[BaseModel] = [
-            schema
-            for schema in self.schemas
-            if schema.__name__ in list(config_manager.configurations.keys())
-        ]
-
         to_file(
-            header="TODO header",
-            schemas=schemas,
-            config_values=config_values,
+            schemas=list(self._configurations.values()),
             format="yaml",
             path=output_path,
+            header=["Generated configuration file"],
+            defaults=defaults,
         )
 
-    def create_template(self, output_path: PathLike):
+    def create_template(self, output_path: PathLike) -> None:
         to_file(
             header=TEMPLE_HEADER,
             schemas=self.schemas,
@@ -122,6 +111,62 @@ class ConfigManager:
             format="yaml",
             path=output_path,
         )
+
+    def load(self, input_path: PathLike) -> None:
+        input_path = Path(input_path)
+
+        if not input_path.exists():
+            raise FileNotFoundError(f"Configuration file not found: {input_path}")
+
+        with open(input_path, "r", encoding="utf-8") as f:
+            parsed_data: Dict[str, Any] = yaml.safe_load(f) or {}
+
+        loaded_configurations: ConfigurationMap = {}
+        loaded_names = set(parsed_data.keys())
+
+        # Get all mutually exclusive group schema names
+        exclusive_names = {
+            schema.__name__ for group in self.exclusive_groups for schema in group
+        }
+
+        # Get required schemas = all registered schemas - exclusive ones
+        required_names = {
+            schema.__name__
+            for schema in self._schema_registry.schemas
+            if schema.__name__ not in exclusive_names
+        }
+
+        # Step 1: Check that all required (non-exclusive) schemas are present
+        missing_required = required_names - loaded_names
+        if missing_required:
+            raise ValueError(
+                f"Missing configuration(s) for required schema(s): {sorted(missing_required)}"
+            )
+
+        # Step 2: Check that exactly one schema is present from each exclusive group
+        for group in self.exclusive_groups:
+            group_names = {schema.__name__ for schema in group}
+            present = group_names & loaded_names
+
+            if len(present) == 0:
+                raise ValueError(
+                    f"No configuration provided for mutually exclusive group: {sorted(group_names)}"
+                )
+            if len(present) > 1:
+                raise ValueError(
+                    f"Multiple configurations provided for mutually exclusive group {sorted(group_names)}: {sorted(present)}"
+                )
+
+        # Step 3: Parse and instantiate all loaded configs
+        for schema_name, config_data in parsed_data.items():
+            schema_class = self._schema_registry[schema_name]
+
+            if not schema_class:
+                raise ValueError(f"Unknown schema type: '{schema_name}'")
+
+            loaded_configurations[schema_name] = schema_class(**config_data)
+
+        self._configurations = loaded_configurations
 
 
 config_manager = ConfigManager()

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Type, Union
 
 from pydantic import BaseModel
 
@@ -17,12 +17,17 @@ class BaseFormatter(ABC):
     def generate(
         schemas: List[BaseModel],
         header: Optional[List[str]] = None,
-        exclusive_groups: List[SchemaGroup] = [],
+        exclusive_groups: Optional[List[SchemaGroup]] = None,
+        defaults: Optional[Dict[Type[BaseModel], Dict[str, Any]]] = None,
     ) -> str: ...
 
     @abstractmethod
     def _format_key_value(
-        self, key: str, value: Any, comment: Optional[str], level: int
+        self,
+        key: str,
+        value: Any,
+        comment: Optional[str],
+        level: int,
     ) -> str: ...
 
     @abstractmethod
@@ -34,13 +39,14 @@ class BaseFormatter(ABC):
     def _build_exclusivity_index_map(
         self,
         schemas: List[BaseModel],
-        exclusive_groups: List[SchemaGroup],
+        exclusive_groups: Optional[List[SchemaGroup]],
     ) -> Dict[int, int]:
         index_map: Dict[int, int] = {}
-        for group_id, group in enumerate(exclusive_groups):
-            for schema in group:
-                index: int = schemas.index(schema)
-                index_map[index] = group_id
+        if exclusive_groups:
+            for group_id, group in enumerate(exclusive_groups):
+                for schema in group:
+                    index: int = schemas.index(schema)
+                    index_map[index] = group_id
         return index_map
 
     def _render_exclusive_group(
@@ -65,7 +71,8 @@ class BaseFormatter(ABC):
             return root.get("$defs", {}).get(ref_key, {})
 
         def resolve_node(
-            node: NestedDict, root: NestedDict
+            node: NestedDict,
+            root: NestedDict,
         ) -> Union[NestedDict, Dict[str, Any]]:
             if "$ref" in node:
                 resolved: NestedDict = resolve_ref(node["$ref"], root)
@@ -93,16 +100,18 @@ class BaseFormatter(ABC):
         structured_schema: NestedDict,
         level: int,
         lines: List[str],
+        defaults: Optional[Dict[str, Any]] = None,
     ) -> None:
+        defaults = defaults or {}
         for key, content in structured_schema.items():
             if isinstance(content, dict) and any(
                 isinstance(v, dict) for v in content.values()
             ):
                 lines.append(self._format_section(key, level))
-                self._format_schema_recursive(content, level + 1, lines)
+                self._format_schema_recursive(content, level + 1, lines, defaults)
             else:
                 comment: Optional[str] = self._extract_comment(content)
-                default: Any = content.get("default", "")
+                default: Any = defaults.get(key, content.get("default", ""))
                 lines.append(self._format_key_value(key, default, comment, level))
 
     def _extract_comment(self, content: Dict[str, Any]) -> Optional[str]:
