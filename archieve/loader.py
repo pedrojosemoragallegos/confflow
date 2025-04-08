@@ -2,18 +2,18 @@ from collections import OrderedDict
 from pathlib import Path
 from typing import List, Literal, Optional, Set, Type
 
-from pydantic import BaseModel as BaseConfig
+from pydantic import BaseModel
 
 from confflow.core.schema_registry import SchemaRegistry
-from confflow.file_handler.factory import file_hanlder_factory
+from confflow.io.factory import file_hanlder_factory
 from confflow.utils.types import ParsedData, PathLike
 
 
 def load_configuration(
     type: Literal["yaml"],
     input_path: PathLike,
-    mutually_exclusive_groups: List[List[BaseConfig]],
-    configurations: OrderedDict[str, BaseConfig],
+    mutually_exclusive_groups: List[List[BaseModel]],
+    configurations: OrderedDict[str, BaseModel],
     schema_registry: SchemaRegistry,
 ):
     input_path: Path = Path(input_path)
@@ -32,7 +32,7 @@ def load_configuration(
                 )
 
     for config_name, config_data in parsed_data.items():
-        config_class: Optional[Type[BaseConfig]] = schema_registry[config_name]
+        config_class: Optional[Type[BaseModel]] = schema_registry[config_name]
         if not config_class:
             raise ValueError(f"Unknown config type: {config_name}")
 

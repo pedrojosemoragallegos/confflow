@@ -1,5 +1,3 @@
-from .core import BaseConfig, ConfigManager, Field
+from .core import config_manager, register
 
-config_manager: ConfigManager = ConfigManager()
-
-__all__ = ["BaseConfig", "Field", "confflow_manager"]
+__all__ = ["config_manager", "register"]

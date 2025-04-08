@@ -1,12 +1,27 @@
-from pydantic import BaseModel as _BaseModel, Field
+from functools import wraps
+from typing import Callable, Optional, Type
 
-from .config_manager import ConfigManager
+from pydantic import BaseModel
+
+from .config_manager import config_manager
+
+__all__ = ["config_manager", "register"]
 
 
-class BaseConfig(_BaseModel):
-    """Base configuration model, extend as necessary."""
+def register(
+    description: Optional[str] = None,
+    exclusive_group: Optional[str] = None,
+) -> Callable[[Type[BaseModel]], Type[BaseModel]]:
+    def decorator(cls: Type[BaseModel]) -> Type[BaseModel]:
+        @wraps(cls)
+        def wrapper(*args, **kwargs):
+            return cls(*args, **kwargs)
 
-    pass
+        config_manager.register_schema(cls, description=description)
 
+        if exclusive_group:
+            config_manager._exclusivity_manager.add_to_group(exclusive_group, cls)
 
-__all__ = ["BaseConfig", "Field", "ConfigManager"]
+        return cls
+
+    return decorator

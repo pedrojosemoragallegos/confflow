@@ -1,118 +1,127 @@
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Type
 
-from confflow.utils.types import PathLike
+from pydantic import BaseModel
 
-from ..formatter.factory import formatter_factory
-from ..utils.types import BaseConfig, ConfigGroup, SchemaMap
-
-# from .config_handler import ConfigHandler
-from .config_loader import load_configuration
-from .config_saver import save_configuration
+from ..io import to_file
+from ..utils.types import PathLike, SchemaGroup
+from .exclusive_schema_manager import ExclusiveSchemaManager
 from .schema_registry import SchemaRegistry
+
+TEMPLE_HEADER: List[str] = [
+    "================================================================================",
+    "                                  Configuration Template                        ",
+    "================================================================================",
+    "",
+    "Purpose:",
+    "  - Use this template to set up configuration values for your environment.",
+    "",
+    "Instructions:",
+    "  - Fill in each field with appropriate values.",
+    "  - Refer to the documentation for detailed descriptions of each field.",
+    "",
+    "Notes:",
+    "  - Only one configuration per mutually exclusive group can be active at a time.",
+    "  - Ensure data types match the specified type for each field.",
+    "",
+    "================================================================================",
+]
 
 
 class ConfigManager:
-    def __init__(self):
-        self._schema_map: SchemaMap = SchemaMap()
-        self._schema_registry: SchemaRegistry = SchemaRegistry()
-        self._mutually_exclusive_groups: Optional[List[ConfigGroup]] = None
+    _instance: Optional["ConfigManager"] = None
+    _initialized: bool = False
 
-    def register_schemas(self, *configs: BaseConfig):
-        self._schema_registry.register_schemas(*configs)
+    def __new__(cls) -> "ConfigManager":
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
-    def set_mutual_exclusive_groups(self, *exclusive_config_groups: ConfigGroup):
-        all_exclusive_configs: Set[BaseConfig] = {
-            config
-            for exclusive_config_group in exclusive_config_groups
-            for config in exclusive_config_group
-        }
+    def __init__(self) -> None:
+        if not self._initialized:
+            self._schema_registry = SchemaRegistry()
+            self._exclusivity_manager = ExclusiveSchemaManager()
+            self._configurations: Dict[str, BaseModel] = {}
+            ConfigManager._initialized = True
 
-        registered_configs: Set[BaseConfig] = set(self._schema_registry.values())
+    def register_schema(
+        self,
+        schema: Type[BaseModel],
+        description: Optional[str] = None,
+        exclusive_group: Optional[str] = None,
+    ) -> None:
+        self._schema_registry.register(schema=schema, description=description)
 
-        unregistered_configs: Set[BaseConfig] = all_exclusive_configs.difference(
-            registered_configs
-        )
-
-        if unregistered_configs:
-            raise ValueError(
-                f"The following classes are not valid: "
-                f"{', '.join(cls.__name__ for cls in unregistered_configs)}"
+        if exclusive_group:
+            self._exclusivity_manager.add_to_group(
+                group_name=exclusive_group, schema=schema
             )
 
-        for exclusive_config_group in exclusive_config_groups:
-            active_classes: List[BaseConfig] = [
-                config_class
-                for config_class in self._schema_map.values()
-                if config_class in exclusive_config_group
-            ]
+    def set_configs(self, *instances: BaseModel) -> None:
+        for instance in instances:
+            name: str = instance.__class__.__name__
 
-            if len(active_classes) > 1:
-                raise ValueError(
-                    f"Mutual exclusion conflict: {active_classes} are active in group {exclusive_config_group}."
-                )
+            if name not in self._schema_registry:
+                raise ValueError(f"Schema '{name}' is not registered.")
 
-        self._mutually_exclusive_groups: List[ConfigGroup] = exclusive_config_groups
+            self._configurations[name] = instance
 
-    def load_yaml(self, input_path: PathLike):
-        load_configuration(
-            type="yaml",
-            input_path=input_path,
-            mutually_exclusive_groups=self._mutually_exclusive_groups,
-            configurations=self._schema_map,
-            schema_registry=self._schema_registry,
-        )
+        self._exclusivity_manager.validate(list(self._configurations.values()))
 
-    def to_yaml(self, output_path: PathLike):
-        if not self._schema_map:
-            raise ValueError("No configurations loaded to save.")
+    @property
+    def configurations(self) -> Dict[str, BaseModel]:
+        return self._configurations
 
+    @property
+    def schemas(self) -> List[BaseModel]:
+        return self._schema_registry.schemas
+
+    @property
+    def exclusive_groups(self) -> List[SchemaGroup]:
+        return self._exclusivity_manager.exclusive_groups
+
+    # def load_yaml(self, input_path: PathLike):
+    #     load_configuration(
+    #         type="yaml",
+    #         input_path=input_path,
+    #         mutually_exclusive_groups=self._mutually_exclusive_groups,
+    #         configurations=self._schema_map,
+    #         schema_registry=self._schema_registry,
+    #     )
+
+    def save(self, output_path: PathLike):
         output_path: Path = Path(output_path)
 
-        default_values: Dict[str, Dict[str, Any]] = {  # TODO check typing
+        if not self._configurations:
+            raise ValueError("No configurations to save.")
+
+        config_values: Dict[str, Dict[str, Any]] = {  # TODO check typing
             config.__class__.__name__: config.model_dump()
-            for config in self._schema_map.values()
+            for config in self._configurations.values()
         }
 
-        data: str = formatter_factory(type="yaml").generate(
-            schemas=self._schema_registry.values(),
-            default_values=default_values,
-        )
-
-        save_configuration(type="yaml", output_path=output_path, data=data)
-
-    def create_template(
-        self, output_path: PathLike
-    ):  # TODO pass type="yaml | json ..."
-        HEADER: List[str] = [
-            "# ================================================================================",
-            "#                                   Configuration Template                        ",
-            "# ================================================================================",
-            "# ",
-            "# Purpose:",
-            "#   - Use this template to set up configuration values for your environment.",
-            "#",
-            "# Instructions:",
-            "#   - Fill in each field with appropriate values.",
-            "#   - Refer to the documentation for detailed descriptions of each field.",
-            "#",
-            "# Notes:",
-            "#   - Only one configuration per mutually exclusive group can be active at a time.",
-            "#   - Ensure data types match the specified type for each field.",
-            "#",
-            "# ================================================================================\n\n",
+        schemas: List[BaseModel] = [
+            schema
+            for schema in self.schemas
+            if schema.__name__ in list(config_manager.configurations.keys())
         ]
 
-        data: str = formatter_factory(type="yaml").generate(
-            schemas=self._schema_registry.values(),
-            header=HEADER,
-            mutually_exclusive_groups=self._mutually_exclusive_groups,
+        to_file(
+            header="TODO header",
+            schemas=schemas,
+            config_values=config_values,
+            format="yaml",
+            path=output_path,
         )
 
-        save_configuration(type="yaml", output_path=output_path, data=data)
+    def create_template(self, output_path: PathLike):
+        to_file(
+            header=TEMPLE_HEADER,
+            schemas=self.schemas,
+            exclusive_groups=self.exclusive_groups,
+            format="yaml",
+            path=output_path,
+        )
 
-    def __getitem__(self, name: str):  # -> ConfigHandler:
-        return self._schema_map[name].model_dump(mode="python")
-        # if name not in self._schema_map:
-        #     raise ValueError(f"Configuration for '{name}' is not loaded.")
-        # return ConfigHandler(name, self)
+
+config_manager = ConfigManager()

@@ -2,7 +2,7 @@ from os import PathLike
 from pathlib import Path
 from typing import Literal
 
-from confflow.file_handler.factory import file_hanlder_factory
+from confflow.io.factory import file_hanlder_factory
 
 
 def save_configuration(

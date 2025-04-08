@@ -1,40 +1,34 @@
-from typing import List
+from typing import Dict, List, Optional, Type
 
-from ..utils.types import BaseConfig, ConfigName, SchemaMap
+from pydantic import BaseModel
+
+from ..utils.types import SchemaMap, SchemaName
 
 
 class SchemaRegistry:
-    """
-    Manages the registration and retrieval of configuration schemas.
-
-    This registry allows adding new schema configurations and retrieving
-    them by their names. It ensures each schema is uniquely identifiable
-    by its name.
-    """
-
     def __init__(self):
         self._schema_map: SchemaMap = SchemaMap()
+        self._schema_descriptions: Dict[SchemaName, str] = {}
 
-    def register_schemas(self, *configs: BaseConfig):
-        for config in configs:
-            config_name: ConfigName = config.__name__
+    def register(self, schema: Type[BaseModel], description: Optional[str] = None):
+        name: SchemaName = schema.__name__
 
-            if config_name in self._schema_map:
-                raise ValueError(f"Schema '{config_name}' is already registered.")
+        if name in self._schema_map:
+            raise ValueError(f"Schema '{name}' is already registered.")
 
-            self._schema_map[config_name] = config
+        self._schema_map[name] = schema
+        if description:
+            self._schema_descriptions[name] = description
 
-    def get(self, config_name: ConfigName) -> BaseConfig:
-        if config_name not in self._schema_map:
-            raise KeyError(f"Schema '{config_name}' is not registered.")
-
-        return self._schema_map[config_name]
-
-    def values(self) -> List[BaseConfig]:
+    @property
+    def schemas(self) -> List[BaseModel]:
         return list(self._schema_map.values())
 
-    def __getitem__(self, config_name: ConfigName) -> BaseConfig:
-        return self.get(config_name)
+    def get_description(self, name: SchemaName) -> Optional[str]:
+        return self._schema_descriptions.get(name)
 
-    def __contains__(self, config_name: ConfigName) -> bool:
-        return config_name in self._schema_map
+    def __getitem__(self, name: SchemaName) -> BaseModel:
+        return self._schema_map[name]
+
+    def __contains__(self, name: SchemaName) -> bool:
+        return name in self._schema_map
