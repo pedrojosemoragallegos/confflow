@@ -1,22 +1,31 @@
 CommonSettings:
-  name: "Test" # Type: string  Description: The name of the configuration.
-  enabled: True # Type: boolean  Description: Indicates if this configuration is enabled.
-  priority: 1 # Type: integer  Description: Priority level, must be between 1 and 10.
+  name: "MyApp Configuration"
+  enabled: True
+  priority: 5
+
+DatabaseConfig:
+  db_url: "postgres://user:password@localhost:5432/mydatabase"
+  max_connections: 20
+  timeout: 60
+
+APIConfig:
+  endpoint: "https://api.myapp.com/v1/"
+  auth_token: "abc123securetoken"
+  retries: 5
 
 FeatureFlags:
-  experimental_feature: True # Type: boolean  Description: Toggle for experimental feature.
-  legacy_mode: True # Type: boolean  Description: Enable legacy mode for backward compatibility.
+  experimental_feature: True
+  legacy_mode: False
 
-# -------------------------------------
-# Mutual exclusive group: Pick only one
-# -------------------------------------
-CloudStorageConfig:
-  provider: "aws" # Type: string ['aws', 'gcp', 'azure']  Description: Cloud storage provider.
-  bucket_name: "Test" # Type: string  Description: Name of the cloud storage bucket.
-  region: # Types: ['string', 'null']  Description: Optional region of the cloud storage bucket.
+FileStorageConfig:
+  storage_path: "/var/lib/myapp/storage"
+  max_size_mb: 500
+  backup_enabled: True
 
-# DatabaseConfig:
-#   db_url:  # Type: string  Description: Database connection URL.
-#   max_connections: 10 # Type: integer  Description: Max number of connections.
-#   timeout: 30 # Types: ['integer', 'null']  Description: Timeout in seconds.
-# -------------------------------------
+AdamConfig:
+  type: adam
+  learning_rate: 0.001
+
+AttentionConfig:
+  use_attention: True
+  num_heads: 8
