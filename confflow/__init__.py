@@ -1,3 +1,3 @@
-from .core import config_manager, register
+from .core import BaseRule, ConfigManager, MutualExclusionRule
 
-__all__ = ["config_manager", "register"]
+confflow = ConfigManager()

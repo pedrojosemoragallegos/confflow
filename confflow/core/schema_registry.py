@@ -1,33 +1,31 @@
-from typing import Dict, List, Optional, Type
+from typing import OrderedDict, TypeAlias
 
 from pydantic import BaseModel
 
-from ..utils.types import SchemaMap, SchemaName
+from ..utils.types import Schema, SchemaName
+
+SchemaMap: TypeAlias = OrderedDict[SchemaName, Schema]
 
 
 class SchemaRegistry:
     def __init__(self) -> None:
         self._schema_map: SchemaMap = SchemaMap()
-        self._schema_descriptions: Dict[SchemaName, str] = {}
 
-    def register(
-        self, schema: Type[BaseModel], description: Optional[str] = None
-    ) -> None:
-        name: SchemaName = schema.__name__
+    def register(self, schema: Schema) -> None:
+        schema_name: SchemaName = schema.__name__
 
-        if name in self._schema_map:
-            raise ValueError(f"Schema '{name}' is already registered.")
+        if schema_name in self._schema_map:
+            raise ValueError(f"Schema '{schema_name}' is already registered.")
 
-        self._schema_map[name] = schema
-        if description:
-            self._schema_descriptions[name] = description
+        self._schema_map[schema_name] = schema
 
     @property
-    def schemas(self) -> List[BaseModel]:
+    def schema_types(self) -> list[BaseModel]:
         return list(self._schema_map.values())
 
-    def get_description(self, name: SchemaName) -> Optional[str]:
-        return self._schema_descriptions.get(name)
+    @property
+    def schema_names(self) -> list[SchemaName]:
+        return list(self._schema_map.keys())
 
     def __getitem__(self, name: SchemaName) -> BaseModel:
         return self._schema_map[name]

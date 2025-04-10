@@ -1,4 +1,4 @@
-notebooks
+playground
 
 # Ignore Python bytecode files
 __pycache__/
