@@ -2,10 +2,10 @@ from typing import Any, Dict, List, TypeAlias
 
 from pydantic import BaseModel
 
-from ..core.rule_engine.base_rule import BaseRule
-from ..core.rule_engine.rule_engine import RuleEngine
-from ..utils.types import Schema, SchemaName
-from .schema_registry import SchemaRegistry
+from .common.types import Schema, SchemaName
+from .core.registry.schema_registry import SchemaRegistry
+from .core.rule_engine.base_rule import BaseRule
+from .core.rule_engine.rule_engine import RuleEngine
 
 ConfigurationMap: TypeAlias = Dict[SchemaName, BaseModel]
 DefaultsMap: TypeAlias = Dict[Schema, Dict[str, Any]]

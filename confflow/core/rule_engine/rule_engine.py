@@ -1,5 +1,5 @@
-from ...utils.types import BaseModel, Schema
-from ..schema_registry import SchemaRegistry
+from ...common.types import BaseModel, Schema
+from ..registry.schema_registry import SchemaRegistry
 from .base_rule import BaseRule
 
 

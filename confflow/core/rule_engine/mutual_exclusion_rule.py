@@ -1,4 +1,4 @@
-from ...utils.types import Schema
+from ...common.types import Schema
 from .base_rule import BaseRule
 
 

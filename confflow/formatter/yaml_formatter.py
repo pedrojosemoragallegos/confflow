@@ -2,10 +2,12 @@ from typing import Any, Dict, List, Optional, Set, Type
 
 from pydantic import BaseModel
 
-from ...utils.types import SchemaGroup
+from ..common.types import SchemaGroup
 from .base_formatter import BaseFormatter
+from .formatter_registry import FormatterRegistry
 
 
+@FormatterRegistry.register(key="yaml")
 class YAMLFormatter(BaseFormatter):
     @staticmethod
     def generate(

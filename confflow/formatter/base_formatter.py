@@ -3,7 +3,7 @@ from typing import Any, Callable, Dict, List, Optional, Type, Union
 
 from pydantic import BaseModel
 
-from ...utils.types import NestedDict, SchemaGroup
+from ..common.types import NestedDict, SchemaGroup
 
 
 class BaseFormatter(ABC):

@@ -5,8 +5,8 @@ from typing import Any, Dict, List, Literal, Optional, Set, Type
 import yaml
 from pydantic import BaseModel
 
-from ..core.schema_registry import SchemaRegistry
-from ..utils.types import ParsedData, PathLike, SchemaGroup
+from ..common.types import ParsedData, PathLike, SchemaGroup
+from ..core.registry.schema_registry import SchemaRegistry
 from .formatter import YAMLFormatter
 from .formatter.base_formatter import BaseFormatter
 

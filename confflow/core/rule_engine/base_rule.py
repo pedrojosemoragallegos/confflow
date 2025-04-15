@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from ...utils.types import Schema
+from ...common.types import Schema
 
 
 class BaseRule(ABC):

@@ -2,7 +2,7 @@ from typing import OrderedDict, TypeAlias
 
 from pydantic import BaseModel
 
-from ..utils.types import Schema, SchemaName
+from ...common.types import Schema, SchemaName
 
 SchemaMap: TypeAlias = OrderedDict[SchemaName, Schema]
 
