@@ -7,9 +7,9 @@ from ..common.types import NestedDict, SchemaGroup
 
 
 class BaseFormatter(ABC):
-    MUTEX_HEADER: str = "# ---------------------------------------"
-    MUTEX_MSG: str = "# Mutually exclusive group: Pick only one"
-    MUTEX_FOOTER: str = "# ---------------------------------------"
+    # MUTEX_HEADER: str = "# ---------------------------------------"
+    # MUTEX_MSG: str = "# Mutually exclusive group: Pick only one"
+    # MUTEX_FOOTER: str = "# ---------------------------------------"
     DEFAULT_INDENT: str = "  "
 
     @staticmethod
