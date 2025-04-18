@@ -6,6 +6,7 @@ DEFINITIONS_KEY: str = "$defs"
 REFERENCE_KEY: str = "$ref"
 DESCRIPTION_KEY: str = "description"
 TYPE_KEY: str = "type"
+TITLE_KEY: str = "title"
 
 
 def _resolve_required(schema: Dict[str, Any]) -> Dict[str, Any]:
