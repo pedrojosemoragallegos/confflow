@@ -111,3 +111,20 @@ def resolve_schemas(
         )
 
     return schemas
+
+
+def build_tree_string(dictionary: dict, prefix: str = "") -> str:
+    lines: list[str] = []
+    items: list[tuple[str, any]] = list(dictionary.items())
+    for i, (key, value) in enumerate(items):
+        connector: str = "└── " if i == len(items) - 1 else "├── "
+        lines.append(prefix + connector + str(key))
+        if isinstance(value, dict):
+            extension: str = "    " if i == len(items) - 1 else "│   "
+            subtree: str = build_tree_string(value, prefix + extension)
+            lines.append(subtree)
+        else:
+            leaf_connector: str = "└── "
+            extension: str = "    " if i == len(items) - 1 else "│   "
+            lines.append(prefix + extension + leaf_connector + str(value))
+    return "\n".join(lines)
