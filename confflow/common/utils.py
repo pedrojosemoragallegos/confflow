@@ -88,16 +88,6 @@ def resolve_required(
     return properties
 
 
-def resolve_properties(
-    properties: dict[str, Any], *, reference_map: dict[str, Any], required: list[str]
-) -> dict[str, Any]:
-    properties = copy.deepcopy(properties)
-    properties = resolve_references(properties, reference_map=reference_map)
-    properties = resolve_required(properties, required=required)
-
-    return properties
-
-
 def resolve_schemas(
     schemas: dict[str, Any], *, reference_map: dict[str, Any]
 ) -> dict[str, Any]:
@@ -111,6 +101,26 @@ def resolve_schemas(
         )
 
     return schemas
+
+
+def resolve_properties(
+    properties: dict[str, Any], *, reference_map: dict[str, Any], required: list[str]
+) -> dict[str, Any]:
+    properties = copy.deepcopy(properties)
+    properties = resolve_references(properties, reference_map=reference_map)
+    properties = resolve_required(properties, required=required)
+
+    return properties
+
+
+def resolve(model_schema: dict[str, Any]) -> dict[str, Any]:
+    return resolve_properties(
+        model_schema["properties"],
+        reference_map=resolve_schemas(
+            model_schema["$defs"], reference_map=model_schema["$defs"]
+        ),
+        required=model_schema["required"],
+    )
 
 
 def build_tree_string(dictionary: dict, prefix: str = "") -> str:
