@@ -98,7 +98,7 @@ def resolve_schema(model_json_schema: dict[str, Any]) -> dict[str, Any]:
     return model_json_schema
 
 
-def inject_set_value(
+def inject_set_values(
     schema: dict[str, Any], values_to_inject: dict[str, Any]
 ) -> dict[str, Any]:
     def inject_recursively(

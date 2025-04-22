@@ -18,27 +18,32 @@ def format_properties(properties: dict[str, Any], level: int = 1) -> str:
     comment: str = "#"
 
     for name, content in properties.items():
+        description: str = content.pop(SchemaKey.DESCRIPTION, "")
+
         if SchemaKey.PROPERTIES in content:
-            lines.append(f"{indent}{name}:")
+            lines.append(f"{indent}{name}: " + f"{comment} {description}")
             lines.append(format_properties(content[SchemaKey.PROPERTIES], level + 1))
         else:
             type: str = content.pop(SchemaKey.TYPE, "")
             required: str = str(content.pop(SchemaKey.REQUIRED, False))
-            description: str = content.pop(SchemaKey.DESCRIPTION, "")
+
             value: str = str(content.pop(SchemaKey.VALUE, ""))
 
             if not value:
                 value = str(content.pop(SchemaKey.DEFAULT, ""))
 
             content.pop(SchemaKey.TITLE, None)
+
             conditions: str = (
-                ", ".join(f"{k}: {v}" for k, v in content.items()) or f"{None}"
+                ", ".join(f"{k}: {v}" for k, v in content.items()) if content else ""
             )
 
             line: str = (
                 f"{indent}{name}:{' ' if value else ''}{value} {comment} "
-                f"{SchemaKey.TYPE}: {type}, {SchemaKey.REQUIRED}: {required}, {conditions} | {SchemaKey.DESCRIPTION}: {description}"
+                f"{SchemaKey.TYPE}: {type}, {SchemaKey.REQUIRED}: {required}"
+                f"{', ' + conditions if conditions and conditions != 'None' else ''} | {SchemaKey.DESCRIPTION}: {description}"
             )
+
             lines.append(line)
 
     return "\n".join(lines)
