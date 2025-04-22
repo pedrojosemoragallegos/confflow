@@ -1,18 +1,18 @@
 # ================================================================================
-#                                   Configuration Template                        
+#                                   Configuration Template
 # ================================================================================
-# 
+#
 # Purpose:
 #   - Use this template to set up configuration values for your environment.
-# 
+#
 # Instructions:
 #   - Fill in each field with appropriate values.
 #   - Refer to the documentation for detailed descriptions of each field.
-# 
+#
 # Notes:
 #   - Only one configuration per mutually exclusive group can be active at a time.
 #   - Ensure data types match the specified type for each field.
-# 
+#
 # ================================================================================
 
 CommonSettings:
