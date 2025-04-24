@@ -1,52 +1,50 @@
-from typing import Any, Dict, List, TypeAlias
+from typing import Any, Dict, TypeAlias
 
 from pydantic import BaseModel
 
 from .common.types import Schema, SchemaName
-from .core.registry.schema_registry import SchemaRegistry
-from .core.rule_engine.base_rule import BaseRule
-from .core.rule_engine.rule_engine import RuleEngine
+from .core import BaseRule, RuleEngine, SchemaRegistry
 
 ConfigurationMap: TypeAlias = Dict[SchemaName, BaseModel]
 DefaultsMap: TypeAlias = Dict[Schema, Dict[str, Any]]
 
-TEMPLATE_HEADER: List[str] = [  # TODO move it to a module level
-    "================================================================================",
-    "                                  Configuration Template                        ",
-    "================================================================================",
-    "",
-    "Purpose:",
-    "  - Use this template to set up configuration values for your environment.",
-    "",
-    "Instructions:",
-    "  - Fill in each field with appropriate values.",
-    "  - Refer to the documentation for detailed descriptions of each field.",
-    "",
-    "Notes:",
-    "  - Only one configuration per mutually exclusive group can be active at a time.",
-    "  - Ensure data types match the specified type for each field.",
-    "",
-    "================================================================================",
-]
+# TEMPLATE_HEADER: List[str] = [  # TODO move it to a module level
+#     "================================================================================",
+#     "                                  Configuration Template                        ",
+#     "================================================================================",
+#     "",
+#     "Purpose:",
+#     "  - Use this template to set up configuration values for your environment.",
+#     "",
+#     "Instructions:",
+#     "  - Fill in each field with appropriate values.",
+#     "  - Refer to the documentation for detailed descriptions of each field.",
+#     "",
+#     "Notes:",
+#     "  - Only one configuration per mutually exclusive group can be active at a time.",
+#     "  - Ensure data types match the specified type for each field.",
+#     "",
+#     "================================================================================",
+# ]
 
 
 class ConfigManager:
     def __init__(self) -> None:
-        self._registry = SchemaRegistry()
-        self._ruler = RuleEngine(registry=self._registry)
-        self._data: ConfigurationMap = {}
+        self._schema_registry = SchemaRegistry()
+        self._rule_engine = RuleEngine()
+        # self._data: ConfigurationMap = {}
 
     def register_schemas(
         self,
         *schemas: Schema,
     ) -> None:
         for schema in schemas:
-            self._registry.register(schema)
+            self._schema_registry.register(schema)
 
     def register_rules(self, *rules: BaseRule) -> None:
         for rule in rules:
-            missing_schemas: set[Schema] = rule.referenced_schemas - set(
-                self._registry.schema_types
+            missing_schemas: set[Schema] = rule.schemas - set(
+                self._schema_registry.schema_types
             )
 
             if missing_schemas:
@@ -54,24 +52,24 @@ class ConfigManager:
                     f"The following schemas are not registered: {missing_schemas}"
                 )
 
-            self._ruler.register(rule)
+            self._rule_engine.add_rule(rule)
 
-    def set_configs(self, *configs: BaseModel) -> None:
-        for config in configs:
-            schema_name: SchemaName = config.__class__.__name__
+    # def set_configs(self, *configs: BaseModel) -> None:
+    #     for config in configs:
+    #         schema_name: SchemaName = config.__class__.__name__
 
-            if schema_name not in self._registry:
-                raise ValueError(f"Schema '{schema_name}' is not registered.")
+    #         if schema_name not in self._registry:
+    #             raise ValueError(f"Schema '{schema_name}' is not registered.")
 
-            active_configs: list[BaseModel] = list(self._data.values())
-            active_configs.append(config)
+    #         active_configs: list[BaseModel] = list(self._data.values())
+    #         active_configs.append(config)
 
-            self._ruler.validate(active_configs)
+    #         self._rule_engine.validate(active_configs)
 
-            self._data[schema_name] = config
+    #         self._data[schema_name] = config
 
-    def __getitem__(self, key: str) -> BaseModel:
-        return self._data[key].model_dump()
+    # def __getitem__(self, key: str) -> BaseModel:
+    #     return self._data[key].model_dump()
 
     # def save(self, output_path: PathLike) -> None:
     #     output_path: Path = Path(output_path)
