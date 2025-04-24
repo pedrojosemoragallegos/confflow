@@ -81,7 +81,7 @@ CONFLICT_RULES: list[ConflictRule] = [
 
 
 def check_conflicts(
-    rules: list[BaseRule], conflict_rules: list[ConflictRule] = CONFLICT_RULES
+    *rules: BaseRule, conflict_rules: list[ConflictRule] = CONFLICT_RULES
 ) -> None:
     for i, rule_a in enumerate(rules):
         for rule_b in rules[i + 1 :]:
