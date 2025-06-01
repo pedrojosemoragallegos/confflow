@@ -3,7 +3,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Union
 
-Scalar = Union[str, int, float, bool, None, datetime, bytes]
+Numerical = Union[int, float]
+Scalar = Union[str, Numerical, bool, None, datetime, bytes]
 
 ValueTypes = Union[
     Scalar,

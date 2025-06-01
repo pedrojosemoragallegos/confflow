@@ -15,7 +15,7 @@ from confflow.core.field import (
     StrField,
     TimestampField,
 )
-from confflow.core.field.constraints import Constraint
+from confflow.protocols import Constraint
 from confflow.types import ValueTypes
 
 FieldTypes = Union[

@@ -3,8 +3,7 @@ from abc import ABC
 from typing import Generic, Iterable, Optional, TypeVar
 
 from confflow.mixins import ReprMixin
-
-from .constraints import Constraint
+from confflow.protocols import Constraint
 
 T = TypeVar("T")
 
@@ -72,4 +71,4 @@ class Field(ABC, Generic[T], ReprMixin):
 
     def _validate(self, value: T) -> None:
         for constraint in self._constraints:
-            constraint.validate(value)
+            constraint(value)
