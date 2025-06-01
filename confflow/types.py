@@ -3,12 +3,12 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Union
 
-Numerical = Union[int, float]
-Scalar = Union[str, Numerical, bool, None, datetime, bytes]
+NumberLike = Union[int, float]
+PrimitiveValue = Union[str, NumberLike, bool, None, datetime, bytes]
 
-ValueTypes = Union[
-    Scalar,
-    list[Scalar],
-    dict[str, Scalar],
-    set[Scalar],
+StructuredValues = Union[
+    PrimitiveValue,
+    list[PrimitiveValue],
+    dict[str, PrimitiveValue],
+    set[PrimitiveValue],
 ]

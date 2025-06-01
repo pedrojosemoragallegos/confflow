@@ -16,7 +16,7 @@ from confflow.core.field import (
     TimestampField,
 )
 from confflow.protocols import Constraint
-from confflow.types import ValueTypes
+from confflow.types import StructuredValues
 
 FieldTypes = Union[
     IntField,
@@ -43,10 +43,10 @@ class Config:
         name: str,
         *,
         description: str = "",
-        value: ValueTypes,
-        default_value: Optional[ValueTypes] = None,
+        value: StructuredValues,
+        default_value: Optional[StructuredValues] = None,
         required: bool = False,
-        constraints: Optional[Iterable[Constraint[ValueTypes]]] = None,
+        constraints: Optional[Iterable[Constraint[StructuredValues]]] = None,
     ) -> Config:
         if isinstance(value, bool):
             field = BoolField
