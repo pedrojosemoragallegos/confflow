@@ -1,125 +1,90 @@
 from __future__ import annotations
 
-from typing import Iterable, Optional, Union, final, overload
+from datetime import datetime
+from typing import Iterable, Optional, Union, final
 
-from confflow.core.field import BoolField, FloatField, IntField, StrField
+from confflow.core.field import (
+    BoolField,
+    BytesField,
+    DictField,
+    FloatField,
+    IntField,
+    ListField,
+    SetField,
+    StrField,
+    TimestampField,
+)
 from confflow.core.field.constraints import Constraint
+from confflow.types import ValueTypes
 
-FieldTypes = Union[IntField, FloatField, BoolField, StrField]
+FieldTypes = Union[
+    IntField,
+    FloatField,
+    BoolField,
+    StrField,
+    TimestampField,
+    BytesField,
+    ListField,
+    DictField,
+    SetField,
+]
 
 
 @final
 class Config:
-    def __init__(self, name: str, description: str = "") -> None:
+    def __init__(self, name: str, description: str = ""):
         self._name: str = name
         self._description: str = description
-        self._fields: list[FieldTypes] = []
-
-    @overload
-    def addField(
-        self,
-        name: str,
-        *,
-        description: str,
-        value: bool,
-        default_value: Optional[bool] = ...,
-        required: bool = ...,
-        constraints: Optional[Iterable[Constraint[bool]]] = ...,
-    ) -> Config: ...
-
-    @overload
-    def addField(
-        self,
-        name: str,
-        *,
-        description: str,
-        value: int,
-        default_value: Optional[int] = ...,
-        required: bool = ...,
-        constraints: Optional[Iterable[Constraint[int]]] = ...,
-    ) -> Config: ...
-
-    @overload
-    def addField(
-        self,
-        name: str,
-        *,
-        description: str,
-        value: float,
-        default_value: Optional[float] = ...,
-        required: bool = ...,
-        constraints: Optional[Iterable[Constraint[float]]] = ...,
-    ) -> Config: ...
-
-    @overload
-    def addField(
-        self,
-        name: str,
-        *,
-        description: str,
-        value: str,
-        default_value: Optional[str] = ...,
-        required: bool = ...,
-        constraints: Optional[Iterable[Constraint[str]]] = ...,
-    ) -> Config: ...
+        self._fields: list[FieldTypes] = []  # TODO ordered set?
 
     def addField(
         self,
         name: str,
         *,
         description: str = "",
-        value: Union[bool, int, float, str],
-        default_value: Optional[Union[bool, int, float, str]] = None,
+        value: ValueTypes,
+        default_value: Optional[ValueTypes] = None,
         required: bool = False,
-        constraints: Optional[
-            Iterable[Constraint[Union[bool, int, float, str]]]
-        ] = None,
+        constraints: Optional[Iterable[Constraint[ValueTypes]]] = None,
     ) -> Config:
-        if isinstance(value, bool):
-            self._fields.append(
-                BoolField(
-                    name=name,
-                    description=description,
-                    value=value,
-                    default_value=default_value,
-                    required=required,
-                    constraints=constraints,
-                )
-            )
-        elif isinstance(value, int):
-            self._fields.append(
-                IntField(
-                    name=name,
-                    description=description,
-                    value=value,
-                    default_value=default_value,
-                    required=required,
-                    constraints=constraints,
-                )
-            )
+        if isinstance(value, int):
+            field = IntField
         elif isinstance(value, float):
-            self._fields.append(
-                FloatField(
-                    name=name,
-                    description=description,
-                    value=value,
-                    default_value=default_value,
-                    required=required,
-                    constraints=constraints,
-                )
-            )
+            field = FloatField
         elif isinstance(value, str):
-            self._fields.append(
-                StrField(
-                    name=name,
-                    description=description,
-                    value=value,
-                    default_value=default_value,
-                    required=required,
-                    constraints=constraints,
-                )
-            )
+            field = StrField
+        elif isinstance(value, datetime):
+            field = TimestampField
+        elif isinstance(value, bytes):
+            field = BytesField
+        elif isinstance(value, list):
+            field = ListField
+        elif isinstance(value, dict):
+            field = DictField
+        elif isinstance(value, set):
+            field = SetField
+        elif isinstance(value, bool):
+            field = BoolField
         else:
             raise TypeError(f"Unsupported type for value: {type(value).__name__}")
 
+        self._fields.append(
+            field(
+                name=name,
+                description=description,
+                value=value,
+                default_value=default_value,
+                required=required,
+                constraints=constraints,
+            )
+        )
+
         return self
+
+    def __repr__(self) -> str:
+        return (
+            f"{self.__class__.__name__}("
+            f"name={self._name!r}, "
+            f"description={self._description!r}, "
+            f"fields={[field for field in self._fields]!r})"
+        )
