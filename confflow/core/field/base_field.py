@@ -1,3 +1,4 @@
+import copy
 from abc import ABC
 from typing import Generic, Iterable, Optional, TypeVar
 
@@ -45,7 +46,7 @@ class Field(ABC, Generic[T], ReprMixin):
 
     @property
     def default_value(self) -> Optional[T]:
-        return self._default_value
+        return copy.deepcopy(self._default_value)
 
     @default_value.setter
     def default_value(self, default_value: T) -> None:
@@ -54,7 +55,7 @@ class Field(ABC, Generic[T], ReprMixin):
 
     @property
     def value(self) -> Optional[T]:
-        return self._value
+        return copy.deepcopy(self._value)
 
     @value.setter
     def value(self, value: T) -> None:

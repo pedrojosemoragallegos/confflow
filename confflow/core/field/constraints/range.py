@@ -12,7 +12,7 @@ class MinLength(Constraint[Sizeable]):
 
     def validate(self, value: Sizeable) -> None:
         if len(value) < self._min:
-            raise ValueError("Not satisfied.")  # TODO correct message
+            raise ValueError(f"Length must be at least {self._min}, got {len(value)}.")
 
 
 class MaxLength(Constraint[Sizeable]):
@@ -24,4 +24,13 @@ class MaxLength(Constraint[Sizeable]):
 
     def validate(self, value: Sizeable) -> None:
         if len(value) > self._max:
-            raise ValueError("Not satisfied.")  # TODO correct message
+            raise ValueError(f"Length must be at most {self._max}, got {len(value)}.")
+
+
+class MinValue(Constraint[int | float]):
+    def __init__(self, min_value: float):
+        self._min = min_value
+
+    def validate(self, value: int | float) -> None:
+        if value < self._min:
+            raise ValueError(f"Value must be at least {self._min}, got {value}.")
