@@ -31,9 +31,7 @@ class Field(ABC, Generic[T], ReprMixin):
     ):
         self._name: str = name
         self._description: str = description or ""
-        self._constraints: frozenset[FieldConstraint[T]] = (
-            frozenset(constraints) if constraints else frozenset()
-        )
+        self._constraints: frozenset[FieldConstraint[T]] = frozenset(constraints or [])
 
         if (value is None) and (default_value is None):
             raise ValueError("Either pass 'value'/'default_value' or both.")
