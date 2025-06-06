@@ -1,22 +1,19 @@
+from datetime import datetime
 from typing import (
     Any,
-    Final,
     Optional,
     Sequence,
     TypeAlias,
     Union,
 )
 
-from confflow.protocols import Constraint
-
+from .field_constraint import FieldConstraint
 from .field_values import (
     BooleanFieldValue,
     BytesFieldValue,
+    FieldValue,
     FloatFieldValue,
     IntegerFieldValue,
-    ListFieldValue,
-    MappingFieldValue,
-    SetFieldValue,
     StringFieldValue,
 )
 from .fields import (
@@ -32,7 +29,7 @@ from .fields import (
     TimestampFieldValue,
 )
 
-FieldType: Final[TypeAlias] = Union[
+FieldType: TypeAlias = Union[
     BooleanField,
     BytesField,
     MappingField,
@@ -45,7 +42,7 @@ FieldType: Final[TypeAlias] = Union[
 ]
 
 
-def _map_to_fieldtype(value: FieldValue) -> type[FieldType]:
+def map_to_fieldtype(value: FieldValue) -> type[FieldType]:
     if isinstance(value, StringFieldValue):
         return StringField
     elif isinstance(value, IntegerFieldValue):
@@ -58,11 +55,29 @@ def _map_to_fieldtype(value: FieldValue) -> type[FieldType]:
         return TimestampField
     elif isinstance(value, BytesFieldValue):
         return BytesField
-    elif isinstance(value, ListFieldValue):
+    elif isinstance(value, list) and all(
+        isinstance(
+            item,
+            (str, int, float, bool, datetime, bytes),
+        )
+        for item in value
+    ):
         return ListField
-    elif isinstance(value, MappingFieldValue):
+    elif isinstance(value, dict) and all(
+        isinstance(
+            item,
+            (str, int, float, bool, datetime, bytes),
+        )
+        for item in value
+    ):
         return MappingField
-    elif isinstance(value, SetFieldValue):
+    elif isinstance(value, set) and all(
+        isinstance(
+            item,
+            (str, int, float, bool, datetime, bytes),
+        )
+        for item in value
+    ):
         return SetField
     else:
         raise TypeError(
@@ -70,19 +85,16 @@ def _map_to_fieldtype(value: FieldValue) -> type[FieldType]:
         )
 
 
-def create_field(
+def Field(
     value: FieldValue,
+    *,
     name: str,
-    required: bool,
     description: Optional[str] = None,
-    default_value: Optional[Any] = None,
-    constraints: Optional[Sequence[Constraint[Any]]] = None,
+    constraints: Optional[Sequence[FieldConstraint[Any]]] = None,
 ) -> FieldType:
-    return _map_to_fieldtype(value)(
+    return map_to_fieldtype(value)(
+        value=value,
         name=name,
         description=description,
-        value=value,
-        default_value=default_value,
-        required=required,
         constraints=constraints,
     )

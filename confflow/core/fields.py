@@ -23,40 +23,23 @@ T = TypeVar("T")
 class Field(ABC, Generic[T], ReprMixin):
     def __init__(
         self,
+        value: T,
+        *,
         name: str,
         description: Optional[str] = None,
-        value: Optional[T] = None,
-        default_value: Optional[T] = None,
         constraints: Optional[Sequence[FieldConstraint[T]]] = None,
     ):
         self._name: str = name
         self._description: str = description or ""
         self._constraints: frozenset[FieldConstraint[T]] = frozenset(constraints or [])
 
-        if (value is None) and (default_value is None):
-            raise ValueError("Either pass 'value'/'default_value' or both.")
-
-        if default_value is not None:
-            self._validate(default_value)
-
-        self._default_value: Optional[T] = default_value
-
-        if value is not None:
-            self._validate(value)
-            self._value: Optional[T] = value
+        # validate before assignment
+        self._validate(value)
+        self._value: T = value
 
     @property
     def name(self) -> str:
         return self._name
-
-    @property
-    def default_value(self) -> Optional[T]:
-        return copy.deepcopy(self._default_value)
-
-    @default_value.setter
-    def default_value(self, default_value: T) -> None:
-        self._validate(value=default_value)
-        self._default_value = default_value
 
     @property
     def value(self) -> Optional[T]:
