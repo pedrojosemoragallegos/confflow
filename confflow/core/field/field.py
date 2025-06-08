@@ -1,26 +1,27 @@
-import copy
 from abc import ABC
 from typing import Generic, Iterable, Optional, TypeVar
 
 from confflow.mixins import ReprMixin
+from confflow.types import Value, View
+from confflow.utils import freeze
 
-from .constraint.constraint import BaseConstraint
+from .constraint.constraint import Constraint
 
-T = TypeVar("T")
+T = TypeVar("T", bound=Value)
 
 
-class BaseField(ABC, Generic[T], ReprMixin):
+class Field(ABC, Generic[T], ReprMixin):
     def __init__(
         self,
         value: T,
         *,
         name: str,
         description: Optional[str] = None,
-        constraints: Optional[Iterable[BaseConstraint[T]]] = None,
+        constraints: Optional[Iterable[Constraint[T]]] = None,
     ):
         self._name: str = name
         self._description: str = description or ""
-        self._constraints: frozenset[BaseConstraint[T]] = frozenset(constraints or [])
+        self._constraints: set[Constraint[T]] = set(constraints or [])
 
         # validate before assignment
         self._validate(value)
@@ -31,8 +32,8 @@ class BaseField(ABC, Generic[T], ReprMixin):
         return self._name
 
     @property
-    def value(self) -> T:
-        return copy.deepcopy(self._value)
+    def value(self) -> View:
+        return freeze(self._value)
 
     @value.setter
     def value(self, value: T) -> None:

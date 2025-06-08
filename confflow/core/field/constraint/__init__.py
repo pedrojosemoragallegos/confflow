@@ -1,2 +1,3 @@
-from . import numeric as numeric_constraints, string as string_constraints
-from .constraint import BaseConstraint
+from .constraint import Constraint
+
+__all__ = ["Constraint"]

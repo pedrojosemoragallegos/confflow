@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
 from typing import Generic, TypeVar
 
-T = TypeVar("T")
+from confflow.types import Value
+
+T = TypeVar("T", bound=Value)
 
 
-class BaseConstraint(ABC, Generic[T]):
+class Constraint(ABC, Generic[T]):
     @abstractmethod
     def __call__(self, value: T) -> None: ...
