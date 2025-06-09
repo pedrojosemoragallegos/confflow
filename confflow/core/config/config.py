@@ -2,9 +2,9 @@ from collections import OrderedDict
 from collections.abc import Iterable
 from typing import Optional, TypeVar
 
-from confflow.core.field.constraint.constraint import Constraint
-from confflow.core.field.field import Field
 from confflow.types import Value
+
+from .field.field import Constraint, Field
 
 T = TypeVar("T", bound=Value)
 
@@ -30,8 +30,11 @@ class Config:
         if name in self._fields:
             raise ValueError(f"Field with name '{name}' already exists.")
 
-        if type(value) is not type(default_value):
-            raise ValueError("Type of 'value' and 'default_value' don't match")
+        if default_value:
+            if type(value) is not type(default_value):
+                raise ValueError(
+                    f"Type of 'value' {value}: {type(value)} and 'default_value' {default_value}: {type(default_value)} don't match"
+                )
 
         self._fields[name] = Field[T](
             value=value, name=name, description=description, constraints=constraints

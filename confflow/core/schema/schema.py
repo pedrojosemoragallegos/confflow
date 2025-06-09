@@ -1,8 +1,7 @@
 from datetime import datetime
 from typing import Dict, List, Optional, Set, Union
 
-from confflow.core.field.constraint import Constraint
-
+from ..config import FieldConstraint
 from .field import Field
 
 
@@ -57,32 +56,30 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[str] = None,
-        required: bool = False,
-        *constraint: Constraint[str],
+        *constraint: FieldConstraint[str],
     ):
         self._fields[name] = Field[str](
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
+            required=True if default_value else False,
             *constraint,
         )
 
         return self
 
-    def addInt(
+    def addInteger(
         self,
         name: str,
         description: str,
         default_value: Optional[int] = None,
-        required: bool = False,
-        *constraint: Constraint[int],
+        *constraint: FieldConstraint[int],
     ):
         self._fields[name] = Field[int](
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
+            required=True if default_value else False,
             *constraint,
         )
 
@@ -93,32 +90,30 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[float] = None,
-        required: bool = False,
-        *constraint: Constraint[float],
+        *constraint: FieldConstraint[float],
     ):
         self._fields[name] = Field[float](
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
+            required=True if default_value else False,
             *constraint,
         )
 
         return self
 
-    def addBool(
+    def addBoolean(
         self,
         name: str,
         description: str,
         default_value: Optional[bool] = None,
-        required: bool = False,
-        *constraint: Constraint[bool],
+        *constraint: FieldConstraint[bool],
     ):
         self._fields[name] = Field[bool](
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
+            required=True if default_value else False,
             *constraint,
         )
 
@@ -129,14 +124,13 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[datetime] = None,
-        required: bool = False,
-        *constraint: Constraint[datetime],
+        *constraint: FieldConstraint[datetime],
     ):
         self._fields[name] = Field[datetime](
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
+            required=True if default_value else False,
             *constraint,
         )
 
@@ -147,14 +141,13 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[bytes] = None,
-        required: bool = False,
-        *constraint: Constraint[bytes],
+        *constraint: FieldConstraint[bytes],
     ):
         self._fields[name] = Field[bytes](
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
+            required=True if default_value else False,
             *constraint,
         )
 
@@ -165,14 +158,13 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[Dict[str, str]] = None,
-        required: bool = False,
-        *constraint: Constraint[Dict[str, str]],
+        *constraint: FieldConstraint[Dict[str, str]],
     ):
         self._fields[name] = Field[Dict[str, str]](
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
+            required=True if default_value else False,
             *constraint,
         )
 
@@ -183,14 +175,13 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[Dict[str, int]] = None,
-        required: bool = False,
-        *constraint: Constraint[Dict[str, int]],
+        *constraint: FieldConstraint[Dict[str, int]],
     ):
         self._fields[name] = Field[Dict[str, int]](
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
+            required=True if default_value else False,
             *constraint,
         )
 
@@ -201,14 +192,13 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[Dict[str, float]] = None,
-        required: bool = False,
-        *constraint: Constraint[Dict[str, float]],
+        *constraint: FieldConstraint[Dict[str, float]],
     ):
         self._fields[name] = Field[Dict[str, float]](
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
+            required=True if default_value else False,
             *constraint,
         )
 
@@ -219,14 +209,13 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[Dict[str, bool]] = None,
-        required: bool = False,
-        *constraint: Constraint[Dict[str, bool]],
+        *constraint: FieldConstraint[Dict[str, bool]],
     ):
         self._fields[name] = Field[Dict[str, bool]](
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
+            required=True if default_value else False,
             *constraint,
         )
 
@@ -237,14 +226,13 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[Dict[str, datetime]] = None,
-        required: bool = False,
-        *constraint: Constraint[Dict[str, datetime]],
+        *constraint: FieldConstraint[Dict[str, datetime]],
     ):
         self._fields[name] = Field[Dict[str, datetime]](
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
+            required=True if default_value else False,
             *constraint,
         )
 
@@ -255,14 +243,13 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[Dict[str, bytes]] = None,
-        required: bool = False,
-        *constraint: Constraint[Dict[str, bytes]],
+        *constraint: FieldConstraint[Dict[str, bytes]],
     ):
         self._fields[name] = Field[Dict[str, bytes]](
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
+            required=True if default_value else False,
             *constraint,
         )
 
@@ -273,14 +260,13 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[List[str]] = None,
-        required: bool = False,
-        *constraint: Constraint[List[str]],
+        *constraint: FieldConstraint[List[str]],
     ):
         self._fields[name] = Field[List[str]](
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
+            required=True if default_value else False,
             *constraint,
         )
 
@@ -291,14 +277,13 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[List[int]] = None,
-        required: bool = False,
-        *constraint: Constraint[List[int]],
+        *constraint: FieldConstraint[List[int]],
     ):
         self._fields[name] = Field[List[int]](
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
+            required=True if default_value else False,
             *constraint,
         )
 
@@ -309,14 +294,13 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[List[float]] = None,
-        required: bool = False,
-        *constraint: Constraint[List[float]],
+        *constraint: FieldConstraint[List[float]],
     ):
         self._fields[name] = Field[List[float]](
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
+            required=True if default_value else False,
             *constraint,
         )
 
@@ -327,14 +311,13 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[List[bool]] = None,
-        required: bool = False,
-        *constraint: Constraint[List[bool]],
+        *constraint: FieldConstraint[List[bool]],
     ):
         self._fields[name] = Field[List[bool]](
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
+            required=True if default_value else False,
             *constraint,
         )
 
@@ -345,14 +328,13 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[List[datetime]] = None,
-        required: bool = False,
-        *constraint: Constraint[List[datetime]],
+        *constraint: FieldConstraint[List[datetime]],
     ):
         self._fields[name] = Field[List[datetime]](
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
+            required=True if default_value else False,
             *constraint,
         )
 
@@ -363,14 +345,13 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[List[bytes]] = None,
-        required: bool = False,
-        *constraint: Constraint[List[bytes]],
+        *constraint: FieldConstraint[List[bytes]],
     ):
         self._fields[name] = Field[List[bytes]](
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
+            required=True if default_value else False,
             *constraint,
         )
 
@@ -381,14 +362,13 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[Set[str]] = None,
-        required: bool = False,
-        *constraint: Constraint[Set[str]],
+        *constraint: FieldConstraint[Set[str]],
     ):
         self._fields[name] = Field[Set[str]](
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
+            required=True if default_value else False,
             *constraint,
         )
 
@@ -399,14 +379,13 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[Set[int]] = None,
-        required: bool = False,
-        *constraint: Constraint[Set[int]],
+        *constraint: FieldConstraint[Set[int]],
     ):
         self._fields[name] = Field[Set[int]](
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
+            required=True if default_value else False,
             *constraint,
         )
 
@@ -417,14 +396,13 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[Set[float]] = None,
-        required: bool = False,
-        *constraint: Constraint[Set[float]],
+        *constraint: FieldConstraint[Set[float]],
     ):
         self._fields[name] = Field[Set[float]](
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
+            required=True if default_value else False,
             *constraint,
         )
 
@@ -435,14 +413,13 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[Set[bool]] = None,
-        required: bool = False,
-        *constraint: Constraint[Set[bool]],
+        *constraint: FieldConstraint[Set[bool]],
     ):
         self._fields[name] = Field[Set[bool]](
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
+            required=True if default_value else False,
             *constraint,
         )
 
@@ -453,14 +430,13 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[Set[datetime]] = None,
-        required: bool = False,
-        *constraint: Constraint[Set[datetime]],
+        *constraint: FieldConstraint[Set[datetime]],
     ):
         self._fields[name] = Field[Set[datetime]](
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
+            required=True if default_value else False,
             *constraint,
         )
 
@@ -471,14 +447,13 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[Set[bytes]] = None,
-        required: bool = False,
-        *constraint: Constraint[Set[bytes]],
+        *constraint: FieldConstraint[Set[bytes]],
     ):
         self._fields[name] = Field[Set[bytes]](
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
+            required=True if default_value else False,
             *constraint,
         )
 
