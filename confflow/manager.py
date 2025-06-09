@@ -23,7 +23,6 @@ class Manager:
             for schema in self._schemas:
                 f.write(format_schema(schema=schema))
 
-    # TODO move logic outside of class
     def load(self, file_path: Union[str, Path]):
         path = Path(file_path)
 
