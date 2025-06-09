@@ -1,6 +1,9 @@
 from datetime import datetime
-from types import MappingProxyType
 from typing import TypeAlias, Union
+
+DictValue: TypeAlias = dict[str, Union[str, int, float, bool, datetime, bytes]]
+ListValue: TypeAlias = list[Union[str, int, float, bool, datetime, bytes]]
+SetValue: TypeAlias = set[Union[str, int, float, bool, datetime, bytes]]
 
 Value: TypeAlias = Union[
     str,
@@ -9,49 +12,7 @@ Value: TypeAlias = Union[
     bool,
     datetime,
     bytes,
-    dict[str, str],
-    dict[str, int],
-    dict[str, float],
-    dict[str, bool],
-    dict[str, datetime],
-    dict[str, bytes],
-    list[str],
-    list[int],
-    list[float],
-    list[bool],
-    list[datetime],
-    list[bytes],
-    set[str],
-    set[int],
-    set[float],
-    set[bool],
-    set[datetime],
-    set[bytes],
-]
-
-View: TypeAlias = Union[
-    str,
-    int,
-    float,
-    bool,
-    datetime,
-    bytes,
-    MappingProxyType[str, str],
-    MappingProxyType[str, int],
-    MappingProxyType[str, float],
-    MappingProxyType[str, bool],
-    MappingProxyType[str, datetime],
-    MappingProxyType[str, bytes],
-    tuple[str],
-    tuple[int],
-    tuple[float],
-    tuple[bool],
-    tuple[datetime],
-    tuple[bytes],
-    frozenset[str],
-    frozenset[int],
-    frozenset[float],
-    frozenset[bool],
-    frozenset[datetime],
-    frozenset[bytes],
+    dict[str, Union[str, int, float, bool, datetime, bytes]],
+    list[Union[str, int, float, bool, datetime, bytes]],
+    set[Union[str, int, float, bool, datetime, bytes]],
 ]
