@@ -1,8 +1,7 @@
 from abc import ABC
 from typing import Generic, Iterable, Optional, TypeVar
 
-from confflow.types import Value, View
-from confflow.utils import freeze
+from confflow.types import Value
 
 from .constraint import Constraint
 
@@ -33,8 +32,8 @@ class Field(
         return self._name
 
     @property
-    def value(self) -> View:  # TODO specific type since we know T
-        return freeze(self._value)
+    def value(self) -> T:
+        return self._value
 
     @value.setter
     def value(self, value: T) -> None:

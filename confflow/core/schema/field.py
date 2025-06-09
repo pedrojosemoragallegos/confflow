@@ -1,7 +1,6 @@
 from typing import Generic, Optional, TypeVar
 
-from confflow.types import Value, View
-from confflow.utils import freeze
+from confflow.types import Value
 
 from ..config import FieldConstraint
 
@@ -21,7 +20,7 @@ class Field(Generic[T]):
         self._description = description
         self._default_value = default_value
         self._required = required
-        self._constraints = list(constraint)
+        self._constraints: list[FieldConstraint[T]] = list(constraint)
 
     @property
     def name(self) -> str:
@@ -32,13 +31,13 @@ class Field(Generic[T]):
         return self._description
 
     @property
-    def default_value(self) -> Optional[View]:  # TODO specific type since we know T
-        return freeze(self._default_value) if self._default_value else None  # type: ignore
+    def default_value(self) -> Optional[T]:
+        return self._default_value
 
     @property
     def required(self) -> bool:
         return self._required
 
     @property
-    def constraints(self):  # TODO correct return type
-        return tuple(self._constraints)
+    def constraints(self) -> list[FieldConstraint[T]]:
+        return self._constraints

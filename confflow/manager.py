@@ -3,6 +3,8 @@ from typing import Union
 
 import yaml
 
+from confflow.types import Value
+
 from .core.config import Config
 from .core.schema import Schema
 from .formatter import format_schema
@@ -17,7 +19,6 @@ class Manager:
     def schemas(self) -> tuple[Schema, ...]:
         return self._schemas
 
-    # TODO move logic outside of class
     def create_template(self, file_path: Union[str, Path]):
         with Path(file_path).open("w", encoding="utf-8") as f:
             for schema in self._schemas:
@@ -33,10 +34,10 @@ class Manager:
             raw_data = yaml.safe_load(f) or {}  # type: ignore
 
         for schema in self._schemas:
-            section = raw_data.get(schema.name, {})  # type: ignore | correct
+            section = raw_data[schema.name]  # type: ignore | correct
             config = Config(name=schema.name, description=schema.description)
             for field in schema.fields:
-                value = section.get(field.name)  # type: ignore | correct
+                value: Value = section[field.name]  # type: ignore | correct
 
                 if value is None and field.required:
                     raise ValueError(
@@ -63,8 +64,8 @@ class Manager:
     def items(self):  # TODO add return type
         return self._configs.items()
 
-    def __getitem__(self, key: str) -> Config:  # TODO add return type
-        return self._configs[key]
+    def __getitem__(self, key: str) -> Config:
+        return self._configs[key]  # TODO don't return the config itself but a view
 
     def __contains__(self, key: str):  # TODO add return type
         return key in self._configs

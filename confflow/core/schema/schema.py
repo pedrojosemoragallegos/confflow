@@ -170,7 +170,7 @@ class Schema:
 
         return self
 
-    def addDictInt(
+    def addDictInteger(
         self,
         name: str,
         description: str,
@@ -204,7 +204,7 @@ class Schema:
 
         return self
 
-    def addDictBool(
+    def addDictBoolean(
         self,
         name: str,
         description: str,
@@ -272,7 +272,7 @@ class Schema:
 
         return self
 
-    def addListInt(
+    def addListInteger(
         self,
         name: str,
         description: str,
@@ -306,7 +306,7 @@ class Schema:
 
         return self
 
-    def addListBool(
+    def addListBoolean(
         self,
         name: str,
         description: str,
@@ -374,7 +374,7 @@ class Schema:
 
         return self
 
-    def addSetInt(
+    def addSetInteger(
         self,
         name: str,
         description: str,
@@ -408,7 +408,7 @@ class Schema:
 
         return self
 
-    def addSetBool(
+    def addSetBoolean(
         self,
         name: str,
         description: str,

@@ -1,5 +1,7 @@
 from typing import get_args
 
+import yaml
+
 from .core import Schema, SchemaField
 from .types import Value
 
@@ -19,27 +21,33 @@ def format_schema(schema: Schema) -> str:
 
 
 def _format_field(field: SchemaField[Value]) -> list[str]:
-    py_type = _get_field_type(field)
-    type_str = py_type.__name__
+    lines: list[str] = []
+    indent: str = "  "
+    key_indent: str = indent
+    value_indent: str = indent * 2
 
-    parts: list[str] = [f"type: {type_str}"]
+    if field.description:
+        lines.append(f"{key_indent}# {field.description}")
+
+    parts: list[str] = [f"type: {_get_field_type(field).__name__}"]
     if field.default_value is not None:
         parts.append(f"default={field.default_value}")
     if field.constraints:
         parts.append(field.constraints.__class__.__name__)
+    lines.append(f"{key_indent}# {', '.join(parts)}")
 
-    lines: list[str] = []
-    if field.description:
-        lines.append(f"  # {field.description}")
-
-    lines.append(f"  # {', '.join(parts)}")
-
-    line: str = (
-        f"  {field.name}: {field.default_value}"
-        if field.default_value is not None
-        else f"  {field.name}:"
-    )
-    lines.append(line)
+    if field.default_value is not None:
+        if isinstance(field.default_value, (dict, list, set)):
+            lines.append(f"{key_indent}{field.name}:")
+            dumped: str = yaml.safe_dump(
+                field.default_value, default_flow_style=False
+            ).rstrip()
+            for line in dumped.splitlines():
+                lines.append(f"{value_indent}{line}")
+        else:
+            lines.append(f"{key_indent}{field.name}: {field.default_value}")
+    else:
+        lines.append(f"{key_indent}{field.name}:")
 
     return lines
 
