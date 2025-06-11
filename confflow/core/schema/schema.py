@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, Union
 
-from ...types import DictValue, ListValue, SetValue
+from ...types import ListValue
 from ..config import FieldConstraint
 from .field import Field
 
@@ -19,9 +19,8 @@ class Schema:
                 Field[bool],
                 Field[datetime],
                 Field[bytes],
-                Field[DictValue],
                 Field[ListValue],
-                Field[SetValue],
+                "Schema",
             ],
         ] = dict()
 
@@ -36,6 +35,11 @@ class Schema:
     @property
     def fields(self):  # TODO correct return type
         return self._fields.values()
+
+    def addSubSchema(self, name: str, schema: "Schema"):
+        self._fields[name] = schema
+
+        return self
 
     def addString(
         self,
@@ -154,39 +158,6 @@ class Schema:
             *constraint,
         )
         return self
-
-    def addMapping(
-        self,
-        name: str,
-        description: str,
-        default_value: Optional[DictValue] = None,
-        *constraint: FieldConstraint[DictValue],
-    ):
-        self._fields[name] = Field[DictValue](
-            name=name,
-            description=description,
-            default_value=default_value,
-            required=True if default_value else False,
-            *constraint,
-        )
-        return self
-
-    # TODO create 'addEnum' and 'addSet'
-    # def addEnum(
-    #     self,
-    #     name: str,
-    #     description: str,
-    #     values: list[str],
-    #     default_value: Optional[str] = None,
-    # ):
-    #     self._fields[name] = Field[str](
-    #         name=name,
-    #         description=description,
-    #         default_value=default_value,
-    #         required=True if default_value else False,
-    #         enum=values,
-    #     )
-    #     return self
 
     def keys(self):  # TODO add return type
         return self._fields.keys()
