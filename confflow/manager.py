@@ -3,8 +3,6 @@ from typing import Union
 
 import yaml
 
-from confflow.types import Value
-
 from .core.config import Config
 from .core.schema import Schema
 from .formatter import format_schema
@@ -20,9 +18,9 @@ class Manager:
         return self._schemas
 
     def create_template(self, file_path: Union[str, Path]):
-        with Path(file_path).open("w", encoding="utf-8") as f:
-            for schema in self._schemas:
-                f.write(format_schema(schema=schema))
+        Path(file_path).write_text(
+            "\n\n".join([format_schema(schema) for schema in self._schemas])
+        )
 
     def load(self, file_path: Union[str, Path]):
         path = Path(file_path)
@@ -31,27 +29,43 @@ class Manager:
             raise FileNotFoundError(f"Config file not found: {file_path}")
 
         with path.open("r", encoding="utf-8") as f:
-            raw_data = yaml.safe_load(f) or {}  # type: ignore
+            raw_data = yaml.safe_load(f) or {}
 
         for schema in self._schemas:
-            section = raw_data[schema.name]  # type: ignore | correct
+            section_data = raw_data.get(schema.name)
+            if section_data is None:
+                raise ValueError(f"Missing required section '{schema.name}' in config")
+
             config = Config(name=schema.name, description=schema.description)
-            for field in schema.fields:
-                value: Value = section[field.name]  # type: ignore | correct
 
-                if value is None and field.required:
-                    raise ValueError(
-                        f"Missing required field '{field.name}' in section '{schema.name}'"
-                    )
+            def process_fields(schema_obj: Schema, data: dict, parent_key: str = ""):
+                for key, field_or_subschema in schema_obj.items():
+                    full_key = f"{parent_key}.{key}" if parent_key else key
 
-                config.addField(
-                    value=value,  # type: ignore | correct
-                    name=field.name,
-                    description=field.description,
-                    default_value=field.default_value,  # type: ignore | correct
-                    required=field.required,
-                    constraints=field.constraints,  # type: ignore | correct
-                )
+                    if isinstance(field_or_subschema, Schema):
+                        nested_data = data.get(key)
+                        if nested_data is None:
+                            raise ValueError(
+                                f"Missing required subschema section '{full_key}'"
+                            )
+
+                        process_fields(field_or_subschema, nested_data, full_key)
+                    else:
+                        value = data.get(key, field_or_subschema.default_value)
+
+                        if value is None and field_or_subschema.required:
+                            raise ValueError(f"Missing required field '{full_key}'")
+
+                        config.addField(
+                            value=value,
+                            name=full_key,
+                            description=field_or_subschema.description,
+                            default_value=field_or_subschema.default_value,
+                            required=field_or_subschema.required,
+                            constraints=field_or_subschema.constraints,
+                        )
+
+            process_fields(schema, section_data)
 
             self._configs[schema.name] = config
 
