@@ -1,17 +1,16 @@
 from pathlib import Path
-from typing import Union
+from typing import Any, Union
 
 import yaml
 
-from .core.config import Config
-from .core.schema import Schema
+from .core import Config, Schema
 from .formatter import format_schema
 
 
 class Manager:
     def __init__(self, *schema: Schema):
         self._schemas: tuple[Schema, ...] = schema
-        self._configs: dict[str, Config] = {}
+        self._configs: dict[str, Config] = {}  # TODO dict or orderedict?
 
     @property
     def schemas(self) -> tuple[Schema, ...]:
@@ -29,7 +28,7 @@ class Manager:
             raise FileNotFoundError(f"Config file not found: {file_path}")
 
         with path.open("r", encoding="utf-8") as f:
-            raw_data = yaml.safe_load(f) or {}
+            raw_data: dict[str, Any] = yaml.safe_load(f) or {}  # TODO add typing
 
         for schema in self._schemas:
             section_data = raw_data.get(schema.name)
@@ -37,10 +36,14 @@ class Manager:
                 raise ValueError(f"Missing required section '{schema.name}' in config")
 
             config = Config(name=schema.name, description=schema.description)
-            self._process_schema(schema, section_data, config)
+
+            self._process_schema(schema, section_data, config)  # TODO review
+
             self._configs[schema.name] = config
 
-    def _process_schema(self, schema_obj: Schema, data: dict, config: Config):
+    def _process_schema(
+        self, schema_obj: Schema, data: dict, config: Config
+    ):  # TODO add typing
         for key, field_or_subschema in schema_obj.items():
             if isinstance(field_or_subschema, Schema):
                 nested_data = data.get(key)

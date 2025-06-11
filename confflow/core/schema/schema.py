@@ -10,7 +10,7 @@ class Schema:
     def __init__(self, name: str, description: str):
         self._name = name
         self._description = description
-        self._fields: dict[  # TODO find better naming or structure but keep order
+        self._entries: dict[  # TODO dict or ordered dict?
             str,
             Union[
                 Field[str],
@@ -34,10 +34,10 @@ class Schema:
 
     @property
     def fields(self):  # TODO correct return type
-        return self._fields.values()
+        return self._entries.values()
 
     def SubSchema(self, name: str, schema: "Schema"):
-        self._fields[name] = schema
+        self._entries[name] = schema
 
         return self
 
@@ -48,7 +48,7 @@ class Schema:
         default_value: Optional[str] = None,
         *constraint: FieldConstraint[str],
     ):
-        self._fields[name] = Field[str](
+        self._entries[name] = Field[str](
             name=name,
             description=description,
             default_value=default_value,
@@ -65,7 +65,7 @@ class Schema:
         default_value: Optional[int] = None,
         *constraint: FieldConstraint[int],
     ):
-        self._fields[name] = Field[int](
+        self._entries[name] = Field[int](
             name=name,
             description=description,
             default_value=default_value,
@@ -82,7 +82,7 @@ class Schema:
         default_value: Optional[float] = None,
         *constraint: FieldConstraint[float],
     ):
-        self._fields[name] = Field[float](
+        self._entries[name] = Field[float](
             name=name,
             description=description,
             default_value=default_value,
@@ -99,7 +99,7 @@ class Schema:
         default_value: Optional[bool] = None,
         *constraint: FieldConstraint[bool],
     ):
-        self._fields[name] = Field[bool](
+        self._entries[name] = Field[bool](
             name=name,
             description=description,
             default_value=default_value,
@@ -116,7 +116,7 @@ class Schema:
         default_value: Optional[datetime] = None,
         *constraint: FieldConstraint[datetime],
     ):
-        self._fields[name] = Field[datetime](
+        self._entries[name] = Field[datetime](
             name=name,
             description=description,
             default_value=default_value,
@@ -133,7 +133,7 @@ class Schema:
         default_value: Optional[bytes] = None,
         *constraint: FieldConstraint[bytes],
     ):
-        self._fields[name] = Field[bytes](
+        self._entries[name] = Field[bytes](
             name=name,
             description=description,
             default_value=default_value,
@@ -150,7 +150,7 @@ class Schema:
         default_value: Optional[ListValue] = None,
         *constraint: FieldConstraint[ListValue],
     ):
-        self._fields[name] = Field[ListValue](
+        self._entries[name] = Field[ListValue](
             name=name,
             description=description,
             default_value=default_value,
@@ -160,20 +160,20 @@ class Schema:
         return self
 
     def keys(self):  # TODO  return type
-        return self._fields.keys()
+        return self._entries.keys()
 
     def values(self):  # TODO  return type
-        return self._fields.values()
+        return self._entries.values()
 
     def items(self):  # TODO  return type
-        return self._fields.items()
+        return self._entries.items()
 
     def __getitem__(self, key: str):  # TODO  return type
-        return self._fields[key]
+        return self._entries[key]
 
     def __contains__(self, key: str):  # TODO  return type
-        return key in self._fields
+        return key in self._entries
 
     # Only for iPython # TODO maybe remove here  as mixin or so
     def _ipython_key_completions_(self) -> list[str]:
-        return list(self._fields.keys())
+        return list(self._entries.keys())
