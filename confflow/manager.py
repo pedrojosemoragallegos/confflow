@@ -37,37 +37,35 @@ class Manager:
                 raise ValueError(f"Missing required section '{schema.name}' in config")
 
             config = Config(name=schema.name, description=schema.description)
-
-            def process_fields(schema_obj: Schema, data: dict, parent_key: str = ""):
-                for key, field_or_subschema in schema_obj.items():
-                    full_key = f"{parent_key}.{key}" if parent_key else key
-
-                    if isinstance(field_or_subschema, Schema):
-                        nested_data = data.get(key)
-                        if nested_data is None:
-                            raise ValueError(
-                                f"Missing required subschema section '{full_key}'"
-                            )
-
-                        process_fields(field_or_subschema, nested_data, full_key)
-                    else:
-                        value = data.get(key, field_or_subschema.default_value)
-
-                        if value is None and field_or_subschema.required:
-                            raise ValueError(f"Missing required field '{full_key}'")
-
-                        config.addField(
-                            value=value,
-                            name=full_key,
-                            description=field_or_subschema.description,
-                            default_value=field_or_subschema.default_value,
-                            required=field_or_subschema.required,
-                            constraints=field_or_subschema.constraints,
-                        )
-
-            process_fields(schema, section_data)
-
+            self._process_schema(schema, section_data, config)
             self._configs[schema.name] = config
+
+    def _process_schema(self, schema_obj: Schema, data: dict, config: Config):
+        for key, field_or_subschema in schema_obj.items():
+            if isinstance(field_or_subschema, Schema):
+                nested_data = data.get(key)
+                if nested_data is None:
+                    raise ValueError(f"Missing required subschema section '{key}'")
+
+                nested_config = Config(
+                    name=key, description=field_or_subschema.description
+                )
+                self._process_schema(field_or_subschema, nested_data, nested_config)
+                config.addSubconfig(key, nested_config)
+
+            else:
+                value = data.get(key, field_or_subschema.default_value)
+                if value is None and field_or_subschema.required:
+                    raise ValueError(f"Missing required field '{key}'")
+
+                config.addField(
+                    value=value,
+                    name=key,
+                    description=field_or_subschema.description,
+                    default_value=field_or_subschema.default_value,
+                    required=field_or_subschema.required,
+                    constraints=field_or_subschema.constraints,
+                )
 
     def keys(self):  # TODO add return type
         return self._configs.keys()

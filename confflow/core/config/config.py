@@ -1,6 +1,6 @@
 from collections import OrderedDict
 from collections.abc import Iterable
-from typing import Optional, TypeVar
+from typing import Optional, TypeVar, Union
 
 from confflow.types import Value
 
@@ -13,9 +13,9 @@ class Config:
     def __init__(self, name: str, description: Optional[str] = None):
         self._name: str = name
         self._description: str = description or ""
-        self._fields: OrderedDict[str, Field[Value]] = OrderedDict()
-        self._defaults: list[Optional[Value]] = list()
-        self._requirets: list[bool] = list()
+        self._entries: OrderedDict[str, Union[Field[Value], Config]] = OrderedDict()
+        self._defaults: dict[str, Optional[Value]] = {}
+        self._requirets: dict[str, bool] = dict()
 
     def addField(
         self,
@@ -27,42 +27,55 @@ class Config:
         required: bool = False,
         constraints: Optional[Iterable[Constraint[T]]] = None,
     ) -> "Config":
-        if name in self._fields:
-            raise ValueError(f"Field with name '{name}' already exists.")
+        if name in self._entries:
+            raise ValueError(f"Entry with name '{name}' already exists.")
 
-        if default_value:
-            if type(value) is not type(default_value):
-                raise ValueError(
-                    f"Type of 'value' {value}: {type(value)} and 'default_value' {default_value}: {type(default_value)} don't match"
-                )
+        if default_value is not None and type(value) is not type(default_value):
+            raise ValueError(
+                f"Type mismatch: 'value' ({type(value)}) and 'default_value' ({type(default_value)})"
+            )
 
-        self._fields[name] = Field[T](
-            value=value, name=name, description=description, constraints=constraints
+        field = Field[T](
+            value=value,
+            name=name,
+            description=description,
+            constraints=constraints,
         )
 
-        self._defaults.append(default_value)
-        self._requirets.append(required)
+        self._entries[name] = field
+        self._defaults[name] = default_value
+        self._requirets[name] = required
 
         return self
 
+    def addSubconfig(self, name: str, config: "Config") -> "Config":
+        if name in self._entries:
+            raise ValueError(f"Entry with name '{name}' already exists.")
+        self._entries[name] = config
+        return self
+
     def __len__(self) -> int:
-        return len(self._fields)
+        return len(self._entries)
 
     def keys(self):  # TODO add return type
-        return self._fields.keys()
+        return self._entries.keys()
 
     def values(self):  # TODO add return type
-        return self._fields.values()
+        return self._entries.values()
 
     def items(self):  # TODO add return type
-        return self._fields.items()
+        return self._entries.items()
 
     def __getitem__(self, key: str):  # TODO add return type
-        return self._fields[key].value
+        entry = self._entries[key]
+        if isinstance(entry, Field):
+            return entry.value
+
+        return entry
 
     def __contains__(self, key: str):  # TODO add return type
-        return key in self._fields
+        return key in self._entries
 
     # Only for iPython # TODO maybe remove here add as mixin or so
     def _ipython_key_completions_(self) -> list[str]:
-        return list(self._fields.keys())
+        return list(self._entries.keys())

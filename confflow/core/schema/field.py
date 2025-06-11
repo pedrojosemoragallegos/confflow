@@ -2,7 +2,7 @@ from typing import Generic, Optional, TypeVar
 
 from confflow.types import Value
 
-from ..config import FieldConstraint
+from ..config import FieldConstraint  # for typing
 
 T = TypeVar("T", bound=Value, covariant=True)
 

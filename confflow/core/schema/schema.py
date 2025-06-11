@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional, Union
 
 from ...types import ListValue
-from ..config import FieldConstraint
+from ..config import FieldConstraint  # for typing
 from .field import Field
 
 
@@ -10,7 +10,7 @@ class Schema:
     def __init__(self, name: str, description: str):
         self._name = name
         self._description = description
-        self._fields: dict[
+        self._fields: dict[  # TODO find better naming or structure but keep order
             str,
             Union[
                 Field[str],
@@ -36,12 +36,12 @@ class Schema:
     def fields(self):  # TODO correct return type
         return self._fields.values()
 
-    def addSubSchema(self, name: str, schema: "Schema"):
+    def SubSchema(self, name: str, schema: "Schema"):
         self._fields[name] = schema
 
         return self
 
-    def addString(
+    def String(
         self,
         name: str,
         description: str,
@@ -58,7 +58,7 @@ class Schema:
 
         return self
 
-    def addInteger(
+    def Integer(
         self,
         name: str,
         description: str,
@@ -75,7 +75,7 @@ class Schema:
 
         return self
 
-    def addFloat(
+    def Float(
         self,
         name: str,
         description: str,
@@ -92,7 +92,7 @@ class Schema:
 
         return self
 
-    def addBoolean(
+    def Boolean(
         self,
         name: str,
         description: str,
@@ -109,7 +109,7 @@ class Schema:
 
         return self
 
-    def addDate(
+    def Date(
         self,
         name: str,
         description: str,
@@ -126,7 +126,7 @@ class Schema:
 
         return self
 
-    def addBytes(
+    def Bytes(
         self,
         name: str,
         description: str,
@@ -143,7 +143,7 @@ class Schema:
 
         return self
 
-    def addList(
+    def List(
         self,
         name: str,
         description: str,
@@ -159,21 +159,21 @@ class Schema:
         )
         return self
 
-    def keys(self):  # TODO add return type
+    def keys(self):  # TODO  return type
         return self._fields.keys()
 
-    def values(self):  # TODO add return type
+    def values(self):  # TODO  return type
         return self._fields.values()
 
-    def items(self):  # TODO add return type
+    def items(self):  # TODO  return type
         return self._fields.items()
 
-    def __getitem__(self, key: str):  # TODO add return type
+    def __getitem__(self, key: str):  # TODO  return type
         return self._fields[key]
 
-    def __contains__(self, key: str):  # TODO add return type
+    def __contains__(self, key: str):  # TODO  return type
         return key in self._fields
 
-    # Only for iPython # TODO maybe remove here add as mixin or so
+    # Only for iPython # TODO maybe remove here  as mixin or so
     def _ipython_key_completions_(self) -> list[str]:
         return list(self._fields.keys())
