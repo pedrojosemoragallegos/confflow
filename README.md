@@ -1,5 +1,5 @@
 # Confflow
-
+[![PyPI Downloads](https://static.pepy.tech/badge/confflow)](https://pepy.tech/projects/confflow)
 ![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13-blue)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
