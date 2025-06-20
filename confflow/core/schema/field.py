@@ -14,13 +14,18 @@ class Field(Generic[T]):
         description: str,
         default_value: Optional[T] = None,
         required: bool = False,
-        *constraint: FieldConstraint[T],
+        constraints: Optional[list[FieldConstraint[T]]] = None,
     ):
         self._name = name
         self._description = description
-        self._default_value = default_value
         self._required = required
-        self._constraints: list[FieldConstraint[T]] = list(constraint)
+        self._constraints = constraints if constraints else []
+
+        if default_value:
+            for constraint in self._constraints:
+                constraint(default_value)
+
+        self._default_value = default_value
 
     @property
     def name(self) -> str:

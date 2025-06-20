@@ -1,9 +1,36 @@
 from datetime import datetime
-from typing import Optional, Union
+from typing import Optional, TypeAlias, Union
+
+from confflow.core.config.field.constraint import (
+    GreaterThan,
+    GreaterThanOrEqual,
+    LessThan,
+    LessThanOrEqual,
+    MaxItems,
+    MaxLength,
+    MinItems,
+    MinLength,
+    Regex,
+    UniqueItems,
+)
 
 from ...types import ListValue
-from ..config import FieldConstraint  # for typing
-from .field import Field
+from .field import Field, FieldConstraint
+
+FieldValue: TypeAlias = Union[
+    Field[str],
+    Field[int],
+    Field[float],
+    Field[bool],
+    Field[datetime],
+    Field[bytes],
+    Field[ListValue],
+]
+
+Entry: TypeAlias = Union[
+    FieldValue,
+    "Schema",
+]
 
 
 class Schema:
@@ -12,16 +39,7 @@ class Schema:
         self._description = description
         self._entries: dict[  # TODO dict or ordered dict?
             str,
-            Union[
-                Field[str],
-                Field[int],
-                Field[float],
-                Field[bool],
-                Field[datetime],
-                Field[bytes],
-                Field[ListValue],
-                "Schema",
-            ],
+            Entry,
         ] = dict()
 
     @property
@@ -46,14 +64,26 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[str] = None,
-        *constraint: FieldConstraint[str],
+        min_length: Optional[str] = None,
+        max_length: Optional[str] = None,
+        regex: Optional[str] = None,
+        # validate: Optional[Callable[[str], str]] = None,
     ):
+        constraints: list[FieldConstraint[str]] = []
+
+        if min_length:
+            constraints.append(MinLength(min_length))
+        if max_length:
+            constraints.append(MaxLength(max_length))
+        if regex:
+            constraints.append(Regex(regex))
+
         self._entries[name] = Field[str](
             name=name,
             description=description,
             default_value=default_value,
             required=True if default_value else False,
-            *constraint,
+            constraints=constraints,
         )
 
         return self
@@ -63,14 +93,29 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[int] = None,
-        *constraint: FieldConstraint[int],
+        gt: Optional[int] = None,
+        ge: Optional[int] = None,
+        lt: Optional[int] = None,
+        le: Optional[int] = None,
+        # validate: Optional[Callable[[int], int]] = None,
     ):
+        constraints: list[FieldConstraint[int]] = []
+
+        if gt:
+            constraints.append(GreaterThan(gt))
+        if ge:
+            constraints.append(GreaterThanOrEqual(ge))
+        if lt:
+            constraints.append(LessThan(lt))
+        if le:
+            constraints.append(LessThanOrEqual(le))
+
         self._entries[name] = Field[int](
             name=name,
             description=description,
             default_value=default_value,
-            required=True if default_value else False,
-            *constraint,
+            required=True if default_value is not None else False,
+            constraints=constraints,
         )
 
         return self
@@ -80,14 +125,28 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[float] = None,
-        *constraint: FieldConstraint[float],
+        gt: Optional[float] = None,
+        ge: Optional[float] = None,
+        lt: Optional[float] = None,
+        le: Optional[float] = None,
+        # validate: Optional[Callable[[float], float]] = None,
     ):
+        constraints: list[FieldConstraint[float]] = []
+
+        if gt:
+            constraints.append(GreaterThan(gt))
+        if ge:
+            constraints.append(GreaterThanOrEqual(ge))
+        if lt:
+            constraints.append(LessThan(lt))
+        if le:
+            constraints.append(LessThanOrEqual(le))
+
         self._entries[name] = Field[float](
             name=name,
             description=description,
             default_value=default_value,
-            required=True if default_value else False,
-            *constraint,
+            required=True if default_value is not None else False,
         )
 
         return self
@@ -97,14 +156,12 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[bool] = None,
-        *constraint: FieldConstraint[bool],
     ):
         self._entries[name] = Field[bool](
             name=name,
             description=description,
             default_value=default_value,
-            required=True if default_value else False,
-            *constraint,
+            required=True if default_value is not None else False,
         )
 
         return self
@@ -114,14 +171,13 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[datetime] = None,
-        *constraint: FieldConstraint[datetime],
+        # validate: Optional[Callable[[datetime], datetime]] = None,
     ):
         self._entries[name] = Field[datetime](
             name=name,
             description=description,
             default_value=default_value,
-            required=True if default_value else False,
-            *constraint,
+            required=True if default_value is not None else False,
         )
 
         return self
@@ -131,14 +187,13 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[bytes] = None,
-        *constraint: FieldConstraint[bytes],
+        # validate: Optional[Callable[[bytes], bytes]] = None,
     ):
         self._entries[name] = Field[bytes](
             name=name,
             description=description,
             default_value=default_value,
-            required=True if default_value else False,
-            *constraint,
+            required=True if default_value is not None else False,
         )
 
         return self
@@ -148,14 +203,26 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[ListValue] = None,
-        *constraint: FieldConstraint[ListValue],
+        min_items: Optional[int] = None,
+        max_items: Optional[int] = None,
+        unique_itmes: Optional[bool] = None,
+        # validate: Optional[Callable[[list], list]] = None,
     ):
+        constraints: list[FieldConstraint[list]] = []
+
+        if min_items:
+            constraints.append(MinItems(min_items))
+        if max_items:
+            constraints.append(MaxItems(max_items))
+        if unique_itmes:
+            constraints.append(UniqueItems())
+
         self._entries[name] = Field[ListValue](
             name=name,
             description=description,
             default_value=default_value,
             required=True if default_value else False,
-            *constraint,
+            constraints=constraints,
         )
         return self
 
