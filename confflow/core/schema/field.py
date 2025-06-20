@@ -1,8 +1,9 @@
-from typing import Generic, Optional, TypeVar
+from typing import TYPE_CHECKING, Generic, Optional, TypeVar
 
 from confflow.types import Value
 
-from ..config import FieldConstraint  # for typing
+if TYPE_CHECKING:
+    from ..config import Constraint
 
 T = TypeVar("T", bound=Value, covariant=True)
 
@@ -14,7 +15,7 @@ class Field(Generic[T]):
         description: str,
         default_value: Optional[T] = None,
         required: bool = False,
-        constraints: Optional[list[FieldConstraint[T]]] = None,
+        constraints: Optional[list[Constraint[T]]] = None,
     ):
         self._name = name
         self._description = description
@@ -44,5 +45,5 @@ class Field(Generic[T]):
         return self._required
 
     @property
-    def constraints(self) -> list[FieldConstraint[T]]:
+    def constraints(self) -> list[Constraint[T]]:
         return self._constraints

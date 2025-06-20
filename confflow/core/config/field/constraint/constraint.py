@@ -17,5 +17,5 @@ class Constraint(ABC, Generic[T]):
     @abstractmethod
     def validate(self, value: T) -> bool: ...
 
-    @abstractmethod
+    @abstractmethod  # TODO find a better way to not repeat
     def __repr__(self) -> str: ...

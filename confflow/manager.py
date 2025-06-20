@@ -10,7 +10,7 @@ from .formatter import format_schema
 class Manager:
     def __init__(self, *schema: Schema):
         self._schemas: tuple[Schema, ...] = schema
-        self._configs: dict[str, Config] = {}  # TODO dict or orderedict?
+        self._configs: dict[str, Config] = {}
 
     @property
     def schemas(self) -> tuple[Schema, ...]:
@@ -41,9 +41,7 @@ class Manager:
 
             self._configs[schema.name] = config
 
-    def _process_schema(
-        self, schema_obj: Schema, data: dict, config: Config
-    ):  # TODO add typing
+    def _process_schema(self, schema_obj: Schema, data: dict, config: Config):
         for key, field_or_subschema in schema_obj.items():
             if isinstance(field_or_subschema, Schema):
                 nested_data = data.get(key)

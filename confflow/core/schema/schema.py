@@ -14,9 +14,9 @@ from confflow.core.config.field.constraint import (
     UniqueItems,
 )
 
-from ...types import ListValue
-from .field import Field, FieldConstraint
+from .field import Constraint, Field
 
+ListValue: TypeAlias = Union[str, int, float, bool, datetime, bytes]
 FieldValue: TypeAlias = Union[
     Field[str],
     Field[int],
@@ -24,7 +24,7 @@ FieldValue: TypeAlias = Union[
     Field[bool],
     Field[datetime],
     Field[bytes],
-    Field[ListValue],
+    Field[list[ListValue]],
 ]
 
 Entry: TypeAlias = Union[
@@ -37,7 +37,7 @@ class Schema:
     def __init__(self, name: str, description: str):
         self._name = name
         self._description = description
-        self._entries: dict[  # TODO dict or ordered dict?
+        self._entries: dict[
             str,
             Entry,
         ] = dict()
@@ -64,12 +64,11 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[str] = None,
-        min_length: Optional[str] = None,
-        max_length: Optional[str] = None,
+        min_length: Optional[int] = None,
+        max_length: Optional[int] = None,
         regex: Optional[str] = None,
-        # validate: Optional[Callable[[str], str]] = None,
     ):
-        constraints: list[FieldConstraint[str]] = []
+        constraints: list[Constraint[str]] = []
 
         if min_length:
             constraints.append(MinLength(min_length))
@@ -97,9 +96,8 @@ class Schema:
         ge: Optional[int] = None,
         lt: Optional[int] = None,
         le: Optional[int] = None,
-        # validate: Optional[Callable[[int], int]] = None,
     ):
-        constraints: list[FieldConstraint[int]] = []
+        constraints: list[Constraint[int]] = []
 
         if gt:
             constraints.append(GreaterThan(gt))
@@ -129,9 +127,8 @@ class Schema:
         ge: Optional[float] = None,
         lt: Optional[float] = None,
         le: Optional[float] = None,
-        # validate: Optional[Callable[[float], float]] = None,
     ):
-        constraints: list[FieldConstraint[float]] = []
+        constraints: list[Constraint[float]] = []
 
         if gt:
             constraints.append(GreaterThan(gt))
@@ -171,7 +168,6 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[datetime] = None,
-        # validate: Optional[Callable[[datetime], datetime]] = None,
     ):
         self._entries[name] = Field[datetime](
             name=name,
@@ -187,7 +183,6 @@ class Schema:
         name: str,
         description: str,
         default_value: Optional[bytes] = None,
-        # validate: Optional[Callable[[bytes], bytes]] = None,
     ):
         self._entries[name] = Field[bytes](
             name=name,
@@ -202,13 +197,12 @@ class Schema:
         self,
         name: str,
         description: str,
-        default_value: Optional[ListValue] = None,
+        default_value: Optional[list[ListValue]] = None,
         min_items: Optional[int] = None,
         max_items: Optional[int] = None,
         unique_itmes: Optional[bool] = None,
-        # validate: Optional[Callable[[list], list]] = None,
     ):
-        constraints: list[FieldConstraint[list]] = []
+        constraints: list[Constraint[list[ListValue]]] = []
 
         if min_items:
             constraints.append(MinItems(min_items))
@@ -217,7 +211,7 @@ class Schema:
         if unique_itmes:
             constraints.append(UniqueItems())
 
-        self._entries[name] = Field[ListValue](
+        self._entries[name] = Field[list[ListValue]](
             name=name,
             description=description,
             default_value=default_value,

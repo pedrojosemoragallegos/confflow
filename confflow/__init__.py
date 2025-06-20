@@ -1,11 +1,12 @@
-from .core import FieldConstraint, Schema
+# TODO correct imports
+from .core import Constraint, Schema
 from .core.config.field.constraint import numeric, string
 from .manager import Manager
 
 __all__ = [
     "Manager",
     "Schema",
-    "FieldConstraint",
+    "Constraint",
     "numeric",
     "string",
 ]
