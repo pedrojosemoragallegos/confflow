@@ -7,10 +7,10 @@ T = TypeVar("T", bound=Value)
 
 
 class Constraint(ABC, Generic[T]):
-    def __init__(self, error_message: str) -> None:
+    def __init__(self, error_message: str):
         self._error_message: str = error_message
 
-    def __call__(self, value: T) -> None:
+    def __call__(self, value: T):
         if not self.validate(value):
             raise ValueError(self._error_message)
 

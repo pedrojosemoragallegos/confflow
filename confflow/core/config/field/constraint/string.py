@@ -4,7 +4,7 @@ from .constraint import Constraint
 
 
 class MinLength(Constraint[str]):
-    def __init__(self, length: int) -> None:
+    def __init__(self, length: int):
         super().__init__(f"Value must be at least {length} characters long")
         self._length = length
 
@@ -16,7 +16,7 @@ class MinLength(Constraint[str]):
 
 
 class MaxLength(Constraint[str]):
-    def __init__(self, length: int) -> None:
+    def __init__(self, length: int):
         super().__init__(f"Value must be at most {length} characters long")
         self._length = length
 
@@ -28,7 +28,7 @@ class MaxLength(Constraint[str]):
 
 
 class Regex(Constraint[str]):
-    def __init__(self, pattern: str) -> None:
+    def __init__(self, pattern: str):
         super().__init__(f"Value does not match pattern: {pattern}")
         self._pattern = re.compile(pattern)
 

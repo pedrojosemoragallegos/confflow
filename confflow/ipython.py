@@ -9,7 +9,7 @@ class IPythonKeyCompletionMixin:
 
 
 class ReprPrettyMixin:
-    def _repr_pretty_(self, p, cycle: bool) -> None:
+    def _repr_pretty_(self, p, cycle: bool):
         if cycle:
             p.text(f"{self.__class__.__name__}(...)")
         else:
@@ -57,7 +57,7 @@ class ReprMimeBundleMixin:
 
 
 class IPythonDisplayMixin:
-    def _ipython_display_(self) -> None:
+    def _ipython_display_(self):
         from IPython.display import Markdown, display
 
         if hasattr(self, "_repr_markdown_"):

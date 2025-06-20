@@ -4,7 +4,7 @@ from .constraint import Constraint
 
 
 class MinItems(Constraint[list[Any]]):
-    def __init__(self, count: int) -> None:
+    def __init__(self, count: int):
         super().__init__(f"List must have at least {count} items")
         self._count = count
 
@@ -16,7 +16,7 @@ class MinItems(Constraint[list[Any]]):
 
 
 class MaxItems(Constraint[list[Any]]):
-    def __init__(self, count: int) -> None:
+    def __init__(self, count: int):
         super().__init__(f"List must have at most {count} items")
         self._count = count
 
@@ -28,7 +28,7 @@ class MaxItems(Constraint[list[Any]]):
 
 
 class UniqueItems(Constraint[list[Any]]):
-    def __init__(self) -> None:
+    def __init__(self):
         super().__init__("List items must be unique")
 
     def validate(self, value: list[Any]) -> bool:

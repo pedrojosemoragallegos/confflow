@@ -36,7 +36,7 @@ class Field(
         return self._value
 
     @value.setter
-    def value(self, value: T) -> None:
+    def value(self, value: T):
         self._validate(value=value)
         self._value = value
 
@@ -44,6 +44,6 @@ class Field(
     def description(self) -> str:
         return self._description
 
-    def _validate(self, value: T) -> None:
+    def _validate(self, value: T):
         for constraint in self._constraints:
             constraint(value)
