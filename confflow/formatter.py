@@ -37,12 +37,19 @@ def _format_field(field: SchemaField[Value], indent_level: int) -> list[str]:
         else getattr(field, "type", str)
     )
     yaml_type = _python_type_to_yaml_type(inferred_type)
+    constraints_info = _format_constraints(getattr(field, "constraints", []))
 
+    # Build the comment
+    comment_parts = []
     if field.description:
-        lines.append(f"{key_indent}# {field.description} | type: {yaml_type}")
-    else:
-        lines.append(f"{key_indent}# type: {yaml_type}")
+        comment_parts.append(field.description)
+    comment_parts.append(f"type: {yaml_type}")
+    if constraints_info:
+        comment_parts.append(f"constraints: {constraints_info}")
+    comment_line = f"{key_indent}# {' | '.join(comment_parts)}"
+    lines.append(comment_line)
 
+    # Field value formatting
     if isinstance(default_value, (dict, list, set)):
         lines.append(f"{key_indent}{field.name}:")
         formatted = _format_complex(default_value, indent_level + 1)
@@ -53,6 +60,10 @@ def _format_field(field: SchemaField[Value], indent_level: int) -> list[str]:
         lines.append(f"{key_indent}{field.name}:")
 
     return lines
+
+
+def _format_constraints(constraints: list[Any]) -> str:
+    return ", ".join(repr(c) for c in constraints)
 
 
 def _default_str(value: Any) -> str:

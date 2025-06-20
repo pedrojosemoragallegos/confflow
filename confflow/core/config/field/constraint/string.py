@@ -11,6 +11,9 @@ class MinLength(Constraint[str]):
     def validate(self, value: str) -> bool:
         return len(value) >= self._length
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self._length})"
+
 
 class MaxLength(Constraint[str]):
     def __init__(self, length: int) -> None:
@@ -20,6 +23,9 @@ class MaxLength(Constraint[str]):
     def validate(self, value: str) -> bool:
         return len(value) <= self._length
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self._length})"
+
 
 class Regex(Constraint[str]):
     def __init__(self, pattern: str) -> None:
@@ -28,3 +34,6 @@ class Regex(Constraint[str]):
 
     def validate(self, value: str) -> bool:
         return bool(self._pattern.match(value))
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self._pattern.pattern!r})"

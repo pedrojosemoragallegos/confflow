@@ -9,6 +9,9 @@ class MinItems(Constraint[list]):
     def validate(self, value: list) -> bool:
         return len(value) >= self._count
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self._count})"
+
 
 class MaxItems(Constraint[list]):
     def __init__(self, count: int) -> None:
@@ -18,6 +21,9 @@ class MaxItems(Constraint[list]):
     def validate(self, value: list) -> bool:
         return len(value) <= self._count
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self._count})"
+
 
 class UniqueItems(Constraint[list]):
     def __init__(self) -> None:
@@ -25,3 +31,6 @@ class UniqueItems(Constraint[list]):
 
     def validate(self, value: list) -> bool:
         return len(set(value)) == len(value)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"

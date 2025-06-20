@@ -15,6 +15,9 @@ class GreaterThan(Constraint[int]):
     def validate(self, value: int) -> bool:
         return value > self._threshold
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self._threshold})"
+
 
 class GreaterThanOrEqual(Constraint[int]):
     def __init__(self, threshold: int) -> None:
@@ -23,6 +26,9 @@ class GreaterThanOrEqual(Constraint[int]):
 
     def validate(self, value: int) -> bool:
         return value >= self._threshold
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self._threshold})"
 
 
 class LessThan(Constraint[int]):
@@ -33,6 +39,9 @@ class LessThan(Constraint[int]):
     def validate(self, value: int) -> bool:
         return value < self._threshold
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self._threshold})"
+
 
 class LessThanOrEqual(Constraint[int]):
     def __init__(self, threshold: int) -> None:
@@ -41,3 +50,6 @@ class LessThanOrEqual(Constraint[int]):
 
     def validate(self, value: int) -> bool:
         return value <= self._threshold
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self._threshold})"
