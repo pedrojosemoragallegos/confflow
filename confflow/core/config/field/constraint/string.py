@@ -1,4 +1,5 @@
 import re
+from typing import Sequence
 
 from .constraint import Constraint
 
@@ -37,3 +38,14 @@ class Regex(Constraint[str]):
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self._pattern.pattern!r})"
+
+
+class EnumValues(Constraint[str]):
+    def __init__(self, values: Sequence[str]):
+        self.values = set(values)
+
+    def validate(self, value: str) -> bool:
+        return value in self.values
+
+    def __repr__(self) -> str:
+        return f"EnumValues({list(self.values)})"

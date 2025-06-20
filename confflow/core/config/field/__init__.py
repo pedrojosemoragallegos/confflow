@@ -1,5 +1,6 @@
 from .constraint import (
     Constraint,
+    EnumValues,
     GreaterThan,
     GreaterThanOrEqual,
     LessThan,
@@ -26,4 +27,5 @@ __all__ = [
     "GreaterThanOrEqual",
     "LessThan",
     "LessThanOrEqual",
+    "EnumValues",
 ]

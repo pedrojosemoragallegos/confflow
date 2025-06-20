@@ -1,7 +1,9 @@
+from collections.abc import ItemsView, KeysView, ValuesView
 from datetime import datetime
 from typing import Optional, TypeAlias, Union
 
 from confflow.core.config.field.constraint import (
+    EnumValues,
     GreaterThan,
     GreaterThanOrEqual,
     LessThan,
@@ -51,7 +53,7 @@ class Schema:
         return self._description
 
     @property
-    def fields(self):  # TODO correct return type
+    def fields(self) -> ValuesView[Entry]:
         return self._entries.values()
 
     def SubSchema(self, name: str, schema: "Schema"):
@@ -67,6 +69,7 @@ class Schema:
         min_length: Optional[int] = None,
         max_length: Optional[int] = None,
         regex: Optional[str] = None,
+        enum: Optional[list[str]] = None,
     ):
         constraints: list[Constraint[str]] = []
 
@@ -76,6 +79,8 @@ class Schema:
             constraints.append(MaxLength(max_length))
         if regex:
             constraints.append(Regex(regex))
+        if enum:
+            constraints.append(EnumValues(enum))
 
         self._entries[name] = Field[str](
             name=name,
@@ -220,19 +225,19 @@ class Schema:
         )
         return self
 
-    def keys(self):  # TODO  return type
+    def keys(self) -> KeysView[str]:
         return self._entries.keys()
 
-    def values(self):  # TODO  return type
+    def values(self) -> ValuesView[Entry]:
         return self._entries.values()
 
-    def items(self):  # TODO  return type
+    def items(self) -> ItemsView[str, Entry]:
         return self._entries.items()
 
-    def __getitem__(self, key: str):  # TODO  return type
+    def __getitem__(self, key: str) -> Entry:
         return self._entries[key]
 
-    def __contains__(self, key: str):  # TODO  return type
+    def __contains__(self, key: str) -> bool:
         return key in self._entries
 
     # Only for iPython # TODO maybe remove here  as mixin or so

@@ -1,9 +1,8 @@
-from typing import TYPE_CHECKING, Generic, Optional, TypeVar
+from typing import Generic, Optional, TypeVar
 
 from confflow.types import Value
 
-if TYPE_CHECKING:
-    from ..config import Constraint
+from ..config import Constraint
 
 T = TypeVar("T", bound=Value, covariant=True)
 
