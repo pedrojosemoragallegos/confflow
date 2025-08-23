@@ -1,14 +1,13 @@
 from abc import ABC
-from typing import Generic, Iterable, Optional, TypeVar
+from datetime import datetime
+from typing import Generic, Iterable, Optional, TypeVar, Union
 
-from confflow.types import Value
+from ..constraint import Constraint
 
-from .constraint import Constraint
-
-T = TypeVar("T", bound=Value)
+T = TypeVar("T", bound=Union[str, int, float, bool, datetime, bytes])
 
 
-class Field(
+class Entry(
     ABC,
     Generic[T],
 ):
@@ -24,8 +23,7 @@ class Field(
         self._description: str = description or ""
         self._constraints: set[Constraint[T]] = set(constraints or [])
 
-        self._validate(value)
-        self._value: T = value
+        self._value: T = self._validate(value)
 
     @property
     def name(self) -> str:
@@ -35,15 +33,21 @@ class Field(
     def value(self) -> T:
         return self._value
 
-    @value.setter
-    def value(self, value: T):
-        self._validate(value=value)
-        self._value = value
-
     @property
     def description(self) -> str:
         return self._description
 
-    def _validate(self, value: T):
+    def _validate(self, value: T) -> T:
         for constraint in self._constraints:
             constraint(value)
+
+        return value
+
+    def __repr__(self) -> str:
+        return (
+            f"{self.__class__.__name__}("
+            f"name='{self.name}', "
+            f"value={self.value!r}, "
+            f"description={self.description!r}, "
+            f"constraints={list(self._constraints) if self._constraints else []!r})"
+        )

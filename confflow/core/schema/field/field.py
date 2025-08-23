@@ -1,10 +1,9 @@
-from typing import Generic, Optional, TypeVar
+from datetime import datetime
+from typing import Generic, Iterable, Optional, TypeVar, Union
 
-from confflow.types import Value
+from ...constraint import Constraint
 
-from ..config import Constraint
-
-T = TypeVar("T", bound=Value, covariant=True)
+T = TypeVar("T", bound=Union[str, int, float, bool, datetime, bytes], covariant=True)
 
 
 class Field(Generic[T]):
@@ -12,16 +11,17 @@ class Field(Generic[T]):
         self,
         name: str,
         description: str,
+        *,
         default_value: Optional[T] = None,
         required: bool = False,
-        constraints: Optional[list[Constraint[T]]] = None,
+        constraints: Optional[Iterable[Constraint[T]]] = None,
     ):
         self._name = name
         self._description = description
         self._required = required
-        self._constraints = constraints if constraints else []
+        self._constraints = list(constraints) if constraints else []
 
-        if default_value:
+        if default_value is not None:
             for constraint in self._constraints:
                 constraint(default_value)
 
@@ -46,3 +46,11 @@ class Field(Generic[T]):
     @property
     def constraints(self) -> list[Constraint[T]]:
         return self._constraints
+
+    def __repr__(self) -> str:
+        return (
+            f"Field(name={self._name!r}, "  # QUESTION should we take the private or the property
+            f"default={self._default_value!r}, "
+            f"required={self._required}, "
+            f"constraints={len(self._constraints)})"
+        )

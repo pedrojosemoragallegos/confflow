@@ -1,5 +1,5 @@
 from .constraint import Constraint
-from .list import MaxItems, MinItems, UniqueItems
+from .list import AllItemsMatch, MaxItems, MinItems, UniqueItems
 from .numeric import GreaterThan, GreaterThanOrEqual, LessThan, LessThanOrEqual
 from .string import EnumValues, MaxLength, MinLength, Regex
 
@@ -16,4 +16,5 @@ __all__ = [
     "MinItems",
     "UniqueItems",
     "EnumValues",
+    "AllItemsMatch",
 ]

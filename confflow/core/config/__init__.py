@@ -1,4 +1,4 @@
 from .config import Config
-from .field import Constraint, Field
+from .entry import Entry
 
-__all__ = ["Config", "Field", "Constraint"]
+__all__ = ["Config", "Entry"]

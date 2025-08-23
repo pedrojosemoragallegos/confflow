@@ -1,23 +1,26 @@
 from collections import OrderedDict
 from collections.abc import Iterable
+from datetime import datetime
 from typing import Optional, TypeVar, Union
 
-from confflow.types import Value
+from .entry import Constraint, Entry
 
-from .field.field import Constraint, Field
-
-T = TypeVar("T", bound=Value)
+T = TypeVar("T", bound=Union[str, int, float, bool, datetime, bytes])
 
 
 class Config:
     def __init__(self, name: str, description: Optional[str] = None):
         self._name: str = name
         self._description: str = description or ""
-        self._entries: OrderedDict[str, Union[Field[Value], Config]] = OrderedDict()
-        self._defaults: dict[str, Optional[Value]] = {}
-        self._requirets: dict[str, bool] = dict()
+        self._entries: OrderedDict[
+            str, Union[Entry[Union[str, int, float, bool, datetime, bytes]], Config]
+        ] = OrderedDict()
+        self._defaults: dict[
+            str, Optional[Union[str, int, float, bool, datetime, bytes]]
+        ] = {}
+        self._required: dict[str, bool] = dict()
 
-    def addField(
+    def Entry(
         self,
         value: T,
         *,
@@ -35,23 +38,24 @@ class Config:
                 f"Type mismatch: 'value' ({type(value)}) and 'default_value' ({type(default_value)})"
             )
 
-        field = Field[T](
+        entry = Entry[T](
             value=value,
             name=name,
             description=description,
             constraints=constraints,
         )
 
-        self._entries[name] = field
+        self._entries[name] = entry
         self._defaults[name] = default_value
-        self._requirets[name] = required
+        self._required[name] = required
 
         return self
 
-    def addSubconfig(self, name: str, config: "Config") -> "Config":
+    def SubConfig(self, name: str, config: "Config") -> "Config":
         if name in self._entries:
             raise ValueError(f"Entry with name '{name}' already exists.")
         self._entries[name] = config
+
         return self
 
     def __len__(self) -> int:
@@ -68,7 +72,7 @@ class Config:
 
     def __getitem__(self, key: str):  # TODO add return type
         entry = self._entries[key]
-        if isinstance(entry, Field):
+        if isinstance(entry, Entry):
             return entry.value
 
         return entry
@@ -79,3 +83,6 @@ class Config:
     # Only for iPython # TODO maybe remove here add as mixin or so
     def _ipython_key_completions_(self) -> list[str]:
         return list(self._entries.keys())
+
+    def __repr__(self) -> str:
+        return f"Config(name={self._name!r}, entries=[{', '.join(self._entries.keys()) if self._entries else 'empty'}])"

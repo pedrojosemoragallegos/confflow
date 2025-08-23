@@ -1,8 +1,7 @@
 from datetime import date, datetime
-from typing import Any
+from typing import Any, Union
 
-from .core import Schema, SchemaField
-from .types import Value
+from .core import Field, Schema
 
 
 def format_schema(schema: Schema, indent_level: int = 0) -> str:
@@ -18,7 +17,7 @@ def format_schema(schema: Schema, indent_level: int = 0) -> str:
         if isinstance(field, Schema):
             nested_yaml = format_schema(field, indent_level + 1)
             lines.extend(nested_yaml.splitlines())
-        elif isinstance(field, SchemaField):
+        elif isinstance(field, Field):
             lines.extend(_format_field(field, indent_level + 1))
         else:
             raise TypeError(f"Unsupported field type: {type(field)}")
@@ -26,7 +25,9 @@ def format_schema(schema: Schema, indent_level: int = 0) -> str:
     return "\n".join(lines)
 
 
-def _format_field(field: SchemaField[Value], indent_level: int) -> list[str]:
+def _format_field(
+    field: Field[Union[str, int, float, bool, datetime, bytes]], indent_level: int
+) -> list[str]:
     lines: list[str] = []
     key_indent = "  " * indent_level
 

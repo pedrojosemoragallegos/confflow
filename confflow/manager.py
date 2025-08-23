@@ -8,8 +8,8 @@ from .formatter import format_schema
 
 
 class Manager:
-    def __init__(self, *schema: Schema):
-        self._schemas: tuple[Schema, ...] = schema
+    def __init__(self, *schemas: Schema):
+        self._schemas: tuple[Schema, ...] = schemas
         self._configs: dict[str, Config] = {}
 
     @property
@@ -52,14 +52,14 @@ class Manager:
                     name=key, description=field_or_subschema.description
                 )
                 self._process_schema(field_or_subschema, nested_data, nested_config)
-                config.addSubconfig(key, nested_config)
+                config.SubConfig(key, nested_config)
 
             else:
                 value = data.get(key, field_or_subschema.default_value)
                 if value is None and field_or_subschema.required:
                     raise ValueError(f"Missing required field '{key}'")
 
-                config.addField(
+                config.Entry(
                     value=value,
                     name=key,
                     description=field_or_subschema.description,
@@ -86,3 +86,9 @@ class Manager:
     # Only for iPython # TODO maybe remove here add as mixin or so
     def _ipython_key_completions_(self) -> list[str]:
         return list(self._configs.keys())
+
+    def __repr__(self) -> str:
+        return (
+            f"Manager(schemas={{{', '.join(f'{schema!r}' for schema in self._schemas) if self._schemas else ''}}}, "
+            f"loaded_configs={{{', '.join(f'{config!r}' for config in self._configs.values()) if self._configs else ''}}})"
+        )
