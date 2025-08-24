@@ -3,11 +3,13 @@ from typing import Any, Union
 
 import yaml
 
+from confflow.mixins import IPythonMixin
+
 from .core import Config, Schema
 from .formatter import format_schema
 
 
-class Manager:
+class Manager(IPythonMixin):
     def __init__(self, *schemas: Schema):
         self._schemas: tuple[Schema, ...] = schemas
         self._configs: dict[str, Config] = {}
@@ -82,10 +84,6 @@ class Manager:
 
     def __contains__(self, key: str):  # TODO add return type
         return key in self._configs
-
-    # Only for iPython # TODO maybe remove here add as mixin or so
-    def _ipython_key_completions_(self) -> list[str]:
-        return list(self._configs.keys())
 
     def __repr__(self) -> str:
         return (

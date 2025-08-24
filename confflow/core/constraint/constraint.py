@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
-from datetime import datetime
-from typing import Generic, TypeVar, Union
+from typing import Generic, TypeVar
 
-T = TypeVar("T", bound=Union[str, int, float, bool, datetime, bytes])
+from confflow.types import Value
+
+T = TypeVar("T", bound=Value)
 
 
 class Constraint(ABC, Generic[T]):

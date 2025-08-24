@@ -1,8 +1,10 @@
 from typing import TypeVar
 
+from confflow.types import Value
+
 from .constraint import Constraint
 
-T = TypeVar("T")
+T = TypeVar("T", bound=Value)
 
 
 class MinItems(Constraint[list[T]]):

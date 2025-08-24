@@ -1,10 +1,11 @@
 from abc import ABC
-from datetime import datetime
-from typing import Generic, Iterable, Optional, TypeVar, Union
+from typing import Generic, Iterable, Optional, TypeVar
+
+from confflow.types import Value
 
 from ..constraint import Constraint
 
-T = TypeVar("T", bound=Union[str, int, float, bool, datetime, bytes])
+T = TypeVar("T", bound=Value)
 
 
 class Entry(

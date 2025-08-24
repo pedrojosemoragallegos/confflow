@@ -1,33 +1,20 @@
 from collections import OrderedDict
-from datetime import datetime
 from typing import Union
+
+from confflow.mixins import IPythonMixin
+from confflow.types import Value
 
 from .field import Field
 
 
-class Schema:
+class Schema(IPythonMixin):
     def __init__(self, name: str, description: str):
         self._name = name
         self._description = description
         self._fields: OrderedDict[
             str,
             Union[
-                Field[
-                    Union[
-                        str,
-                        int,
-                        float,
-                        bool,
-                        datetime,
-                        bytes,
-                        list[str],
-                        list[int],
-                        list[float],
-                        list[bool],
-                        list[datetime],
-                        list[bytes],
-                    ]
-                ],
+                Field[Union[Value, list[Value]]],
                 "Schema",
             ],
         ] = OrderedDict()
@@ -63,10 +50,6 @@ class Schema:
 
     def __contains__(self, key: str) -> bool:
         return key in self._fields
-
-    # TODO maybe remove here  as mixin or so
-    def _ipython_key_completions_(self) -> list[str]:
-        return list(self._fields.keys())
 
     def __repr__(self) -> str:
         return (

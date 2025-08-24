@@ -24,7 +24,7 @@ class MaxLength(Constraint[str]):
 
 class Regex(Constraint[str]):
     def __init__(self, pattern: str):
-        super().__init__(f"Value does not match pattern: {pattern}")
+        super().__init__(f"Value must match pattern: {pattern}")
         self._pattern = re.compile(pattern)
 
     def validate(self, value: str) -> bool:
