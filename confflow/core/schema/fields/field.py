@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Generic, Iterable, Optional, TypeVar, Union
 
-from ...constraint import Constraint
+from ...constraints import Constraint
 
 T = TypeVar("T", bound=Union[str, int, float, bool, datetime, bytes], covariant=True)
 

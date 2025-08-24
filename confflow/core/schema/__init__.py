@@ -1,4 +1,4 @@
-from .field import (
+from .fields import (
     BooleanField,
     BooleanListField,
     BytesField,

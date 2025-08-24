@@ -3,7 +3,7 @@ from typing import Generic, Iterable, Optional, TypeVar
 
 from confflow.types import Value
 
-from ..constraint import Constraint
+from ..constraints import Constraint
 
 T = TypeVar("T", bound=Value)
 

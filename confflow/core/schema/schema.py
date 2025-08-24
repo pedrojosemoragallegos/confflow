@@ -4,7 +4,7 @@ from typing import Union
 from confflow.mixins import IPythonMixin
 from confflow.types import Value
 
-from .field import Field
+from .fields import Field
 
 
 class Schema(IPythonMixin):
