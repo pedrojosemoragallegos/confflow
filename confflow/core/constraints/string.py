@@ -24,7 +24,7 @@ class MaxLength(Constraint[str]):
 
 class Regex(Constraint[str]):
     def __init__(self, pattern: str):
-        super().__init__(f"Value must match pattern: {pattern}")
+        super().__init__(f"Value must match pattern {pattern}")
         self._pattern = re.compile(pattern)
 
     def validate(self, value: str) -> bool:
@@ -33,7 +33,7 @@ class Regex(Constraint[str]):
 
 class EnumValues(Constraint[str]):
     def __init__(self, values: Sequence[str]):
-        super().__init__(f"Value must be one of: {list(values)}")
+        super().__init__(f"Value must be one of {list(values)}")
         self._values = set(values)
 
     def validate(self, value: str) -> bool:
