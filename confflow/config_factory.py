@@ -1,11 +1,11 @@
-from typing import Any
+from typing import Any, Union
 
 from .config import Config, Entry
 from .schema import Schema
 
 
 def create_config(schema: Schema, data: dict[str, Any]) -> Config:
-    items: list[Config | Entry] = []
+    items: list[Union[Config, Entry]] = []
     for key, field_or_subschema in schema.items():
         if isinstance(field_or_subschema, Schema):
             nested_config: Config = _create_nested_config(
