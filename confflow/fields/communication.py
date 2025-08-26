@@ -15,7 +15,6 @@ class EmailField(Field[str]):
         description: str,
         *,
         default_value: Optional[str] = None,
-        required: bool = False,
         max_length: Optional[int] = None,
         domains: Optional[list[str]] = None,
     ):
@@ -38,7 +37,6 @@ class EmailField(Field[str]):
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
             constraints=constraints,
         )
 
@@ -50,7 +48,6 @@ class PhoneField(Field[str]):
         description: str,
         *,
         default_value: Optional[str] = None,
-        required: bool = False,
         format_type: Optional[Literal["international", "us", "digits_only"]] = None,
         country_code: Optional[str] = None,
     ):
@@ -76,6 +73,5 @@ class PhoneField(Field[str]):
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
             constraints=constraints,
         )

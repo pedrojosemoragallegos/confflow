@@ -15,7 +15,6 @@ from confflow.types import Value
 from .entry import Entry
 
 ConfigOrEntry = Union[Entry[Value], "Config"]
-
 T = TypeVar("T", bound=Value)
 
 
@@ -28,7 +27,6 @@ class Config(IPythonMixin):
     ):
         if not len(items):
             raise ValueError("Config must contain at least one configuration item")
-
         self._name: str = name
         self._description: str = description
         self._items: OrderedDict[str, ConfigOrEntry] = OrderedDict(
@@ -55,12 +53,10 @@ class Config(IPythonMixin):
     def items(self) -> ItemsView[str, ConfigOrEntry]:
         return self._items.items()
 
-    def __getitem__(self, key: str) -> Union[Value, Config]:
-        entry: Union[Config, Entry[Value]] = self._items[key]
-
+    def __getitem__(self, key: str) -> Union[Value, "Config"]:
+        entry: Union["Config", Entry[Value]] = self._items[key]
         if isinstance(entry, Entry):
             return entry.value
-
         return entry
 
     def __contains__(self, key: str) -> bool:
@@ -68,3 +64,6 @@ class Config(IPythonMixin):
 
     def __repr__(self) -> str:
         return f"Config(name={self._name!r}, items={self._items!r})"
+
+    def __dir__(self):
+        return [attr for attr in dir(type(self)) if not attr.startswith("_")]

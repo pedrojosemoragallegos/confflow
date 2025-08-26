@@ -6,7 +6,7 @@ from typing import Optional, Union
 from confflow.mixins import IPythonMixin
 from confflow.types import Value
 
-from .fields import Field
+from .field import Field
 
 
 class Schema(IPythonMixin):

@@ -1,13 +1,13 @@
 from typing import Literal, Optional
 
-from ...constraints import (
+from ..constraints import (
     Constraint,
     GreaterThanOrEqual,
     LessThanOrEqual,
     MaxLength,
     Regex,
 )
-from ..field import Field
+from ..schema.field import Field
 
 
 class IPAddressField(Field[str]):
@@ -17,7 +17,6 @@ class IPAddressField(Field[str]):
         description: str,
         *,
         default_value: Optional[str] = None,
-        required: bool = False,
         version: Optional[Literal[4, 6]] = None,
     ):
         constraints: list[Constraint[str]] = []
@@ -36,7 +35,6 @@ class IPAddressField(Field[str]):
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
             constraints=constraints,
         )
 
@@ -48,7 +46,6 @@ class MACAddressField(Field[str]):
         description: str,
         *,
         default_value: Optional[str] = None,
-        required: bool = False,
         separator: Optional[Literal[":", "-"]] = None,
     ):
         constraints: list[Constraint[str]] = []
@@ -66,7 +63,6 @@ class MACAddressField(Field[str]):
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
             constraints=constraints,
         )
 
@@ -78,7 +74,6 @@ class PortField(Field[int]):
         description: str,
         *,
         default_value: Optional[int] = None,
-        required: bool = False,
         range_type: Optional[Literal["well_known", "registered", "dynamic"]] = None,
     ):
         constraints: list[Constraint[int]] = []
@@ -96,7 +91,6 @@ class PortField(Field[int]):
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
             constraints=constraints,
         )
 
@@ -108,7 +102,6 @@ class URLField(Field[str]):
         description: str,
         *,
         default_value: Optional[str] = None,
-        required: bool = False,
         schemes: Optional[
             list[Literal["http", "https", "ftp", "ftps", "ws", "wss"]]
         ] = None,
@@ -131,7 +124,6 @@ class URLField(Field[str]):
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
             constraints=constraints,
         )
 
@@ -143,7 +135,6 @@ class HostnameField(Field[str]):
         description: str,
         *,
         default_value: Optional[str] = None,
-        required: bool = False,
         fqdn_only: bool = False,
         max_length: Optional[int] = None,
     ):
@@ -165,7 +156,6 @@ class HostnameField(Field[str]):
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
             constraints=constraints,
         )
 
@@ -177,7 +167,6 @@ class CIDRField(Field[str]):
         description: str,
         *,
         default_value: Optional[str] = None,
-        required: bool = False,
         version: Optional[Literal[4, 6]] = None,
     ):
         constraints: list[Constraint[str]] = []
@@ -197,6 +186,5 @@ class CIDRField(Field[str]):
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
             constraints=constraints,
         )

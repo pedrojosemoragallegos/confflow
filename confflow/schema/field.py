@@ -27,18 +27,20 @@ class Field(Generic[T]):
         *,
         description: Optional[str],
         default_value: Optional[T] = None,
-        required: bool = False,
         constraints: Optional[
             Iterable[Constraint[T]]
         ] = None,  # TODO check that not two of same class can be passed
     ):
         self._name: str = name
         self._description: Optional[str] = description
-        self._required: bool = required
         self._constraints: frozenset[Constraint[T]] = (
             frozenset(constraints) if constraints else frozenset()
         )
-        self._default_value = self._validate(default_value)
+        self._default_value = (
+            self._validate(default_value)
+            if default_value is not None
+            else default_value
+        )
 
     @property
     def name(self) -> str:
@@ -51,10 +53,6 @@ class Field(Generic[T]):
     @property
     def default_value(self) -> Optional[T]:
         return self._default_value
-
-    @property
-    def required(self) -> bool:
-        return self._required
 
     @property
     def constraints(self) -> frozenset[Constraint[T]]:
@@ -70,7 +68,6 @@ class Field(Generic[T]):
         return (
             f"Field(name={self.name!r}, "
             f"default={self.default_value!r}, "
-            f"required={self.required}, "
             f"constraints={len(self.constraints)})"
         )
 
@@ -83,7 +80,6 @@ class StringField(Field[str]):
         *,
         description: str,
         default_value: Optional[str] = None,
-        required: bool = False,
         min_length: Optional[int] = None,
         max_length: Optional[int] = None,
         regex: Optional[str] = None,
@@ -103,7 +99,6 @@ class StringField(Field[str]):
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
             constraints=constraints,
         )
 
@@ -115,7 +110,6 @@ class StringListField(Field[list[str]]):  # type: ignore
         *,
         description: str,
         default_value: Optional[list[str]] = None,
-        required: bool = False,
         min_items: Optional[int] = None,
         max_items: Optional[int] = None,
         unique_items: Optional[bool] = None,
@@ -151,7 +145,6 @@ class StringListField(Field[list[str]]):  # type: ignore
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
             constraints=constraints,
         )
 
@@ -163,7 +156,6 @@ class IntegerField(Field[int]):
         *,
         description: str,
         default_value: Optional[int] = None,
-        required: bool = False,
         gt: Optional[int] = None,
         ge: Optional[int] = None,
         lt: Optional[int] = None,
@@ -184,7 +176,6 @@ class IntegerField(Field[int]):
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
             constraints=constraints,
         )
 
@@ -196,7 +187,6 @@ class IntegerListField(Field[list[int]]):
         *,
         description: str,
         default_value: Optional[list[int]] = None,
-        required: bool = False,
         min_items: Optional[int] = None,
         max_items: Optional[int] = None,
         unique_items: Optional[bool] = None,
@@ -232,7 +222,6 @@ class IntegerListField(Field[list[int]]):
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
             constraints=constraints,
         )
 
@@ -244,7 +233,6 @@ class FloatField(Field[float]):
         *,
         description: str,
         default_value: Optional[float] = None,
-        required: bool = False,
         gt: Optional[float] = None,
         ge: Optional[float] = None,
         lt: Optional[float] = None,
@@ -265,7 +253,6 @@ class FloatField(Field[float]):
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
             constraints=constraints,
         )
 
@@ -277,7 +264,6 @@ class FloatListField(Field[list[float]]):
         *,
         description: str,
         default_value: Optional[list[float]] = None,
-        required: bool = False,
         min_items: Optional[int] = None,
         max_items: Optional[int] = None,
         unique_items: Optional[bool] = None,
@@ -313,7 +299,6 @@ class FloatListField(Field[list[float]]):
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
             constraints=constraints,
         )
 
@@ -325,13 +310,11 @@ class DateField(Field[datetime]):
         *,
         description: str,
         default_value: Optional[datetime] = None,
-        required: bool = False,
     ):
         super().__init__(
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
             constraints=[],
         )
 
@@ -343,7 +326,6 @@ class DateListField(Field[list[datetime]]):
         *,
         description: str,
         default_value: Optional[list[datetime]] = None,
-        required: bool = False,
         min_items: Optional[int] = None,
         max_items: Optional[int] = None,
         unique_items: Optional[bool] = None,
@@ -361,7 +343,6 @@ class DateListField(Field[list[datetime]]):
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
             constraints=constraints,
         )
 
@@ -373,13 +354,11 @@ class BytesField(Field[bytes]):
         *,
         description: str,
         default_value: Optional[bytes] = None,
-        required: bool = False,
     ):
         super().__init__(
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
             constraints=[],
         )
 
@@ -391,7 +370,6 @@ class BooleanListField(Field[list[bool]]):
         *,
         description: str,
         default_value: Optional[list[bool]] = None,
-        required: bool = False,
         min_items: Optional[int] = None,
         max_items: Optional[int] = None,
         unique_items: Optional[bool] = None,
@@ -409,7 +387,6 @@ class BooleanListField(Field[list[bool]]):
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
             constraints=constraints,
         )
 
@@ -421,13 +398,11 @@ class BooleanField(Field[bool]):
         *,
         description: str,
         default_value: Optional[bool] = None,
-        required: bool = False,
     ):
         super().__init__(
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
             constraints=[],
         )
 
@@ -439,7 +414,6 @@ class BytesListField(Field[list[bytes]]):
         *,
         description: str,
         default_value: Optional[list[bytes]] = None,
-        required: bool = False,
         min_items: Optional[int] = None,
         max_items: Optional[int] = None,
         unique_items: Optional[bool] = None,
@@ -457,6 +431,5 @@ class BytesListField(Field[list[bytes]]):
             name=name,
             description=description,
             default_value=default_value,
-            required=required,
             constraints=constraints,
         )
