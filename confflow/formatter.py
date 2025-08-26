@@ -7,12 +7,15 @@ from .schema.field import Field
 
 
 def format_schema(
-    schema: Schema, indent_level: int = 0, max_comment_length: int = 80
+    schema: Schema,
+    indent_level: int = 0,
+    max_comment_length: int = 80,
+    descriptions: bool = True,
 ) -> str:
     lines: List[str] = []
     indent: str = "  " * indent_level
 
-    if schema.description:
+    if schema.description and descriptions:
         comment_lines = _format_comment(
             schema.description, indent_level, max_comment_length
         )
@@ -23,12 +26,12 @@ def format_schema(
     for field in schema.fields:
         if isinstance(field, Schema):
             nested_yaml: str = format_schema(
-                field, indent_level + 1, max_comment_length
+                field, indent_level + 1, max_comment_length, descriptions
             )
             lines.extend(nested_yaml.splitlines())
         elif isinstance(field, Field):
             field_lines: List[str] = _format_field(
-                field, indent_level + 1, max_comment_length
+                field, indent_level + 1, max_comment_length, descriptions
             )
             lines.extend(field_lines)
         else:
@@ -41,6 +44,7 @@ def _format_field(
     field: Field[Union[str, int, float, bool, datetime, bytes]],
     indent_level: int,
     max_comment_length: int = 80,
+    descriptions: bool = True,
 ) -> List[str]:
     lines: List[str] = []
     key_indent: str = "  " * indent_level
@@ -56,7 +60,11 @@ def _format_field(
 
     # Generate field comment
     comment_lines = _format_field_comment(
-        field.description, yaml_type, constraints, indent_level, max_comment_length
+        field.description if descriptions else None,
+        yaml_type,
+        constraints,
+        indent_level,
+        max_comment_length,
     )
     lines.extend(comment_lines)
 
@@ -100,7 +108,7 @@ def _format_field_comment(
 
     lines: List[str] = []
 
-    # Handle description
+    # Handle description (only if provided)
     if description:
         desc_lines = _format_comment(description, indent_level, max_length)
         lines.extend(desc_lines)

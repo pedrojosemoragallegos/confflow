@@ -23,9 +23,14 @@ class Manager(IPythonMixin):
             (schema.name, schema) for schema in schemas
         )
 
-    def template(self, file_path: Union[str, Path]):
+    def template(self, file_path: Union[str, Path], descriptions=False):
         Path(file_path).write_text(
-            "\n\n".join([format_schema(schema) for schema in self._schemas.values()]),
+            "\n\n".join(
+                [
+                    format_schema(schema, descriptions=descriptions)
+                    for schema in self._schemas.values()
+                ]
+            ),
             encoding="utf-8",
         )
 
