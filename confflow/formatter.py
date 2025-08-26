@@ -111,7 +111,7 @@ def _format_field_comment(
     if constraints:
         lines.append(f"{comment_prefix}constraints:")
         for constraint in constraints:
-            constraint_str = repr(constraint)
+            constraint_str = str(constraint)
             lines.append(f"{comment_prefix}  - {constraint_str}")
 
     return lines
@@ -122,7 +122,7 @@ def _format_constraints(constraints: List[Any]) -> str:
     if not constraints:
         return ""
 
-    constraint_strs = [repr(c) for c in constraints]
+    constraint_strs = [str(c) for c in constraints]
     return ", ".join(constraint_strs)
 
 

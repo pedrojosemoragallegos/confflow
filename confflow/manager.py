@@ -25,8 +25,7 @@ class Manager(IPythonMixin):
         formatted_schemas: List[str] = [
             format_schema(schema) for schema in self._schemas
         ]
-        content: str = "\n\n".join(formatted_schemas)
-        Path(file_path).write_text(content, encoding="utf-8")
+        Path(file_path).write_text("\n\n".join(formatted_schemas), encoding="utf-8")
         return self
 
     def load(self, file_path: Union[str, Path]) -> ConfigProxy:
@@ -65,8 +64,6 @@ class Manager(IPythonMixin):
     def _create_config_from_schema(
         self, schema: Schema, section_data: Dict[str, Any]
     ) -> Config:
-        from .core import Config
-
         config: Config = Config(name=schema.name, description=schema.description)
         self._process_schema(schema, section_data, config)
         return config
