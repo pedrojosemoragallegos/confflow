@@ -1,6 +1,6 @@
 import textwrap
 from datetime import date, datetime
-from typing import Any, Dict, List, Set, Type, Union
+from typing import Any, Type, Union
 
 from .schema import Schema
 from .schema.field import Field
@@ -12,7 +12,7 @@ def format_schema(
     max_comment_length: int = 80,
     descriptions: bool = True,
 ) -> str:
-    lines: List[str] = []
+    lines: list[str] = []
     indent: str = "  " * indent_level
 
     if schema.description and descriptions:
@@ -30,7 +30,7 @@ def format_schema(
             )
             lines.extend(nested_yaml.splitlines())
         elif isinstance(field, Field):
-            field_lines: List[str] = _format_field(
+            field_lines: list[str] = _format_field(
                 field, indent_level + 1, max_comment_length, descriptions
             )
             lines.extend(field_lines)
@@ -45,8 +45,8 @@ def _format_field(
     indent_level: int,
     max_comment_length: int = 80,
     descriptions: bool = True,
-) -> List[str]:
-    lines: List[str] = []
+) -> list[str]:
+    lines: list[str] = []
     key_indent: str = "  " * indent_level
 
     default_value: Any = getattr(field, "default_value", None)
@@ -56,7 +56,7 @@ def _format_field(
         else getattr(field, "type", str)
     )
     yaml_type: str = _python_type_to_yaml_type(inferred_type)
-    constraints: List[Any] = getattr(field, "constraints", [])
+    constraints: list[Any] = getattr(field, "constraints", [])
 
     comment_lines = _format_field_comment(
         field.description if descriptions else None,
@@ -80,7 +80,7 @@ def _format_field(
     return lines
 
 
-def _format_comment(text: str, indent_level: int, max_length: int = 80) -> List[str]:
+def _format_comment(text: str, indent_level: int, max_length: int = 80) -> list[str]:
     indent: str = "  " * indent_level
     comment_prefix: str = f"{indent}# "
     available_width: int = max_length - len(comment_prefix)
@@ -95,14 +95,14 @@ def _format_comment(text: str, indent_level: int, max_length: int = 80) -> List[
 def _format_field_comment(
     description: str,
     yaml_type: str,
-    constraints: List[Any],
+    constraints: list[Any],
     indent_level: int,
     max_length: int = 80,
-) -> List[str]:
+) -> list[str]:
     indent: str = "  " * indent_level
     comment_prefix: str = f"{indent}# "
 
-    lines: List[str] = []
+    lines: list[str] = []
 
     if description:
         desc_lines = _format_comment(description, indent_level, max_length)
@@ -115,38 +115,6 @@ def _format_field_comment(
         for constraint in constraints:
             constraint_str = str(constraint)
             lines.append(f"{comment_prefix}  - {constraint_str}")
-
-    return lines
-
-
-def _format_constraints(constraints: List[Any]) -> str:
-    """Format constraints - now mainly for backwards compatibility."""
-    if not constraints:
-        return ""
-
-    constraint_strs = [str(c) for c in constraints]
-    return ", ".join(constraint_strs)
-
-
-def _format_structured_comment(
-    sections: Dict[str, str], indent_level: int, max_length: int = 80
-) -> List[str]:
-    """Format multi-section comments with clear structure."""
-    lines: List[str] = []
-    indent: str = "  " * indent_level
-    comment_prefix: str = f"{indent}# "
-
-    for i, (section_name, content) in enumerate(sections.items()):
-        if i > 0:
-            lines.append(f"{indent}#")
-
-        lines.append(f"{comment_prefix}{section_name}:")
-
-        content_lines = _format_comment(content, indent_level, max_length)
-
-        for line in content_lines:
-            content_without_prefix = line[len(comment_prefix) :]
-            lines.append(f"{comment_prefix}  {content_without_prefix}")
 
     return lines
 
@@ -167,16 +135,16 @@ def _default_str(value: Any) -> str:
     return str(value)
 
 
-def _format_inline(value: Union[List[Any], Dict[Any, Any], Set[Any]]) -> str:
+def _format_inline(value: Union[list[Any], dict[Any, Any], set[Any]]) -> str:
     if isinstance(value, list):
-        formatted_items: List[str] = [_default_str(v) for v in value]
+        formatted_items: list[str] = [_default_str(v) for v in value]
         return "[" + ", ".join(formatted_items) + "]"
     elif isinstance(value, set):
-        sorted_items: List[Any] = sorted(value)
+        sorted_items: list[Any] = sorted(value)
         formatted_items = [_default_str(v) for v in sorted_items]
         return "[" + ", ".join(formatted_items) + "]"
     elif isinstance(value, dict):
-        formatted_pairs: List[str] = [
+        formatted_pairs: list[str] = [
             f"{_default_str(k)}: {_default_str(v)}" for k, v in value.items()
         ]
         return "{" + ", ".join(formatted_pairs) + "}"
@@ -184,10 +152,10 @@ def _format_inline(value: Union[List[Any], Dict[Any, Any], Set[Any]]) -> str:
 
 
 def _format_complex(
-    value: Union[Dict[Any, Any], List[Any], Set[Any], Any], indent_level: int = 0
+    value: Union[dict[Any, Any], list[Any], set[Any], Any], indent_level: int = 0
 ) -> str:
     indent: str = "  " * indent_level
-    lines: List[str] = []
+    lines: list[str] = []
 
     if isinstance(value, dict):
         for k, v in value.items():
@@ -195,7 +163,7 @@ def _format_complex(
             value_str: str = _default_str(v)
             lines.append(f"{indent}{key_str}: {value_str}")
     elif isinstance(value, (list, set)):
-        items: Union[List[Any], Set[Any]] = value
+        items: Union[list[Any], set[Any]] = value
         for v in items:
             value_str = _default_str(v)
             lines.append(f"{indent}- {value_str}")
@@ -207,7 +175,7 @@ def _format_complex(
 
 
 def _python_type_to_yaml_type(py_type: Type[Any]) -> str:
-    type_map: Dict[Type[Any], str] = {
+    type_map: dict[Type[Any], str] = {
         str: "string",
         int: "integer",
         float: "float",
