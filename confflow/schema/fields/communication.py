@@ -5,7 +5,7 @@ from ...constraints import (
     MaxLength,
     Regex,
 )
-from .field import Field
+from ..field import Field
 
 
 class EmailField(Field[str]):

@@ -2,7 +2,8 @@ import textwrap
 from datetime import date, datetime
 from typing import Any, Dict, List, Set, Type, Union
 
-from .core import Field, Schema
+from .schema import Schema
+from .schema.field import Field
 
 
 def format_schema(

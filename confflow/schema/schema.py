@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections import OrderedDict
-from typing import Union
+from typing import Optional, Union
 
 from confflow.mixins import IPythonMixin
 from confflow.types import Value
@@ -8,14 +10,14 @@ from .fields import Field
 
 
 class Schema(IPythonMixin):
-    def __init__(self, name: str, description: str):
-        self._name = name
-        self._description = description
+    def __init__(self, name: str, *, description: Optional[str] = None):
+        self._name: str = name
+        self._description: Optional[str] = description
         self._fields: OrderedDict[
             str,
             Union[
-                Field[Union[Value, list[Value]]],
-                "Schema",
+                Field[Union[Value, list[Value]]],  # type: ignore
+                Schema,
             ],
         ] = OrderedDict()
 
@@ -24,14 +26,17 @@ class Schema(IPythonMixin):
         return self._name
 
     @property
-    def description(self) -> str:
+    def description(self) -> Optional[str]:
         return self._description
 
     @property
     def fields(self):  # TODO correct typing
         return self._fields.values()
 
-    def add(self, _FieldOrSchema: Union[Field, "Schema"]) -> "Schema":
+    def add(self, _FieldOrSchema: Union[Field, Schema]) -> Schema:  # type: ignore
+        if _FieldOrSchema == self:
+            raise ValueError("Schema cannot be added to itself")
+
         self._fields[_FieldOrSchema.name] = _FieldOrSchema
 
         return self
@@ -55,5 +60,5 @@ class Schema(IPythonMixin):
         return (
             f"Schema(name={self._name!r}, "
             f"description={self._description!r}, "
-            f"entries={{{', '.join(f'{entry!r}' for name, entry in self._fields.items()) if self._fields else ''}}})"
+            f"entries={{{', '.join(f'{entry!r}' for name, entry in self._fields.items()) if self._fields else ''}}})"  # TODO correct
         )

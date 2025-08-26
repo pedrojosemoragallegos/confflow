@@ -1,3 +1,4 @@
+from ..field import Field
 from .base import (
     BooleanField,
     BooleanListField,
@@ -12,7 +13,6 @@ from .base import (
     StringField,
     StringListField,
 )
-from .field import Field
 
 __all__ = [
     "Field",

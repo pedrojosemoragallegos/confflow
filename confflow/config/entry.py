@@ -1,4 +1,3 @@
-from abc import ABC
 from typing import Generic, Iterable, Optional, TypeVar
 
 from confflow.types import Value
@@ -9,7 +8,6 @@ T = TypeVar("T", bound=Value)
 
 
 class Entry(
-    ABC,
     Generic[T],
 ):
     def __init__(
@@ -21,9 +19,8 @@ class Entry(
         constraints: Optional[Iterable[Constraint[T]]] = None,
     ):
         self._name: str = name
-        self._description: str = description or ""
-        self._constraints: set[Constraint[T]] = set(constraints or [])
-
+        self._description: Optional[str] = description
+        self._constraints: frozenset[Constraint[T]] = set(constraints or [])
         self._value: T = self._validate(value)
 
     @property
@@ -35,13 +32,16 @@ class Entry(
         return self._value
 
     @property
-    def description(self) -> str:
+    def description(self) -> Optional[str]:
         return self._description
+
+    @property
+    def constraints(self) -> Optional[frozenset[Constraint[T]]]:
+        return self._constraints
 
     def _validate(self, value: T) -> T:
         for constraint in self._constraints:
             constraint(value)
-
         return value
 
     def __repr__(self) -> str:

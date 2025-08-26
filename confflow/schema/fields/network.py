@@ -7,7 +7,7 @@ from ...constraints import (
     MaxLength,
     Regex,
 )
-from .field import Field
+from ..field import Field
 
 
 class IPAddressField(Field[str]):

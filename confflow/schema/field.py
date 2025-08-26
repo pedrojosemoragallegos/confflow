@@ -1,7 +1,7 @@
 from datetime import datetime
-from typing import Optional
+from typing import Generic, Iterable, Optional, TypeVar, Union
 
-from ...constraints import (
+from ..constraints import (
     AllItemsMatch,
     Constraint,
     EnumValues,
@@ -16,9 +16,66 @@ from ...constraints import (
     Regex,
     UniqueItems,
 )
-from ..field import Field
+
+T = TypeVar("T", bound=Union[str, int, float, bool, datetime, bytes], covariant=True)
 
 
+class Field(Generic[T]):
+    def __init__(
+        self,
+        name: str,
+        *,
+        description: Optional[str],
+        default_value: Optional[T] = None,
+        required: bool = False,
+        constraints: Optional[
+            Iterable[Constraint[T]]
+        ] = None,  # TODO check that not two of same class can be passed
+    ):
+        self._name: str = name
+        self._description: Optional[str] = description
+        self._required: bool = required
+        self._constraints: frozenset[Constraint[T]] = (
+            frozenset(constraints) if constraints else frozenset()
+        )
+        self._default_value = self._validate(default_value)
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def description(self) -> str:
+        return self._description
+
+    @property
+    def default_value(self) -> Optional[T]:
+        return self._default_value
+
+    @property
+    def required(self) -> bool:
+        return self._required
+
+    @property
+    def constraints(self) -> frozenset[Constraint[T]]:
+        return self._constraints
+
+    def _validate(self, value: T) -> T:
+        for constraint in self._constraints:
+            constraint(value)
+
+        return value
+
+    def __repr__(self) -> str:
+        return (
+            f"Field(name={self.name!r}, "
+            f"default={self.default_value!r}, "
+            f"required={self.required}, "
+            f"constraints={len(self.constraints)})"
+        )
+
+
+## BASIC FIELDS
 class StringField(Field[str]):
     def __init__(
         self,
