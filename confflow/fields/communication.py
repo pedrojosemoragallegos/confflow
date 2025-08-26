@@ -1,11 +1,11 @@
 from typing import Literal, Optional
 
-from ...constraints import (
+from ..constraints import (
     Constraint,
     MaxLength,
     Regex,
 )
-from ..field import Field
+from ..schema.field import Field
 
 
 class EmailField(Field[str]):

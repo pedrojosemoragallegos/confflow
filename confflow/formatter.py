@@ -58,7 +58,6 @@ def _format_field(
     yaml_type: str = _python_type_to_yaml_type(inferred_type)
     constraints: List[Any] = getattr(field, "constraints", [])
 
-    # Generate field comment
     comment_lines = _format_field_comment(
         field.description if descriptions else None,
         yaml_type,
@@ -68,7 +67,6 @@ def _format_field(
     )
     lines.extend(comment_lines)
 
-    # Field value formatting
     if isinstance(default_value, (dict, list, set)):
         lines.append(f"{key_indent}{field.name}:")
         formatted: str = _format_complex(default_value, indent_level + 1)
@@ -83,13 +81,12 @@ def _format_field(
 
 
 def _format_comment(text: str, indent_level: int, max_length: int = 80) -> List[str]:
-    """Format a basic comment with proper wrapping and indentation."""
     indent: str = "  " * indent_level
     comment_prefix: str = f"{indent}# "
     available_width: int = max_length - len(comment_prefix)
 
     if available_width <= 0:
-        available_width = 40  # Minimum reasonable width
+        available_width = 40
 
     wrapped_lines = textwrap.wrap(text, width=available_width)
     return [f"{comment_prefix}{line}" for line in wrapped_lines]
@@ -102,21 +99,17 @@ def _format_field_comment(
     indent_level: int,
     max_length: int = 80,
 ) -> List[str]:
-    """Format field comments with proper structure and wrapping."""
     indent: str = "  " * indent_level
     comment_prefix: str = f"{indent}# "
 
     lines: List[str] = []
 
-    # Handle description (only if provided)
     if description:
         desc_lines = _format_comment(description, indent_level, max_length)
         lines.extend(desc_lines)
 
-    # Type line (always on one line)
     lines.append(f"{comment_prefix}type: {yaml_type}")
 
-    # Constraints as bullet points
     if constraints:
         lines.append(f"{comment_prefix}constraints:")
         for constraint in constraints:
@@ -145,14 +138,12 @@ def _format_structured_comment(
 
     for i, (section_name, content) in enumerate(sections.items()):
         if i > 0:
-            lines.append(f"{indent}#")  # Empty comment line as separator
+            lines.append(f"{indent}#")
 
-        # Section header
         lines.append(f"{comment_prefix}{section_name}:")
 
-        # Section content
         content_lines = _format_comment(content, indent_level, max_length)
-        # Remove the "# " prefix and add indented version
+
         for line in content_lines:
             content_without_prefix = line[len(comment_prefix) :]
             lines.append(f"{comment_prefix}  {content_without_prefix}")

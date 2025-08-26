@@ -27,12 +27,14 @@ class Field(Generic[T]):
         *,
         description: Optional[str],
         default_value: Optional[T] = None,
-        constraints: Optional[
-            Iterable[Constraint[T]]
-        ] = None,  # TODO check that not two of same class can be passed
+        constraints: Optional[Iterable[Constraint[T]]] = None,
     ):
         self._name: str = name
         self._description: Optional[str] = description
+
+        if constraints and len(constraints) != len(set(type(c) for c in constraints)):
+            raise ValueError("Cannot have multiple constraints of the same type")
+
         self._constraints: frozenset[Constraint[T]] = (
             frozenset(constraints) if constraints else frozenset()
         )
