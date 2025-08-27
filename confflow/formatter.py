@@ -123,7 +123,7 @@ def _default_str(value: Any) -> str:
     if isinstance(value, (datetime, date)):
         return value.isoformat()
     elif isinstance(value, str):
-        return value  # no quotes
+        return value
     elif isinstance(value, bool):
         return "true" if value else "false"
     elif isinstance(value, (int, float)):
