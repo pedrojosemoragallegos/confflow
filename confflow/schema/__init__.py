@@ -1,5 +1,4 @@
-from .manager import Confflow, Manager
-from .schema import (
+from .field import (
     BooleanField,
     BooleanListField,
     BytesField,
@@ -10,25 +9,23 @@ from .schema import (
     FloatListField,
     IntegerField,
     IntegerListField,
-    Schema,
     StringField,
     StringListField,
 )
+from .schema import Schema
 
 __all__ = [
-    "Confflow",
-    "Manager",
-    "Schema",
-    "BooleanField",
     "BooleanListField",
-    "BytesField",
     "BytesListField",
-    "DateField",
-    "DateListField",
-    "FloatField",
     "FloatListField",
-    "IntegerField",
     "IntegerListField",
-    "StringField",
+    "DateListField",
     "StringListField",
+    "BooleanField",
+    "BytesField",
+    "DateField",
+    "FloatField",
+    "IntegerField",
+    "StringField",
+    "Schema",
 ]

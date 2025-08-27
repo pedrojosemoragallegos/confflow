@@ -5,13 +5,11 @@ description = "A configuration manager for Python projects"
 authors = ["Pedro José Mora Gallegos <pedrojosemoragallegos@outlook.de>"]
 license = "MIT"
 readme = "README.md"
-homepage = "https://www.linkedin.com/in/pedro-jose-mora-gallegos" 
+homepage = "https://www.linkedin.com/in/pedro-jose-mora-gallegos"
 repository = "https://github.com/pedrojosemoragallegos/confflow"
 
 [tool.poetry.dependencies]
 python = ">=3.10, <3.14"
-pyyaml = "^6.0.2"
-pydantic = "^2.9.2"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^4.0.1"
@@ -19,6 +17,7 @@ twine = "^5.1.1"
 ipython = "^8.29.0"
 ipykernel = "^6.29.5"
 ruff = "^0.7.2"
+anytree = "^2.13.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -26,11 +25,11 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 line-length = 88
-select = ["E", "F", "W", "C90"]  
-ignore = ["E501"]  
+select = ["E", "F", "W", "C90"]
+ignore = ["E501"]
 
 [tool.ruff.lint]
-extend-select = ["I"]  
+extend-select = ["I", "D205", "D415"]
 
 [tool.ruff.lint.isort]
 combine-as-imports = true

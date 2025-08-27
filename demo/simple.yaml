@@ -1,0 +1,72 @@
+# Basic application configuration
+app:
+  # Application name
+  # type: string
+  # constraints:
+  #   - MinLength('Value must be at least 3 characters long')
+  #   - MaxLength('Value must be at most 30 characters long')
+  name: my-app
+  # Application version (e.g., 1.0.0)
+  # type: string
+  # constraints:
+  #   - Regex('Value must match pattern ^\\d+\\.\\d+\\.\\d+$')
+  version: 1.0.0
+  # Port number for the application
+  # type: integer
+  # constraints:
+  #   - GreaterThanOrEqual('Value must be >= 1024')
+  #   - LessThanOrEqual('Value must be <= 65535')
+  port: 8080
+
+# Feature toggles and settings
+features:
+  # Enable user authentication
+  # type: boolean
+  enableAuth: true
+  # Enable caching layer
+  # type: boolean
+  enableCache: false
+  # Notification system settings
+  notifications:
+    # Enable email notifications
+    # type: boolean
+    email: true
+    # Email sender address
+    # type: string
+    # constraints:
+    #   - Regex('Value must match pattern ^[^@]+@[^@]+\\.[^@]+$')
+    fromAddress: noreply@myapp.com
+
+# Production environment settings
+production:
+  # Enable debug mode
+  # type: boolean
+  debug: false
+  # Logging level
+  # type: string
+  # constraints:
+  #   - EnumValues("Value must be one of ['DEBUG', 'INFO', 'WARN', 'ERROR']")
+  logLevel: ERROR
+  # Production secret key
+  # type: string
+  # constraints:
+  #   - MinLength('Value must be at least 32 characters long')
+  secretKey: ladjfölaskdjfölaskdjföalskdjföalskdjfölj
+
+# PostgreSQL database configuration
+database_postgres:
+  # Database host
+  # type: string
+  host: localhost
+  # Database port
+  # type: integer
+  # constraints:
+  #   - LessThanOrEqual('Value must be <= 65535')
+  #   - GreaterThanOrEqual('Value must be >= 1')
+  port: 5432
+  # Database name
+  # type: string
+  database: myapp_db
+  # Database username
+  # type: string
+  username: user

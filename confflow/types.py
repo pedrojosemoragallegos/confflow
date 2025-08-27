@@ -1,9 +1,4 @@
-from pathlib import Path
-from typing import Any, Dict, List, TypeAlias, Union
+from datetime import datetime
+from typing import Union
 
-ParsedData: TypeAlias = Dict[
-    str, Union[str, int, bool, List[Union[int, "ParsedData"]], "ParsedData", None]
-]
-NestedDict: TypeAlias = Dict[str, Union[Any, "NestedDict"]]
-YAMLContent: TypeAlias = Dict[str, Any]
-PathLike = Union[str, Path]
+Value = Union[str, int, float, bool, datetime, bytes]
