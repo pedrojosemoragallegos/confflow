@@ -57,7 +57,7 @@ class Manager(IPythonMixin):
 
             for i, schema in enumerate(group):
                 if i > 0:
-                    sections.append("# OR")
+                    sections.append("# ┌─── OR ───┐")
                 sections.append(format_schema(schema, descriptions=descriptions))
 
             sections.append("")  # Empty line after group

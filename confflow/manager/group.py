@@ -60,4 +60,4 @@ class MutualExclusive(Group):
 
     @property
     def template_comment(self) -> str:
-        return f"# Choose ONE of the following {len(self)} options:"
+        return f"# ╔════════════════════════════════════════════════════════════╗\n# ║ MUTUALLY EXCLUSIVE: Choose ONE of the following {len(self)} options  ║\n# ╚════════════════════════════════════════════════════════════╝"
