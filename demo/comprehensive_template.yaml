@@ -1,0 +1,360 @@
+# Application configuration settings that define the core identity and
+# deployment parameters of the service
+app:
+  # The unique identifier name for this application service, used across all
+  # deployment environments and monitoring systems. Must be URL-safe and
+  # descriptive enough for operations teams to identify the service quickly.
+  # type: string
+  # constraints:
+  #   - MaxLength('Value must be at most 50 characters long')
+  #   - MinLength('Value must be at least 3 characters long')
+  name: analytics-service
+  # Semantic version number following the major.minor.patch format (e.g.,
+  # 2.4.1). Used for deployment tracking, rollback procedures, and compatibility
+  # checks across dependent services.
+  # type: string
+  # constraints:
+  #   - Regex('Value must match pattern ^\\d+\\.\\d+\\.\\d+$')
+  version: 2.4.1
+  # Deployment configuration parameters that control how and where the
+  # application is deployed across cloud infrastructure
+  deployment:
+    # Primary AWS region identifier where the main application resources will be
+    # deployed. This affects latency, compliance requirements, and disaster
+    # recovery strategies.
+    # type: string
+    # constraints:
+    #   - MinLength('Value must be at least 4 characters long')
+    #   - MaxLength('Value must be at most 20 characters long')
+    region: us-east-1
+    # List of AWS Availability Zone identifiers for deploying resources across
+    # multiple isolated locations within the region. This ensures high
+    # availability and fault tolerance by distributing infrastructure components
+    # geographically within the same region.
+    # type: array
+    # constraints:
+    #   - UniqueItems('List items must be unique')
+    #   - MaxItems('List must have at most 10 items')
+    #   - AllItemsMatch("All list items must match: MinLength('Value must be at least 8 characters long'), MaxLength('Value must be at most 15 characters long'), Regex('Value must match pattern ^[a-z]{2}-[a-z]+-\\\\d[a-z]$')")
+    #   - MinItems('List must have at least 1 items')
+    availabilityZones:
+      - us-east-1a
+      - us-east-1b
+      - us-west-2a
+    # Number of identical application instances to run simultaneously for load
+    # distribution and high availability. Higher values provide better fault
+    # tolerance and performance but increase resource costs.
+    # type: integer
+    # constraints:
+    #   - LessThanOrEqual('Value must be <= 100')
+    #   - GreaterThanOrEqual('Value must be >= 1')
+    replicas: 3
+    # Resource allocation specifications that define the computational limits
+    # and requests for the application containers
+    resources:
+      # Maximum resource constraints that the application container cannot
+      # exceed, preventing resource starvation of other services
+      limits:
+        # Maximum CPU cores or millicores (1000m = 1 core) that the container
+        # can consume. Kubernetes will throttle the container if it tries to
+        # exceed this limit. Use 'm' suffix for millicores or omit for full
+        # cores.
+        # type: string
+        # constraints:
+        #   - Regex('Value must match pattern ^\\d+(m|)$')
+        cpu: 500m
+      # Guaranteed resource allocations that Kubernetes scheduler uses for pod
+      # placement decisions and billing calculations
+      requests:
+        # Guaranteed CPU cores or millicores that will be reserved for this
+        # container on the node. The scheduler ensures this amount is available
+        # before placing the pod. Use 'm' suffix for millicores.
+        # type: string
+        # constraints:
+        #   - Regex('Value must match pattern ^\\d+(m|)$')
+        cpu: 250m
+        # Guaranteed memory allocation in mebibytes (Mi) or gibibytes (Gi) that
+        # will be reserved for this container. This memory is guaranteed to be
+        # available and affects pod scheduling decisions.
+        # type: string
+        # constraints:
+        #   - Regex('Value must match pattern ^\\d+(Mi|Gi|)$')
+        memory: 256Mi
+
+# Feature flags and experimental functionality toggles that control application
+# behavior without requiring code deployments
+features:
+  # Comprehensive audit logging system configuration for compliance, security
+  # monitoring, and operational tracking
+  auditLogging:
+    # Master switch to enable or disable the entire audit logging system. When
+    # disabled, no audit events are captured or stored, which may violate
+    # compliance requirements.
+    # type: boolean
+    enabled: true
+    # Number of days to retain audit log data before automatic deletion. Longer
+    # retention periods improve forensic capabilities but increase storage costs
+    # and may have legal implications.
+    # type: integer
+    # constraints:
+    #   - LessThanOrEqual('Value must be <= 3650')
+    #   - GreaterThanOrEqual('Value must be >= 1')
+    retentionDays: 30
+    # Configuration for where and how audit log data is stored and transmitted
+    output:
+      # Output destination type for audit logs. 's3' stores in AWS S3 buckets,
+      # 'gcs' uses Google Cloud Storage, 'stdout' outputs to standard output for
+      # container log aggregation.
+      # type: string
+      # constraints:
+      #   - Regex('Value must match pattern ^(s3|gcs|stdout)$')
+      type: s3
+      # Name of the S3 or GCS bucket where audit logs will be stored. Bucket
+      # must exist and the application must have write permissions. Consider
+      # bucket lifecycle policies for cost optimization.
+      # type: string
+      # constraints:
+      #   - MinLength('Value must be at least 3 characters long')
+      bucket: prod-audit-logs
+      # Prefix path within the storage bucket for organizing audit log files.
+      # Use date-based paths for easier log management and lifecycle policies.
+      # Should end with a trailing slash.
+      # type: string
+      # constraints:
+      #   - MinLength('Value must be at least 1 characters long')
+      path: logs/2025/
+  # A/B testing and experimental feature configurations for gradual feature
+  # rollouts and user experience optimization
+  experiments:
+    # User segmentation experiment configuration for testing personalized user
+    # experiences and behavioral analysis
+    userSegmentation:
+      # Enable the user segmentation experiment. When disabled, all users
+      # receive the default experience regardless of their segment
+      # classification.
+      # type: boolean
+      enabled: true
+      # Percentage of users (as a decimal between 0.0 and 1.0) who will be
+      # included in the experiment. Start with small values and gradually
+      # increase based on results and confidence levels.
+      # type: float
+      # constraints:
+      #   - LessThanOrEqual('Value must be <= 1.0')
+      rollout: 0.3
+      # Date when the experiment begins. Users will only be enrolled in the
+      # experiment on or after this date. Use for coordinating with marketing
+      # campaigns or business requirements.
+      # type: timestamp
+      startDate: 2025-01-01T00:00:00
+    # New user interface experiment for testing redesigned user experience
+    # components and interaction patterns
+    newUI:
+      # Enable the new UI experiment. When enabled, selected users will see the
+      # redesigned interface elements instead of the legacy UI components.
+      # type: boolean
+      enabled: false
+      # Free-form notes about the experiment including hypothesis, expected
+      # outcomes, measurement criteria, and any special considerations for the
+      # development or operations teams.
+      # type: string
+      # constraints:
+      #   - MaxLength('Value must be at most 200 characters long')
+      notes:
+
+# Network connectivity and security configuration including ingress routing, TLS
+# termination, and firewall rules
+network:
+  # Ingress controller configuration for routing external traffic to the
+  # application and managing public-facing connectivity
+  ingress:
+    # Public-facing hostname where the application will be accessible to end
+    # users. Must be a valid DNS name that resolves to the ingress controller.
+    # Consider using subdomains for different environments.
+    # type: string
+    # constraints:
+    #   - Regex('Value must match pattern ^[a-z0-9.-]+$')
+    hostname: analytics.example.com
+    # Transport Layer Security configuration for encrypting traffic between
+    # clients and the application
+    tls:
+      # Enable HTTPS/TLS encryption for all incoming traffic. Essential for
+      # production deployments to protect data in transit and maintain user
+      # trust. Required for modern web standards.
+      # type: boolean
+      enabled: true
+      # Name of the Kubernetes secret containing the TLS certificate and private
+      # key. The secret must be present in the same namespace and contain
+      # 'tls.crt' and 'tls.key' data fields.
+      # type: string
+      # constraints:
+      #   - MinLength('Value must be at least 3 characters long')
+      secretName: analytics-tls
+  # Network firewall rules and access control configuration for securing inbound
+  # and outbound traffic at the network level
+  firewall:
+    # List of CIDR (Classless Inter-Domain Routing) blocks that are permitted to
+    # access the application. Each CIDR block represents a range of IP addresses
+    # that can bypass firewall restrictions. Use specific ranges for better
+    # security - avoid 0.0.0.0/0 in production. Common private network ranges
+    # are included by default for internal service communication.
+    # type: array
+    # constraints:
+    #   - UniqueItems('List items must be unique')
+    #   - MaxItems('List must have at most 100 items')
+    #   - MinItems('List must have at least 1 items')
+    #   - AllItemsMatch("All list items must match: Regex('Value must match pattern ^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\\\/(?:[0-2]?[0-9]|3[0-2])$')")
+    allowCIDRs:
+      - 10.0.0.0/8
+      - 172.16.0.0/12
+      - 192.168.0.0/16
+
+# ╔════════════════════════════════════════════════════════════╗
+# ║ MUTUALLY EXCLUSIVE: Choose ONE of the following 3 options  ║
+# ╚════════════════════════════════════════════════════════════╝
+
+# Development environment configuration with relaxed security and debugging
+# features enabled
+development:
+  # Enable debug logging and development tools
+  # type: boolean
+  debugMode: true
+  # Development logging configuration
+  logging:
+    # Log level for development environment
+    # type: string
+    # constraints:
+    #   - EnumValues("Value must be one of ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']")
+    level: DEBUG
+
+# ┌─── OR ───┐
+
+# Staging environment configuration that mirrors production but with testing
+# features enabled
+staging:
+  # Allow test data injection for staging tests
+  # type: boolean
+  testDataEnabled: true
+  # Staging logging configuration
+  logging:
+    # Log level for staging environment
+    # type: string
+    # constraints:
+    #   - EnumValues("Value must be one of ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']")
+    level: INFO
+
+# ┌─── OR ───┐
+
+# Production environment configuration with full security and monitoring enabled
+production:
+  # Enable production security features
+  # type: boolean
+  securityMode: true
+  # Production logging configuration
+  logging:
+    # Log level for production environment
+    # type: string
+    # constraints:
+    #   - EnumValues("Value must be one of ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']")
+    level: WARNING
+
+
+
+# ╔════════════════════════════════════════════════════════════╗
+# ║ MUTUALLY EXCLUSIVE: Choose ONE of the following 3 options  ║
+# ╚════════════════════════════════════════════════════════════╝
+
+# PostgreSQL database configuration for relational data storage with ACID
+# compliance
+database_postgresql:
+  # Primary PostgreSQL database connection settings
+  primary:
+    # PostgreSQL server hostname or IP address
+    # type: string
+    # constraints:
+    #   - MinLength('Value must be at least 5 characters long')
+    host: postgres-prod.internal
+    # PostgreSQL server port number
+    # type: integer
+    # constraints:
+    #   - LessThanOrEqual('Value must be <= 65535')
+    #   - GreaterThanOrEqual('Value must be >= 1024')
+    port: 5432
+    # PostgreSQL database name
+    # type: string
+    # constraints:
+    #   - MinLength('Value must be at least 1 characters long')
+    database: analytics_db
+    # PostgreSQL authentication credentials
+    credentials:
+      # PostgreSQL username
+      # type: string
+      # constraints:
+      #   - MinLength('Value must be at least 3 characters long')
+      username: analytics_user
+      # Environment variable containing PostgreSQL password
+      # type: string
+      # constraints:
+      #   - Regex('Value must match pattern ^[A-Z_][A-Z0-9_]*$')
+      passwordFromEnv: POSTGRES_PASSWORD
+    # Enable SSL encryption for PostgreSQL connections
+    # type: boolean
+    ssl: true
+
+# ┌─── OR ───┐
+
+# MySQL database configuration for high-performance relational data operations
+database_mysql:
+  # Primary MySQL database connection settings
+  primary:
+    # MySQL server hostname or IP address
+    # type: string
+    # constraints:
+    #   - MinLength('Value must be at least 5 characters long')
+    host: mysql-prod.internal
+    # MySQL server port number
+    # type: integer
+    # constraints:
+    #   - LessThanOrEqual('Value must be <= 65535')
+    #   - GreaterThanOrEqual('Value must be >= 1024')
+    port: 3306
+    # MySQL database name
+    # type: string
+    # constraints:
+    #   - MinLength('Value must be at least 1 characters long')
+    database: analytics_db
+    # MySQL authentication credentials
+    credentials:
+      # MySQL username
+      # type: string
+      # constraints:
+      #   - MinLength('Value must be at least 3 characters long')
+      username: analytics_user
+      # Environment variable containing MySQL password
+      # type: string
+      # constraints:
+      #   - Regex('Value must match pattern ^[A-Z_][A-Z0-9_]*$')
+      passwordFromEnv: MYSQL_PASSWORD
+    # Enable SSL encryption for MySQL connections
+    # type: boolean
+    ssl: true
+
+# ┌─── OR ───┐
+
+# MongoDB configuration for document-based NoSQL data storage and flexible
+# schema operations
+database_mongodb:
+  # MongoDB connection URI including authentication and database information
+  # type: string
+  # constraints:
+  #   - MinLength('Value must be at least 10 characters long')
+  connectionString: mongodb://analytics_user:${MONGO_PASSWORD}@mongo-prod.internal:27017/analytics_db
+  # Enable SSL/TLS encryption for MongoDB connections
+  # type: boolean
+  ssl: true
+  # Maximum number of connections in the MongoDB connection pool
+  # type: integer
+  # constraints:
+  #   - LessThanOrEqual('Value must be <= 100')
+  #   - GreaterThanOrEqual('Value must be >= 1')
+  maxPoolSize: 10
+

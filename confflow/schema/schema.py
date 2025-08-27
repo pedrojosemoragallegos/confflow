@@ -33,7 +33,7 @@ class Schema(IPythonMixin):
     def fields(self):  # TODO correct typing
         return self._fields.values()
 
-    def add(self, _FieldOrSchema: Union[Field, Schema]) -> Schema:  # type: ignore
+    def add(self, _FieldOrSchema: Union[Field[Value], Schema]) -> Schema:
         if _FieldOrSchema == self:
             raise ValueError("Schema cannot be added to itself")
 
@@ -60,5 +60,5 @@ class Schema(IPythonMixin):
         return (
             f"Schema(name={self._name!r}, "
             f"description={self._description!r}, "
-            f"entries={{{', '.join(f'{entry!r}' for name, entry in self._fields.items()) if self._fields else ''}}})"  # TODO correct
+            f"entries={{{', '.join(f'{entry!r}' for entry in self._fields.values()) if self._fields else ''}}})"  # TODO correct
         )
