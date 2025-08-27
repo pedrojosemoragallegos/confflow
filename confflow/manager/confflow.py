@@ -31,7 +31,6 @@ class Confflow(IPythonMixin):
         return key in self._configs
 
     def __len__(self) -> int:
-        """Get the number of config sections."""
         return len(self._configs)
 
     def __repr__(self) -> str:
