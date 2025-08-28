@@ -7,9 +7,7 @@ from ..constraints import Constraint
 T = TypeVar("T", bound=Value)
 
 
-class Entry(
-    Generic[T],
-):
+class Entry(Generic[T]):
     def __init__(
         self,
         value: T,

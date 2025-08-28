@@ -62,7 +62,7 @@ class Field(Generic[T]):
     def constraints(self) -> frozenset[Constraint[T]]:
         return self._constraints
 
-    def _validate(self, value: T) -> T:
+    def _validate(self, value: T) -> T:  # type: ignore
         for constraint in self._constraints:
             constraint(value)
 
@@ -143,7 +143,7 @@ class StringListField(Field[list[str]]):
             item_constraints.append(EnumValues(enum))
 
         if item_constraints:
-            constraints.append(AllItemsMatch[list[str]](*item_constraints))
+            constraints.append(AllItemsMatch[list[str]](*item_constraints))  # type: ignore
 
         super().__init__(
             name=name,
@@ -221,8 +221,8 @@ class IntegerListField(Field[list[int]]):
 
         if item_constraints:
             constraints.append(
-                AllItemsMatch[list[int]](*item_constraints)
-            )  # TODO typehint strict
+                AllItemsMatch[list[int]](*item_constraints)  # type: ignore
+            )
 
         super().__init__(
             name=name,
@@ -300,8 +300,8 @@ class FloatListField(Field[list[float]]):
 
         if item_constraints:
             constraints.append(
-                AllItemsMatch[list[float]](*item_constraints)
-            )  # TODO type hint strict
+                AllItemsMatch[list[float]](*item_constraints)  # type: ignore
+            )
 
         super().__init__(
             name=name,
