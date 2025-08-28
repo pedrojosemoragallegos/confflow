@@ -122,7 +122,7 @@ class StringListField(Field[list[str]]):
         regex: Optional[str] = None,
         enum: Optional[list[str]] = None,
     ):
-        constraints: list[Constraint[str]] = []
+        constraints: list[Constraint[list[str]]] = []
 
         if min_items:
             constraints.append(MinItems(min_items))
@@ -131,15 +131,15 @@ class StringListField(Field[list[str]]):
         if unique_items:
             constraints.append(UniqueItems())
 
-        item_constraints: Constraint = []
+        item_constraints: list[Constraint[str]] = []
 
-        if min_length is not None:
+        if min_length:
             item_constraints.append(MinLength(min_length))
-        if max_length is not None:
+        if max_length:
             item_constraints.append(MaxLength(max_length))
-        if regex is not None:
+        if regex:
             item_constraints.append(Regex(regex))
-        if enum is not None:
+        if enum:
             item_constraints.append(EnumValues(enum))
 
         if item_constraints:
@@ -199,24 +199,24 @@ class IntegerListField(Field[list[int]]):
         lt: Optional[int] = None,
         le: Optional[int] = None,
     ):
-        constraints: list[Constraint[str]] = []
+        constraints: list[Constraint[list[int]]] = []
 
-        if min_items is not None:
+        if min_items:
             constraints.append(MinItems(min_items))
-        if max_items is not None:
+        if max_items:
             constraints.append(MaxItems(max_items))
         if unique_items:
             constraints.append(UniqueItems())
 
-        item_constraints: Constraint = []
+        item_constraints: list[Constraint[int]] = []
 
-        if gt is not None:
+        if gt:
             item_constraints.append(GreaterThan(gt))
-        if ge is not None:
+        if ge:
             item_constraints.append(GreaterThanOrEqual(ge))
-        if lt is not None:
+        if lt:
             item_constraints.append(LessThan(lt))
-        if le is not None:
+        if le:
             item_constraints.append(LessThanOrEqual(le))
 
         if item_constraints:
@@ -276,24 +276,24 @@ class FloatListField(Field[list[float]]):
         lt: Optional[float] = None,
         le: Optional[float] = None,
     ):
-        constraints: Constraint = []
+        constraints: list[Constraint[list[float]]] = []
 
-        if min_items is not None:
+        if min_items:
             constraints.append(MinItems(min_items))
-        if max_items is not None:
+        if max_items:
             constraints.append(MaxItems(max_items))
         if unique_items:
             constraints.append(UniqueItems())
 
-        item_constraints: Constraint = []
+        item_constraints: list[Constraint[float]] = []
 
-        if gt is not None:
+        if gt:
             item_constraints.append(GreaterThan(gt))
-        if ge is not None:
+        if ge:
             item_constraints.append(GreaterThanOrEqual(ge))
-        if lt is not None:
+        if lt:
             item_constraints.append(LessThan(lt))
-        if le is not None:
+        if le:
             item_constraints.append(LessThanOrEqual(le))
 
         if item_constraints:
@@ -334,11 +334,11 @@ class DateListField(Field[list[datetime]]):
         max_items: Optional[int] = None,
         unique_items: Optional[bool] = None,
     ):
-        constraints: Constraint = []
+        constraints: list[Constraint[list[datetime]]] = []
 
-        if min_items is not None:
+        if min_items:
             constraints.append(MinItems(min_items))
-        if max_items is not None:
+        if max_items:
             constraints.append(MaxItems(max_items))
         if unique_items:
             constraints.append(UniqueItems())
@@ -378,11 +378,11 @@ class BooleanListField(Field[list[bool]]):
         max_items: Optional[int] = None,
         unique_items: Optional[bool] = None,
     ):
-        constraints: Constraint = []
+        constraints: list[Constraint[list[bool]]] = []
 
-        if min_items is not None:
+        if min_items:
             constraints.append(MinItems(min_items))
-        if max_items is not None:
+        if max_items:
             constraints.append(MaxItems(max_items))
         if unique_items:
             constraints.append(UniqueItems())
@@ -422,11 +422,11 @@ class BytesListField(Field[list[bytes]]):
         max_items: Optional[int] = None,
         unique_items: Optional[bool] = None,
     ):
-        constraints: Constraint = []
+        constraints: list[Constraint[list[bytes]]] = []
 
-        if min_items is not None:
+        if min_items:
             constraints.append(MinItems(min_items))
-        if max_items is not None:
+        if max_items:
             constraints.append(MaxItems(max_items))
         if unique_items:
             constraints.append(UniqueItems())
