@@ -220,7 +220,9 @@ class IntegerListField(Field[list[int]]):
             item_constraints.append(LessThanOrEqual(le))
 
         if item_constraints:
-            constraints.append(AllItemsMatch[list[int]](*item_constraints))
+            constraints.append(
+                AllItemsMatch[list[int]](*item_constraints)
+            )  # TODO typehint strict
 
         super().__init__(
             name=name,
@@ -297,7 +299,9 @@ class FloatListField(Field[list[float]]):
             item_constraints.append(LessThanOrEqual(le))
 
         if item_constraints:
-            constraints.append(AllItemsMatch[list[float]](*item_constraints))
+            constraints.append(
+                AllItemsMatch[list[float]](*item_constraints)
+            )  # TODO type hint strict
 
         super().__init__(
             name=name,

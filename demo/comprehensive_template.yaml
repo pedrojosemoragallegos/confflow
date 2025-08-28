@@ -30,10 +30,10 @@ app:
   # geographically within the same region.
   # type: array
   # constraints:
-  #   - AllItemsMatch("All list items must match: MinLength('Value must be at least 8 characters long'), MaxLength('Value must be at most 15 characters long'), Regex('Value must match pattern ^[a-z]{2}-[a-z]+-\\\\d[a-z]$')")
-  #   - UniqueItems('List items must be unique')
-  #   - MinItems('List must have at least 1 items')
   #   - MaxItems('List must have at most 10 items')
+  #   - MinItems('List must have at least 1 items')
+  #   - UniqueItems('List items must be unique')
+  #   - AllItemsMatch("All list items must match: MinLength('Value must be at least 8 characters long'), MaxLength('Value must be at most 15 characters long'), Regex('Value must match pattern ^[a-z]{2}-[a-z]+-\\\\d[a-z]$')")
   availabilityZones:
     - us-east-1a
     - us-east-1b
@@ -43,8 +43,8 @@ app:
   # tolerance and performance but increase resource costs.
   # type: integer
   # constraints:
-  #   - LessThanOrEqual('Value must be <= 100')
   #   - GreaterThanOrEqual('Value must be >= 1')
+  #   - LessThanOrEqual('Value must be <= 100')
   replicas: 3
   # Guaranteed CPU cores or millicores that will be reserved for this container
   # on the node. The scheduler ensures this amount is available before placing
@@ -249,8 +249,8 @@ database_mysql:
   # MySQL server port number
   # type: integer
   # constraints:
-  #   - LessThanOrEqual('Value must be <= 65535')
   #   - GreaterThanOrEqual('Value must be >= 1024')
+  #   - LessThanOrEqual('Value must be <= 65535')
   port: 3306
   # MySQL database name
   # type: string
@@ -287,7 +287,7 @@ database_mongodb:
   # Maximum number of connections in the MongoDB connection pool
   # type: integer
   # constraints:
-  #   - LessThanOrEqual('Value must be <= 100')
   #   - GreaterThanOrEqual('Value must be >= 1')
+  #   - LessThanOrEqual('Value must be <= 100')
   maxPoolSize: 10
 
