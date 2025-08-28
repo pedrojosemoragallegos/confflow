@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import OrderedDict
-from typing import Optional, Union
+from typing import Union
 
 from confflow.mixins import IPythonMixin
 from confflow.types import Value
@@ -10,23 +10,17 @@ from .field import Field
 
 
 class Schema(IPythonMixin):
-    def __init__(self, name: str, *, description: Optional[str] = None):
+    def __init__(self, name: str, *, description: str):
         self._name: str = name
-        self._description: Optional[str] = description
-        self._fields: OrderedDict[
-            str,
-            Union[
-                Field[Union[Value, list[Value]]],  # type: ignore
-                Schema,
-            ],
-        ] = OrderedDict()
+        self._description: str = description
+        self._fields: OrderedDict[str, Union[Field[Value], Schema]] = OrderedDict()
 
     @property
     def name(self) -> str:
         return self._name
 
     @property
-    def description(self) -> Optional[str]:
+    def description(self) -> str:
         return self._description
 
     @property
@@ -60,5 +54,5 @@ class Schema(IPythonMixin):
         return (
             f"Schema(name={self._name!r}, "
             f"description={self._description!r}, "
-            f"entries={{{', '.join(f'{entry!r}' for entry in self._fields.values()) if self._fields else ''}}})"  # TODO correct
+            f"entries={{{', '.join(f'{entry!r}' for entry in self._fields.values()) if self._fields else ''}}})"
         )

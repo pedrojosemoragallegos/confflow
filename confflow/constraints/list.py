@@ -1,46 +1,42 @@
-from typing import TypeVar
-
-from confflow.types import Value
+from confflow.types import Scalar, ScalarList
 
 from .constraint import Constraint
 
-T = TypeVar("T", bound=Value)
 
-
-class MinItems(Constraint[list[T]]):  # type: ignore
+class MinItems(Constraint[ScalarList]):
     def __init__(self, count: int):
         super().__init__(f"List must have at least {count} items")
-        self._count = count
+        self._count: int = count
 
-    def validate(self, value: list[T]) -> bool:
+    def validate(self, value: ScalarList) -> bool:
         return len(value) >= self._count
 
 
-class MaxItems(Constraint[list[T]]):  # type: ignore
+class MaxItems(Constraint[ScalarList]):
     def __init__(self, count: int):
         super().__init__(f"List must have at most {count} items")
-        self._count = count
+        self._count: int = count
 
-    def validate(self, value: list[T]) -> bool:
+    def validate(self, value: ScalarList) -> bool:
         return len(value) <= self._count
 
 
-class UniqueItems(Constraint[list[T]]):  # type: ignore
+class UniqueItems(Constraint[ScalarList]):
     def __init__(self):
         super().__init__("List items must be unique")
 
-    def validate(self, value: list[T]) -> bool:
+    def validate(self, value: ScalarList) -> bool:
         return len(set(value)) == len(value)
 
 
-class AllItemsMatch(Constraint[list[T]]):  # type: ignore
-    def __init__(self, constraints: list[Constraint[T]]) -> None:
+class AllItemsMatch(Constraint[ScalarList]):
+    def __init__(self, constraints: list[Constraint[Scalar]]):
         super().__init__(
             f"All list items must match: {', '.join(str(constraint) for constraint in constraints)}"
         )
-        self._constraints: list[Constraint[T]] = constraints
+        self._constraints: list[Constraint[Scalar]] = constraints
 
-    def validate(self, value: list[T]) -> bool:
+    def validate(self, value: ScalarList) -> bool:
         for item in value:
             for constraint in self._constraints:
                 if not constraint.validate(item):

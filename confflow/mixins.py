@@ -1,6 +1,6 @@
 class IPythonMixin:
     def _ipython_key_completions_(self) -> list[str]:
         try:
-            return list(self.keys())
+            return list(self.keys())  # type: ignore
         except AttributeError:
             return []

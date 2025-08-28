@@ -20,7 +20,7 @@ class Entry(
     ):
         self._name: str = name
         self._description: Optional[str] = description
-        self._constraints: frozenset[Constraint[T]] = set(constraints or [])
+        self._constraints: frozenset[Constraint[T]] = frozenset(constraints or [])
         self._value: T = self._validate(value)
 
     @property

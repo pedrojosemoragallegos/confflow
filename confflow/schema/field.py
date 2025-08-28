@@ -1,5 +1,7 @@
 from datetime import datetime
-from typing import Generic, Iterable, Optional, TypeVar, Union
+from typing import Generic, Optional, Sequence, TypeVar
+
+from confflow.types import Value
 
 from ..constraints import (
     AllItemsMatch,
@@ -17,7 +19,7 @@ from ..constraints import (
     UniqueItems,
 )
 
-T = TypeVar("T", bound=Union[str, int, float, bool, datetime, bytes], covariant=True)
+T = TypeVar("T", bound=Value)
 
 
 class Field(Generic[T]):
@@ -25,12 +27,12 @@ class Field(Generic[T]):
         self,
         name: str,
         *,
-        description: Optional[str],
+        description: str,
         default_value: Optional[T] = None,
-        constraints: Optional[Iterable[Constraint[T]]] = None,
+        constraints: Optional[Sequence[Constraint[T]]] = None,
     ):
         self._name: str = name
-        self._description: Optional[str] = description
+        self._description: str = description
 
         if constraints and len(constraints) != len(set(type(c) for c in constraints)):
             raise ValueError("Cannot have multiple constraints of the same type")
@@ -105,7 +107,7 @@ class StringField(Field[str]):
         )
 
 
-class StringListField(Field[list[str]]):  # type: ignore
+class StringListField(Field[list[str]]):
     def __init__(
         self,
         name: str,
@@ -123,13 +125,13 @@ class StringListField(Field[list[str]]):  # type: ignore
         constraints: list[Constraint[str]] = []
 
         if min_items:
-            constraints.append(MinItems(min_items))  # type: ignore
+            constraints.append(MinItems(min_items))
         if max_items:
-            constraints.append(MaxItems(max_items))  # type: ignore
+            constraints.append(MaxItems(max_items))
         if unique_items:
-            constraints.append(UniqueItems())  # type: ignore
+            constraints.append(UniqueItems())
 
-        item_constraints = []  # TODO typing
+        item_constraints: Constraint = []
 
         if min_length is not None:
             item_constraints.append(MinLength(min_length))
@@ -206,7 +208,7 @@ class IntegerListField(Field[list[int]]):
         if unique_items:
             constraints.append(UniqueItems())
 
-        item_constraints = []  # TODO typing
+        item_constraints: Constraint = []
 
         if gt is not None:
             item_constraints.append(GreaterThan(gt))
@@ -274,7 +276,7 @@ class FloatListField(Field[list[float]]):
         lt: Optional[float] = None,
         le: Optional[float] = None,
     ):
-        constraints = []  # TODO typing
+        constraints: Constraint = []
 
         if min_items is not None:
             constraints.append(MinItems(min_items))
@@ -283,7 +285,7 @@ class FloatListField(Field[list[float]]):
         if unique_items:
             constraints.append(UniqueItems())
 
-        item_constraints = []  # TODO typing
+        item_constraints: Constraint = []
 
         if gt is not None:
             item_constraints.append(GreaterThan(gt))
@@ -332,7 +334,7 @@ class DateListField(Field[list[datetime]]):
         max_items: Optional[int] = None,
         unique_items: Optional[bool] = None,
     ):
-        constraints = []  # TODO typing
+        constraints: Constraint = []
 
         if min_items is not None:
             constraints.append(MinItems(min_items))
@@ -376,7 +378,7 @@ class BooleanListField(Field[list[bool]]):
         max_items: Optional[int] = None,
         unique_items: Optional[bool] = None,
     ):
-        constraints = []  # TODO typing
+        constraints: Constraint = []
 
         if min_items is not None:
             constraints.append(MinItems(min_items))
@@ -420,7 +422,7 @@ class BytesListField(Field[list[bytes]]):
         max_items: Optional[int] = None,
         unique_items: Optional[bool] = None,
     ):
-        constraints = []  # TODO typing
+        constraints: Constraint = []
 
         if min_items is not None:
             constraints.append(MinItems(min_items))

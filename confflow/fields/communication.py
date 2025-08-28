@@ -21,12 +21,12 @@ class EmailField(Field[str]):
         constraints: list[Constraint[str]] = []
 
         if domains:
-            domain_pattern = "|".join(
+            domain_pattern: str = "|".join(
                 [domain.replace(".", r"\.") for domain in domains]
             )
-            email_pattern = rf"^[a-zA-Z0-9._%+-]+@(?:{domain_pattern})$"
+            email_pattern: str = rf"^[a-zA-Z0-9._%+-]+@(?:{domain_pattern})$"
         else:
-            email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+            email_pattern: str = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
 
         constraints.append(Regex(email_pattern))
 
@@ -55,17 +55,17 @@ class PhoneField(Field[str]):
 
         if format_type == "international":
             if country_code:
-                phone_pattern = rf"^\+{country_code}[0-9]{{6,14}}$"
+                phone_pattern: str = rf"^\+{country_code}[0-9]{{6,14}}$"
             else:
-                phone_pattern = r"^\+[1-9]\d{6,14}$"
+                phone_pattern: str = r"^\+[1-9]\d{6,14}$"
         elif format_type == "us":
-            phone_pattern = (
+            phone_pattern: str = (
                 r"^(?:\+1[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})$"
             )
         elif format_type == "digits_only":
-            phone_pattern = r"^[0-9]{7,15}$"
+            phone_pattern: str = r"^[0-9]{7,15}$"
         else:
-            phone_pattern = r"^(?:\+[1-9]\d{0,3}[-.\s]?)?\(?([0-9]{1,4})\)?[-.\s]?([0-9]{1,4})[-.\s]?([0-9]{1,9})$"
+            phone_pattern: str = r"^(?:\+[1-9]\d{0,3}[-.\s]?)?\(?([0-9]{1,4})\)?[-.\s]?([0-9]{1,4})[-.\s]?([0-9]{1,9})$"
 
         constraints.append(Regex(phone_pattern))
 

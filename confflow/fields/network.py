@@ -22,13 +22,13 @@ class IPAddressField(Field[str]):
         constraints: list[Constraint[str]] = []
 
         if version == 4:
-            ipv4_pattern = r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+            ipv4_pattern: str = r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
             constraints.append(Regex(ipv4_pattern))
         elif version == 6:
-            ipv6_pattern = r"^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^::$"
+            ipv6_pattern: str = r"^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^::$"
             constraints.append(Regex(ipv6_pattern))
         else:
-            ip_pattern = r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$|^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^::$"
+            ip_pattern: str = r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$|^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^::$"
             constraints.append(Regex(ip_pattern))
 
         super().__init__(
@@ -51,11 +51,11 @@ class MACAddressField(Field[str]):
         constraints: list[Constraint[str]] = []
 
         if separator == ":":
-            mac_pattern = r"^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$"
+            mac_pattern: str = r"^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$"
         elif separator == "-":
-            mac_pattern = r"^([0-9A-Fa-f]{2}-){5}[0-9A-Fa-f]{2}$"
+            mac_pattern: str = r"^([0-9A-Fa-f]{2}-){5}[0-9A-Fa-f]{2}$"
         else:
-            mac_pattern = r"^([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}$"
+            mac_pattern: str = r"^([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}$"
 
         constraints.append(Regex(mac_pattern))
 
@@ -110,10 +110,10 @@ class URLField(Field[str]):
         constraints: list[Constraint[str]] = []
 
         if schemes:
-            scheme_pattern = "|".join(schemes)
-            url_pattern = rf"^(?:{scheme_pattern})://[^\s/$.?#].[^\s]*$"
+            scheme_pattern: str = "|".join(schemes)
+            url_pattern: str = rf"^(?:{scheme_pattern})://[^\s/$.?#].[^\s]*$"
         else:
-            url_pattern = r"^https?://[^\s/$.?#].[^\s]*$"
+            url_pattern: str = r"^https?://[^\s/$.?#].[^\s]*$"
 
         constraints.append(Regex(url_pattern))
 
@@ -145,7 +145,7 @@ class HostnameField(Field[str]):
                 r"^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$"
             )
         else:
-            hostname_pattern = r"^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
+            hostname_pattern: str = r"^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
 
         constraints.append(Regex(hostname_pattern))
 
@@ -176,9 +176,9 @@ class CIDRField(Field[str]):
         elif version == 6:
             cidr_pattern = r"^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}/(?:[0-9]|[1-9][0-9]|1[0-1][0-9]|12[0-8])$"
         else:
-            ipv4_cidr = r"(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/(?:[0-9]|[1-2][0-9]|3[0-2])"
-            ipv6_cidr = r"(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}/(?:[0-9]|[1-9][0-9]|1[0-1][0-9]|12[0-8])"
-            cidr_pattern = f"^(?:{ipv4_cidr}|{ipv6_cidr})$"
+            ipv4_cidr: str = r"(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/(?:[0-9]|[1-2][0-9]|3[0-2])"
+            ipv6_cidr: str = r"(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}/(?:[0-9]|[1-9][0-9]|1[0-1][0-9]|12[0-8])"
+            cidr_pattern: str = f"^(?:{ipv4_cidr}|{ipv6_cidr})$"
 
         constraints.append(Regex(cidr_pattern))
 

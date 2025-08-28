@@ -1,12 +1,14 @@
-from typing import Any, Union
+from typing import Optional, Union
+
+from confflow.types import Value
 
 from .config import Config, Entry
 from .schema import Schema
 from .schema.field import Field
 
 
-def create_config(schema: Schema, data: dict[str, Any]) -> Config:
-    items: list[Union[Config, Entry]] = []
+def create_config(schema: Schema, data: dict[str, Value]) -> Config:
+    items: list[Union[Config, Entry[Value]]] = []
 
     for key, field_or_subschema in schema.items():
         if isinstance(field_or_subschema, Schema):
@@ -15,19 +17,19 @@ def create_config(schema: Schema, data: dict[str, Any]) -> Config:
             )
             items.append(nested_config)
         else:
-            entry: Entry = create_entry(key, field_or_subschema, data, schema.name)
+            entry: Entry[Value] = create_entry(
+                key, field_or_subschema, data, schema.name
+            )
             items.append(entry)
 
     return Config(schema.name, schema.description, *items)
 
 
 def _create_nested_config(
-    key: str, subschema: Schema, data: dict[str, Any], parent_schema_name: str
+    key: str, subschema: Schema, data: dict[str, Value], parent_schema_name: str
 ) -> Config:
-    nested_data: Any = data.get(key)
+    nested_data: Value = data[key]
 
-    if nested_data is None:
-        raise ValueError(f"Missing subschema section '{key}' in '{parent_schema_name}'")
     if not isinstance(nested_data, dict):
         raise ValueError(
             f"Subschema '{key}' in '{parent_schema_name}' must be a dictionary/object, "
@@ -40,9 +42,12 @@ def _create_nested_config(
 
 
 def create_entry(
-    key: str, schema_field: Field, data: dict[str, Any], parent_schema_name: str
-) -> Entry:
-    value: Any = data.get(key, schema_field.default_value)
+    key: str,
+    schema_field: Field[Value],
+    data: dict[str, Value],
+    parent_schema_name: str,
+) -> Entry[Value]:
+    value: Optional[Value] = data.get(key, schema_field.default_value)
 
     if value is None:
         raise ValueError(

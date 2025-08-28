@@ -1,5 +1,5 @@
 import re
-from typing import Sequence
+from typing import Pattern, Sequence
 
 from .constraint import Constraint
 
@@ -7,7 +7,7 @@ from .constraint import Constraint
 class MinLength(Constraint[str]):
     def __init__(self, length: int):
         super().__init__(f"Value must be at least {length} characters long")
-        self._length = length
+        self._length: int = length
 
     def validate(self, value: str) -> bool:
         return len(value) >= self._length
@@ -16,7 +16,7 @@ class MinLength(Constraint[str]):
 class MaxLength(Constraint[str]):
     def __init__(self, length: int):
         super().__init__(f"Value must be at most {length} characters long")
-        self._length = length
+        self._length: int = length
 
     def validate(self, value: str) -> bool:
         return len(value) <= self._length
@@ -25,7 +25,7 @@ class MaxLength(Constraint[str]):
 class Regex(Constraint[str]):
     def __init__(self, pattern: str):
         super().__init__(f"Value must match pattern {pattern}")
-        self._pattern = re.compile(pattern)
+        self._pattern: Pattern[str] = re.compile(pattern)
 
     def validate(self, value: str) -> bool:
         return bool(self._pattern.match(value))
@@ -34,7 +34,7 @@ class Regex(Constraint[str]):
 class EnumValues(Constraint[str]):
     def __init__(self, values: Sequence[str]):
         super().__init__(f"Value must be one of {list(values)}")
-        self._values = set(values)
+        self._values: set[str] = set(values)
 
     def validate(self, value: str) -> bool:
         return value in self._values
