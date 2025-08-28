@@ -153,13 +153,13 @@ features:
       # redesigned interface elements instead of the legacy UI components.
       # type: boolean
       enabled: false
-      # Free-form notes about the experiment including hypothesis, expected
-      # outcomes, measurement criteria, and any special considerations for the
-      # development or operations teams.
-      # type: string
-      # constraints:
-      #   - MaxLength('Value must be at most 200 characters long')
-      notes: Notes
+    # Free-form notes about the experiment including hypothesis, expected
+    # outcomes, measurement criteria, and any special considerations for the
+    # development or operations teams.
+    # type: string
+    # constraints:
+    #   - MaxLength('Value must be at most 200 characters long')
+    notes: These are notes.
 
 # Network connectivity and security configuration including ingress routing, TLS
 # termination, and firewall rules

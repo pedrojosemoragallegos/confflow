@@ -14,8 +14,8 @@ app:
   # Port number for the application
   # type: integer
   # constraints:
-  #   - LessThanOrEqual('Value must be <= 65535')
   #   - GreaterThanOrEqual('Value must be >= 1024')
+  #   - LessThanOrEqual('Value must be <= 65535')
   port: 8080
 
 # Feature toggles and settings
@@ -26,16 +26,14 @@ features:
   # Enable caching layer
   # type: boolean
   enableCache: false
-  # Notification system settings
-  notifications:
-    # Enable email notifications
-    # type: boolean
-    email: true
-    # Email sender address
-    # type: string
-    # constraints:
-    #   - Regex('Value must match pattern ^[^@]+@[^@]+\\.[^@]+$')
-    fromAddress: noreply@myapp.com
+  # Enable email notifications
+  # type: boolean
+  email: true
+  # Email sender address
+  # type: string
+  # constraints:
+  #   - Regex('Value must match pattern ^[^@]+@[^@]+\\.[^@]+$')
+  fromAddress: noreply@myapp.com
 
 # ╔════════════════════════════════════════════════════════════╗
 # ║ MUTUALLY EXCLUSIVE: Choose ONE of the following 2 options  ║

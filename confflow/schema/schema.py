@@ -27,12 +27,21 @@ class Schema(IPythonMixin):
     def fields(self):  # TODO correct typing
         return self._fields.values()
 
-    def add(self, _FieldOrSchema: Union[Field[Value], Schema]) -> Schema:
-        if _FieldOrSchema == self:
-            raise ValueError("Schema cannot be added to itself")
+    from typing import overload
 
-        self._fields[_FieldOrSchema.name] = _FieldOrSchema
+    @overload
+    def add(self, item: Field[Value]) -> Schema: ...
 
+    @overload
+    def add(self, item: Schema) -> Schema: ...
+
+    def add(self, item: Union[Field[Value], Schema]) -> Schema:
+        if isinstance(item, Schema):
+            if item == self:
+                raise ValueError("Schema cannot be added to itself")
+            self._fields.update(item._fields)
+        else:  # Field
+            self._fields[item.name] = item
         return self
 
     def keys(self):  # TODO correct typing

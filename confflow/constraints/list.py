@@ -5,7 +5,6 @@ from confflow.types import Scalar, ScalarList
 from .constraint import Constraint
 
 T = TypeVar("T", bound=ScalarList)
-S = TypeVar("S", bound=Scalar)
 
 
 class MinItems(Constraint[T]):
@@ -35,11 +34,11 @@ class UniqueItems(Constraint[T]):
 
 
 class AllItemsMatch(Constraint[T]):
-    def __init__(self, constraints: list[Constraint[Scalar]]):
+    def __init__(self, *constraints: Constraint[Scalar]):
         super().__init__(
             f"All list items must match: {', '.join(str(constraint) for constraint in constraints)}"
         )
-        self._constraints: list[Constraint[Scalar]] = constraints
+        self._constraints: tuple[Constraint[Scalar], ...] = constraints
 
     def validate(self, value: T) -> bool:
         for item in value:

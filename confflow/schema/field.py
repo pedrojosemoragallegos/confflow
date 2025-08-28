@@ -19,7 +19,7 @@ from ..constraints import (
     UniqueItems,
 )
 
-T = TypeVar("T", bound=Value)
+T = TypeVar("T", bound=Value, covariant=True)
 
 
 class Field(Generic[T]):
@@ -143,7 +143,7 @@ class StringListField(Field[list[str]]):
             item_constraints.append(EnumValues(enum))
 
         if item_constraints:
-            constraints.append(AllItemsMatch(item_constraints))
+            constraints.append(AllItemsMatch[list[str]](*item_constraints))
 
         super().__init__(
             name=name,
@@ -220,7 +220,7 @@ class IntegerListField(Field[list[int]]):
             item_constraints.append(LessThanOrEqual(le))
 
         if item_constraints:
-            constraints.append(AllItemsMatch(item_constraints))
+            constraints.append(AllItemsMatch[list[int]](*item_constraints))
 
         super().__init__(
             name=name,
@@ -297,7 +297,7 @@ class FloatListField(Field[list[float]]):
             item_constraints.append(LessThanOrEqual(le))
 
         if item_constraints:
-            constraints.append(AllItemsMatch(item_constraints))
+            constraints.append(AllItemsMatch[list[float]](*item_constraints))
 
         super().__init__(
             name=name,
