@@ -6,8 +6,8 @@ app:
   # descriptive enough for operations teams to identify the service quickly.
   # type: string
   # constraints:
-  #   - MinLength('Value must be at least 3 characters long')
   #   - MaxLength('Value must be at most 50 characters long')
+  #   - MinLength('Value must be at least 3 characters long')
   name: analytics-service
   # Semantic version number following the major.minor.patch format (e.g.,
   # 2.4.1). Used for deployment tracking, rollback procedures, and compatibility
@@ -21,8 +21,8 @@ app:
   # recovery strategies.
   # type: string
   # constraints:
-  #   - MaxLength('Value must be at most 20 characters long')
   #   - MinLength('Value must be at least 4 characters long')
+  #   - MaxLength('Value must be at most 20 characters long')
   region: us-east-1
   # List of AWS Availability Zone identifiers for deploying resources across
   # multiple isolated locations within the region. This ensures high
@@ -32,8 +32,8 @@ app:
   # constraints:
   #   - MaxItems('List must have at most 10 items')
   #   - MinItems('List must have at least 1 items')
-  #   - UniqueItems('List items must be unique')
   #   - AllItemsMatch("All list items must match: MinLength('Value must be at least 8 characters long'), MaxLength('Value must be at most 15 characters long'), Regex('Value must match pattern ^[a-z]{2}-[a-z]+-\\\\d[a-z]$')")
+  #   - UniqueItems('List items must be unique')
   availabilityZones:
     - us-east-1a
     - us-east-1b
@@ -73,8 +73,8 @@ features:
   # and may have legal implications.
   # type: integer
   # constraints:
-  #   - GreaterThanOrEqual('Value must be >= 1')
   #   - LessThanOrEqual('Value must be <= 3650')
+  #   - GreaterThanOrEqual('Value must be >= 1')
   retentionDays: 30
   # Output destination type for audit logs. 's3' stores in AWS S3 buckets, 'gcs'
   # uses Google Cloud Storage, 'stdout' outputs to standard output for container
@@ -146,10 +146,10 @@ network:
   # included by default for internal service communication.
   # type: array
   # constraints:
-  #   - AllItemsMatch("All list items must match: Regex('Value must match pattern ^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\\\/(?:[0-2]?[0-9]|3[0-2])$')")
-  #   - UniqueItems('List items must be unique')
   #   - MinItems('List must have at least 1 items')
   #   - MaxItems('List must have at most 100 items')
+  #   - UniqueItems('List items must be unique')
+  #   - AllItemsMatch("All list items must match: Regex('Value must match pattern ^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\\\/(?:[0-2]?[0-9]|3[0-2])$')")
   allowCIDRs:
     - 10.0.0.0/8
     - 172.16.0.0/12
@@ -287,7 +287,7 @@ database_mongodb:
   # Maximum number of connections in the MongoDB connection pool
   # type: integer
   # constraints:
-  #   - GreaterThanOrEqual('Value must be >= 1')
   #   - LessThanOrEqual('Value must be <= 100')
+  #   - GreaterThanOrEqual('Value must be >= 1')
   maxPoolSize: 10
 

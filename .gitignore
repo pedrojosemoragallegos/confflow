@@ -1,10 +1,10 @@
-playground
-
-# Ignore Python bytecode files
+# Python-generated files
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
 
-# Ignore macOS system files
-.DS_Store
+# Virtual environments
+.venv

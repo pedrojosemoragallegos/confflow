@@ -3,8 +3,8 @@ app:
   # Application name
   # type: string
   # constraints:
-  #   - MaxLength('Value must be at most 30 characters long')
   #   - MinLength('Value must be at least 3 characters long')
+  #   - MaxLength('Value must be at most 30 characters long')
   name: my-app
   # Application version (e.g., 1.0.0)
   # type: string
@@ -90,8 +90,8 @@ database_postgres:
   # Database port
   # type: integer
   # constraints:
-  #   - LessThanOrEqual('Value must be <= 65535')
   #   - GreaterThanOrEqual('Value must be >= 1')
+  #   - LessThanOrEqual('Value must be <= 65535')
   port: 5432
   # Database name
   # type: string
