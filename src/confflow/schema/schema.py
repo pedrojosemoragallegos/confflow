@@ -5,11 +5,7 @@ import typing
 from confflow.mixins import IPythonMixin
 
 if typing.TYPE_CHECKING:
-    from datetime import datetime
-
     from confflow.types import FieldTypes
-
-    from .field import Field
 
 
 class Schema(IPythonMixin):
@@ -32,38 +28,13 @@ class Schema(IPythonMixin):
     @property
     def fields(
         self,
-    ) -> typing.ValuesView[
-        Field[str]
-        | Field[int]
-        | Field[float]
-        | Field[bool]
-        | Field[datetime]
-        | Field[bytes]
-        | Field[list[str]]
-        | Field[list[int]]
-        | Field[list[float]]
-        | Field[list[bool]]
-        | Field[list[datetime]]
-        | Field[list[bytes]]
-        | Schema,
-    ]:
+    ) -> typing.ValuesView[FieldTypes | Schema,]:
         return self._fields.values()
 
     @typing.overload
     def add(
         self,
-        item: Field[str]
-        | Field[int]
-        | Field[float]
-        | Field[bool]
-        | Field[datetime]
-        | Field[bytes]
-        | Field[list[str]]
-        | Field[list[int]]
-        | Field[list[float]]
-        | Field[list[bool]]
-        | Field[list[datetime]]
-        | Field[list[bytes]],
+        item: FieldTypes,
     ) -> Schema: ...
 
     @typing.overload
@@ -71,19 +42,7 @@ class Schema(IPythonMixin):
 
     def add(
         self,
-        item: Field[str]
-        | Field[int]
-        | Field[float]
-        | Field[bool]
-        | Field[datetime]
-        | Field[bytes]
-        | Field[list[str]]
-        | Field[list[int]]
-        | Field[list[float]]
-        | Field[list[bool]]
-        | Field[list[datetime]]
-        | Field[list[bytes]]
-        | Schema,
+        item: FieldTypes | Schema,
     ) -> Schema:
         if isinstance(item, Schema):
             if item == self:
@@ -100,61 +59,21 @@ class Schema(IPythonMixin):
 
     def values(
         self,
-    ) -> typing.ValuesView[
-        Field[str]
-        | Field[int]
-        | Field[float]
-        | Field[bool]
-        | Field[datetime]
-        | Field[bytes]
-        | Field[list[str]]
-        | Field[list[int]]
-        | Field[list[float]]
-        | Field[list[bool]]
-        | Field[list[datetime]]
-        | Field[list[bytes]]
-        | Schema,
-    ]:
+    ) -> typing.ValuesView[FieldTypes | Schema,]:
         return self._fields.values()
 
     def items(
         self,
     ) -> typing.ItemsView[
         str,
-        Field[str]
-        | Field[int]
-        | Field[float]
-        | Field[bool]
-        | Field[datetime]
-        | Field[bytes]
-        | Field[list[str]]
-        | Field[list[int]]
-        | Field[list[float]]
-        | Field[list[bool]]
-        | Field[list[datetime]]
-        | Field[list[bytes]]
-        | Schema,
+        FieldTypes | Schema,
     ]:
         return self._fields.items()
 
     def __getitem__(
         self,
         key: str,
-    ) -> (
-        Field[str]
-        | Field[int]
-        | Field[float]
-        | Field[bool]
-        | Field[datetime]
-        | Field[bytes]
-        | Field[list[str]]
-        | Field[list[int]]
-        | Field[list[float]]
-        | Field[list[bool]]
-        | Field[list[datetime]]
-        | Field[list[bytes]]
-        | Schema
-    ):
+    ) -> FieldTypes | Schema:
         return self._fields[key]
 
     def __contains__(self, key: str) -> bool:

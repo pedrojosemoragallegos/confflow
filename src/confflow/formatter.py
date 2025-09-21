@@ -7,6 +7,9 @@ from datetime import date, datetime
 from .schema import Schema
 from .schema.field import Field
 
+if typing.TYPE_CHECKING:
+    from confflow.types import FieldTypes
+
 
 def format_schema(
     schema: Schema,
@@ -37,9 +40,9 @@ def format_schema(
                 descriptions=descriptions,
             )
             lines.extend(nested_yaml.splitlines())
-        elif isinstance(field, Field):  # type: ignore
+        elif isinstance(field, Field):
             field_lines: list[str] = _format_field(
-                field,  # type: ignore
+                field,
                 indent_level + 1,
                 max_comment_length,
                 descriptions=descriptions,
@@ -52,7 +55,7 @@ def format_schema(
 
 
 def _format_field(
-    field: Field[str | int | float | bool | datetime | bytes],  # type: ignore
+    field: FieldTypes,
     indent_level: int,
     max_comment_length: int = 80,
     *,
@@ -62,7 +65,7 @@ def _format_field(
     key_indent: str = "  " * indent_level
 
     default_value: typing.Any = getattr(field, "default_value", None)
-    inferred_type: type[typing.Any] = (  # type: ignore
+    inferred_type: type[typing.Any] = (
         type(default_value)
         if default_value is not None
         else getattr(field, "type", str)
@@ -71,7 +74,7 @@ def _format_field(
     constraints: list[typing.Any] = getattr(field, "constraints", [])
 
     comment_lines = _format_field_comment(
-        field.description if descriptions else None,  # type: ignore
+        field.description if descriptions else None,
         yaml_type,
         constraints,
         indent_level,
@@ -81,7 +84,7 @@ def _format_field(
 
     if isinstance(default_value, (dict, list, set)):
         lines.append(f"{key_indent}{field.name}:")
-        formatted: str = _format_complex(default_value, indent_level + 1)  # type: ignore
+        formatted: str = _format_complex(default_value, indent_level + 1)
         lines.extend(formatted.splitlines())
     elif default_value is not None:
         default_str: str = _default_str(default_value)
@@ -131,7 +134,7 @@ def _format_field_comment(
     return lines
 
 
-def _default_str(value: typing.Any) -> str:  # type: ignore
+def _default_str(value: typing.Any) -> str:
     if isinstance(value, (datetime, date)):
         return value.isoformat()
     if isinstance(value, str):
@@ -143,7 +146,7 @@ def _default_str(value: typing.Any) -> str:  # type: ignore
     if value is None:
         return "null"
     if isinstance(value, (list, dict, set)):
-        return _format_inline(value)  # type: ignore
+        return _format_inline(value)
     return str(value)
 
 
@@ -157,16 +160,16 @@ def _format_inline(
         sorted_items: list[typing.Any] = sorted(value)
         formatted_items = [_default_str(v) for v in sorted_items]
         return "[" + ", ".join(formatted_items) + "]"
-    if isinstance(value, dict):  # type: ignore
+    if isinstance(value, dict):
         formatted_pairs: list[str] = [
             f"{_default_str(k)}: {_default_str(v)}" for k, v in value.items()
         ]
         return "{" + ", ".join(formatted_pairs) + "}"
-    return str(value)  # type: ignore
+    return str(value)
 
 
 def _format_complex(
-    value: dict[typing.Any, typing.Any]  # type: ignore
+    value: dict[typing.Any, typing.Any]
     | list[typing.Any]
     | set[typing.Any]
     | typing.Any,
@@ -176,12 +179,12 @@ def _format_complex(
     lines: list[str] = []
 
     if isinstance(value, dict):
-        for k, v in value.items():  # type: ignore
+        for k, v in value.items():
             key_str: str = _default_str(k)
             value_str: str = _default_str(v)
             lines.append(f"{indent}{key_str}: {value_str}")
     elif isinstance(value, (list, set)):
-        items: list[typing.Any] | set[typing.Any] = value  # type: ignore
+        items: list[typing.Any] | set[typing.Any] = value
         for v in items:
             value_str = _default_str(v)
             lines.append(f"{indent}- {value_str}")

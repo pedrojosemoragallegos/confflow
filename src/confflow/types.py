@@ -50,3 +50,10 @@ ValueTypes: typing.TypeAlias = (
     | datetime
     | bytes
 )
+
+YAMLBaseTypes: typing.TypeAlias = None | bool | int | float | str | datetime | bytes
+YAMLKey: typing.TypeAlias = bool | int | float | str | datetime | bytes
+YAMLTypes: typing.TypeAlias = (
+    YAMLBaseTypes | list["YAMLTypes"] | dict[YAMLKey, "YAMLTypes"]
+)
+YAMLDocument: typing.TypeAlias = dict[str, YAMLTypes]

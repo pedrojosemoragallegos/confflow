@@ -15,9 +15,9 @@ from .confflow import Confflow
 
 if typing.TYPE_CHECKING:
     from collections.abc import ItemsView, KeysView, ValuesView
-    from datetime import datetime
 
     from confflow.config.config import Config
+    from confflow.types import YAMLDocument, YAMLKey, YAMLTypes
 
     from .group import Group
 
@@ -81,40 +81,7 @@ class Manager(IPythonMixin):
 
         try:
             with config_path.open("r", encoding="utf-8") as f:
-                raw_data: dict[
-                    str,
-                    None
-                    | bool
-                    | int
-                    | float
-                    | str
-                    | datetime
-                    | bytes
-                    | list[
-                        None
-                        | bool
-                        | int
-                        | float
-                        | str
-                        | datetime
-                        | bytes
-                        | dict[
-                            str,
-                            None | bool | int | float | str | datetime | bytes,
-                        ]
-                    ]
-                    | dict[
-                        str,
-                        None
-                        | bool
-                        | int
-                        | float
-                        | str
-                        | datetime
-                        | bytes
-                        | list[None | bool | int | float | str | datetime | bytes],
-                    ],
-                ] = yaml.safe_load(f) or {}
+                raw_data: YAMLDocument = yaml.safe_load(f) or {}
         except yaml.YAMLError as e:
             raise ValueError(f"Invalid YAML in config file {file_path}: {e}") from e  # noqa: EM102, TRY003
 
@@ -125,51 +92,21 @@ class Manager(IPythonMixin):
         processed_schemas: set[str] = set()
 
         # Process standalone schemas
+        schema: Schema
+        section_data: dict[YAMLKey, YAMLTypes]
+        schema_config: Config
         for schema in self._schemas.values():
             if schema.name in self._schema_to_group:
                 continue  # Will be processed with group
 
-            section_data: dict[
-                str,
-                None
-                | bool
-                | int
-                | float
-                | str
-                | datetime
-                | bytes
-                | list[
-                    None
-                    | bool
-                    | int
-                    | float
-                    | str
-                    | datetime
-                    | bytes
-                    | dict[
-                        str,
-                        None | bool | int | float | str | datetime | bytes,
-                    ]
-                ]
-                | dict[
-                    str,
-                    None
-                    | bool
-                    | int
-                    | float
-                    | str
-                    | datetime
-                    | bytes
-                    | list[None | bool | int | float | str | datetime | bytes],
-                ],
-            ] = raw_data[schema.name]  # type: ignore
+            section_data = raw_data[schema.name]
 
-            if not isinstance(section_data, dict):  # type: ignore
+            if not isinstance(section_data, dict):
                 raise TypeError(  # noqa: TRY003
                     f"Section '{schema.name}' must be a dictionary/object, got {type(section_data).__name__}",  # noqa: E501, EM102
                 )
 
-            schema_config: Config = create_config(schema, section_data)  # type: ignore
+            schema_config = create_config(schema, section_data)
             schema_configs.append(schema_config)
             processed_schemas.add(schema.name)
 
@@ -186,49 +123,16 @@ class Manager(IPythonMixin):
                 )
 
             # Process all present schemas from the group (behavior depends on group type)  # noqa: E501
-            for schema_name in present_schemas:  # type: ignore
-                schema: Schema = self._schemas[schema_name]  # type: ignore
-                section_data: dict[  # type: ignore
-                    str,
-                    None
-                    | bool
-                    | int
-                    | float
-                    | str
-                    | datetime
-                    | bytes
-                    | list[
-                        None
-                        | bool
-                        | int
-                        | float
-                        | str
-                        | datetime
-                        | bytes
-                        | dict[
-                            str,
-                            None | bool | int | float | str | datetime | bytes,
-                        ]
-                    ]
-                    | dict[
-                        str,
-                        None
-                        | bool
-                        | int
-                        | float
-                        | str
-                        | datetime
-                        | bytes
-                        | list[None | bool | int | float | str | datetime | bytes],
-                    ],
-                ] = raw_data[schema_name]  # type: ignore
+            for schema_name in present_schemas:
+                schema = self._schemas[schema_name]
+                section_data = raw_data[schema_name]
 
-                if not isinstance(section_data, dict):  # type: ignore
+                if not isinstance(section_data, dict):
                     raise TypeError(  # noqa: TRY003
                         f"Section '{schema_name}' must be a dictionary/object, got {type(section_data).__name__}",  # noqa: E501, EM102
                     )
 
-                schema_config: Config = create_config(schema, section_data)  # type: ignore
+                schema_config = create_config(schema, section_data)
                 schema_configs.append(schema_config)
                 processed_schemas.add(schema_name)
 
@@ -236,40 +140,7 @@ class Manager(IPythonMixin):
 
     def _validate_groups(
         self,
-        raw_data: dict[
-            str,
-            None
-            | bool
-            | int
-            | float
-            | str
-            | datetime
-            | bytes
-            | list[
-                None
-                | bool
-                | int
-                | float
-                | str
-                | datetime
-                | bytes
-                | dict[
-                    str,
-                    None | bool | int | float | str | datetime | bytes,
-                ]
-            ]
-            | dict[
-                str,
-                None
-                | bool
-                | int
-                | float
-                | str
-                | datetime
-                | bytes
-                | list[None | bool | int | float | str | datetime | bytes],
-            ],
-        ],
+        raw_data: YAMLDocument,
         file_path: str | Path,
     ) -> None:
         for group in self._groups:
