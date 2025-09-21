@@ -10,21 +10,9 @@ if typing.TYPE_CHECKING:
     from collections.abc import ItemsView, KeysView, ValuesView
     from datetime import datetime
 
-    ConfigOrEntry: typing.TypeAlias = (
-        Entry[str]
-        | Entry[int]
-        | Entry[float]
-        | Entry[bool]
-        | Entry[datetime]
-        | Entry[bytes]
-        | Entry[list[str]]
-        | Entry[list[int]]
-        | Entry[list[float]]
-        | Entry[list[bool]]
-        | Entry[list[datetime]]
-        | Entry[list[bytes]]
-        | "Config"
-    )
+    from confflow.types import EntryTypes
+
+    ConfigOrEntry: typing.TypeAlias = EntryTypes | "Config"
 
 
 class Config(IPythonMixin):

@@ -1,13 +1,52 @@
-# from __future__ import annotations
+from __future__ import annotations
 
-# import typing
-# from datetime import datetime
+import typing
+from datetime import datetime
 
-# Scalar: typing.TypeAlias = str | int | float | bool | datetime | bytes
-# ScalarList: typing.TypeAlias = (
-#     list[str] | list[int] | list[float] | list[bool] | list[datetime] | list[bytes]
-# )
+from .config.entry import Entry
+from .schema.field import Field
 
-# EntryValue = typing.TypeVar("EntryValue", Scalar, ScalarList)
+EntryTypes: typing.TypeAlias = (
+    Entry[str]
+    | Entry[int]
+    | Entry[float]
+    | Entry[bool]
+    | Entry[datetime]
+    | Entry[bytes]
+    | Entry[list[str]]
+    | Entry[list[int]]
+    | Entry[list[float]]
+    | Entry[list[bool]]
+    | Entry[list[datetime]]
+    | Entry[list[bytes]]
+)
 
+FieldTypes: typing.TypeAlias = (
+    Field[str]
+    | Field[int]
+    | Field[float]
+    | Field[bool]
+    | Field[datetime]
+    | Field[bytes]
+    | Field[list[str]]
+    | Field[list[int]]
+    | Field[list[float]]
+    | Field[list[bool]]
+    | Field[list[datetime]]
+    | Field[list[bytes]]
+)
 
+ValueTypes: typing.TypeAlias = (
+    list[str]
+    | list[int]
+    | list[float]
+    | list[bool]
+    | list[datetime]
+    | list[bytes]
+    | str
+    | int
+    | float
+    | bool
+    | datetime
+    | bytes
+)

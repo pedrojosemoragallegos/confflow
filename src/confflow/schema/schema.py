@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import typing
-from collections import OrderedDict
 
 from confflow.mixins import IPythonMixin
 
 if typing.TYPE_CHECKING:
     from datetime import datetime
+
+    from confflow.types import FieldTypes
 
     from .field import Field
 
@@ -17,20 +18,8 @@ class Schema(IPythonMixin):
         self._description: str = description
         self._fields: dict[
             str,
-            Field[str]
-            | Field[int]
-            | Field[float]
-            | Field[bool]
-            | Field[datetime]
-            | Field[bytes]
-            | Field[list[str]]
-            | Field[list[int]]
-            | Field[list[float]]
-            | Field[list[bool]]
-            | Field[list[datetime]]
-            | Field[list[bytes]]
-            | Schema,
-        ] = OrderedDict()
+            FieldTypes | Schema,
+        ] = {}
 
     @property
     def name(self) -> str:

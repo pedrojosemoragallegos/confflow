@@ -6,44 +6,17 @@ from .config import Config, Entry
 from .schema import Schema
 
 if typing.TYPE_CHECKING:
-    from datetime import datetime
-
-    from .schema.field import Field
+    from .types import EntryTypes, FieldTypes, ValueTypes
 
 
 def create_config(
     schema: Schema,
     data: dict[
         str,
-        list[str]
-        | list[int]
-        | list[float]
-        | list[bool]
-        | list[datetime]
-        | list[bytes]
-        | str
-        | int
-        | float
-        | bool
-        | datetime
-        | bytes,
+        ValueTypes,
     ],
 ) -> Config:
-    items: list[
-        Config
-        | Entry[list[str]]
-        | Entry[list[int]]
-        | Entry[list[float]]
-        | Entry[list[bool]]
-        | Entry[list[datetime]]
-        | Entry[list[bytes]]
-        | Entry[str]
-        | Entry[int]
-        | Entry[float]
-        | Entry[bool]
-        | Entry[datetime]
-        | Entry[bytes]
-    ] = []
+    items: list[Config | EntryTypes] = []
     for key, field_or_subschema in schema.items():
         if isinstance(field_or_subschema, Schema):
             nested_config: Config = _create_nested_config(
@@ -54,20 +27,7 @@ def create_config(
             )
             items.append(nested_config)
         else:
-            entry: (
-                Entry[list[str]]
-                | Entry[list[int]]
-                | Entry[list[float]]
-                | Entry[list[bool]]
-                | Entry[list[datetime]]
-                | Entry[list[bytes]]
-                | Entry[str]
-                | Entry[int]
-                | Entry[float]
-                | Entry[bool]
-                | Entry[datetime]
-                | Entry[bytes]
-            ) = create_entry(
+            entry: EntryTypes = create_entry(
                 key,
                 field_or_subschema,
                 data,
@@ -81,64 +41,17 @@ def create_config(
 def _create_nested_config(
     key: str,
     subschema: Schema,
-    data: dict[
-        str,
-        list[str]
-        | list[int]
-        | list[float]
-        | list[bool]
-        | list[datetime]
-        | list[bytes]
-        | str
-        | int
-        | float
-        | bool
-        | datetime
-        | bytes,
-    ],
+    data: dict[str, ValueTypes],
     parent_schema_name: str,
 ) -> Config:
     nested_data: (
-        list[str]
-        | list[int]
-        | list[float]
-        | list[bool]
-        | list[datetime]
-        | list[bytes]
-        | str
-        | int
-        | float
-        | bool
-        | datetime
-        | bytes
+        ValueTypes
         | dict[
             str,
-            list[str]
-            | list[int]
-            | list[float]
-            | list[bool]
-            | list[datetime]
-            | list[bytes]
-            | str
-            | int
-            | float
-            | bool
-            | datetime
-            | bytes
+            ValueTypes
             | dict[
                 str,
-                list[str]
-                | list[int]
-                | list[float]
-                | list[bool]
-                | list[datetime]
-                | list[bytes]
-                | str
-                | int
-                | float
-                | bool
-                | datetime
-                | bytes,
+                ValueTypes,
             ],
         ]
     ) = data[key]
@@ -156,63 +69,11 @@ def _create_nested_config(
 
 def create_entry(
     key: str,
-    schema_field: Field[list[str]]
-    | Field[list[int]]
-    | Field[list[float]]
-    | Field[list[bool]]
-    | Field[list[datetime]]
-    | Field[list[bytes]]
-    | Field[str]
-    | Field[int]
-    | Field[float]
-    | Field[bool]
-    | Field[datetime]
-    | Field[bytes],
-    data: dict[
-        str,
-        list[str]
-        | list[int]
-        | list[float]
-        | list[bool]
-        | list[datetime]
-        | list[bytes]
-        | str
-        | int
-        | float
-        | bool
-        | datetime
-        | bytes,
-    ],
+    schema_field: FieldTypes,
+    data: dict[str, ValueTypes],
     parent_schema_name: str,
-) -> (
-    Entry[list[str]]
-    | Entry[list[int]]
-    | Entry[list[float]]
-    | Entry[list[bool]]
-    | Entry[list[datetime]]
-    | Entry[list[bytes]]
-    | Entry[str]
-    | Entry[int]
-    | Entry[float]
-    | Entry[bool]
-    | Entry[datetime]
-    | Entry[bytes]
-):
-    value: (
-        list[str]
-        | list[int]
-        | list[float]
-        | list[bool]
-        | list[datetime]
-        | list[bytes]
-        | str
-        | int
-        | float
-        | bool
-        | datetime
-        | bytes
-        | None
-    ) = data.get(key, schema_field.default_value)
+) -> EntryTypes:
+    value: ValueTypes | None = data.get(key, schema_field.default_value)
 
     if value is None:
         raise ValueError(  # noqa: TRY003
