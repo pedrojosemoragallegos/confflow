@@ -36,9 +36,7 @@ class Entry(typing.Generic[T]):
     ) -> None:
         self._name: str = name
         self._description: str | None = description
-        self._constraints: frozenset[Constraint[T]] = frozenset(
-            constraints or [],
-        )  # TODO: Do we really need frozenset?
+        self._constraints: typing.Final[set[Constraint[T]]] = set(constraints or [])
         self._value: T = self._validate(value)
 
     @property
@@ -54,12 +52,13 @@ class Entry(typing.Generic[T]):
         return self._description
 
     @property
-    def constraints(self) -> frozenset[Constraint[T]] | None:
+    def constraints(self) -> set[Constraint[T]]:
         return self._constraints
 
     def _validate(self, value: T) -> T:
         for constraint in self._constraints:
             constraint(value)
+
         return value
 
     def __repr__(self) -> str:

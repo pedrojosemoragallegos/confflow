@@ -8,9 +8,8 @@ from .entry import Entry
 
 if typing.TYPE_CHECKING:
     from collections.abc import ItemsView, KeysView, ValuesView
-    from datetime import datetime
 
-    from confflow.types import EntryTypes
+    from confflow.types import EntryTypes, ValueTypes
 
     ConfigOrEntry: typing.TypeAlias = EntryTypes | "Config"
 
@@ -24,6 +23,7 @@ class Config(IPythonMixin):
     ) -> None:
         if not items:
             raise ValueError("Config must contain at least one configuration item")  # noqa: EM101, TRY003
+
         self._name: str = name
         self._description: str = description
         self._items: dict[str, ConfigOrEntry] = {item.name: item for item in items}
@@ -51,21 +51,7 @@ class Config(IPythonMixin):
     def __getitem__(
         self,
         key: str,
-    ) -> (
-        str
-        | int
-        | float
-        | bool
-        | datetime
-        | bytes
-        | list[str]
-        | list[int]
-        | list[float]
-        | list[bool]
-        | list[datetime]
-        | list[bytes]
-        | Config
-    ):
+    ) -> str | ValueTypes | Config:
         config_or_entry: ConfigOrEntry = self._items[key]
         if isinstance(config_or_entry, Entry):
             return config_or_entry.value

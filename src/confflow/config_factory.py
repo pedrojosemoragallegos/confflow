@@ -83,10 +83,10 @@ def create_entry(
 
     try:
         return Entry(
-            value,  # type: ignore
+            value,
             name=key,
             description=schema_field.description,
-            constraints=schema_field.constraints,  # type: ignore
+            constraints=schema_field.constraints,
         )
     except Exception as e:  # TODO correct error
         raise ValueError(  # noqa: TRY003

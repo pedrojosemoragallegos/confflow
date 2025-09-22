@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import typing
-from collections import OrderedDict
 from pathlib import Path
 
 import yaml
@@ -17,7 +16,7 @@ if typing.TYPE_CHECKING:
     from collections.abc import ItemsView, KeysView, ValuesView
 
     from confflow.config.config import Config
-    from confflow.types import YAMLDocument, YAMLKey, YAMLTypes
+    from confflow.types import YAMLContent, YAMLDict, YAMLValue
 
     from .group import Group
 
@@ -27,7 +26,7 @@ class Manager(IPythonMixin):
         if not items:
             raise ValueError("Manager must contain at least one schema or group")  # noqa: EM101, TRY003
 
-        self._schemas: OrderedDict[str, Schema] = OrderedDict()
+        self._schemas: dict[str, Schema] = {}
         self._groups: list[Group] = []
         self._schema_to_group: dict[str, Group] = {}
 
@@ -77,43 +76,54 @@ class Manager(IPythonMixin):
         config_path: Path = Path(file_path)
 
         if not config_path.exists():
-            raise FileNotFoundError(f"Config file not found: {file_path}")  # noqa: EM102, TRY003
+            raise FileNotFoundError(f"Config file not found: {config_path}")  # noqa: EM102, TRY003
 
         try:
             with config_path.open("r", encoding="utf-8") as f:
-                raw_data: YAMLDocument = yaml.safe_load(f) or {}
+                raw_data: YAMLContent = yaml.safe_load(f) or {}
         except yaml.YAMLError as e:
-            raise ValueError(f"Invalid YAML in config file {file_path}: {e}") from e  # noqa: EM102, TRY003
+            raise ValueError(f"Invalid YAML in config file {config_path}: {e}") from e  # noqa: EM102, TRY003
+
+        # Ensure raw_data is a dictionary for processing
+        if not isinstance(raw_data, dict):
+            raise TypeError(  # noqa: TRY003
+                f"Root YAML content must be a dictionary/object, got {type(raw_data).__name__}",  # noqa: E501, EM102
+            )
+
+        # Now we can safely treat raw_data as YAMLDict
+        yaml_dict: YAMLDict = raw_data
 
         # Validate groups first
-        self._validate_groups(raw_data, file_path)
+        self._validate_groups(yaml_dict, config_path)
 
         schema_configs: list[Config] = []
         processed_schemas: set[str] = set()
 
         # Process standalone schemas
         schema: Schema
-        section_data: dict[YAMLKey, YAMLTypes]
+        section_data: YAMLValue
         schema_config: Config
         for schema in self._schemas.values():
             if schema.name in self._schema_to_group:
                 continue  # Will be processed with group
 
-            section_data = raw_data[schema.name]
+            section_data = yaml_dict[schema.name]
 
             if not isinstance(section_data, dict):
                 raise TypeError(  # noqa: TRY003
                     f"Section '{schema.name}' must be a dictionary/object, got {type(section_data).__name__}",  # noqa: E501, EM102
                 )
 
-            schema_config = create_config(schema, section_data)
+            # Now we know section_data is a dict, cast to YAMLDict for type safety
+            section_dict: YAMLDict = section_data
+            schema_config = create_config(schema, section_dict)
             schema_configs.append(schema_config)
             processed_schemas.add(schema.name)
 
         # Process groups - validate and process according to group rules
         for group in self._groups:
             present_schemas: list[str] = [
-                schema_name for schema_name in group.names if schema_name in raw_data
+                schema_name for schema_name in group.names if schema_name in yaml_dict
             ]
 
             if not present_schemas:
@@ -125,14 +135,16 @@ class Manager(IPythonMixin):
             # Process all present schemas from the group (behavior depends on group type)  # noqa: E501
             for schema_name in present_schemas:
                 schema = self._schemas[schema_name]
-                section_data = raw_data[schema_name]
+                section_data = yaml_dict[schema_name]
 
                 if not isinstance(section_data, dict):
                     raise TypeError(  # noqa: TRY003
                         f"Section '{schema_name}' must be a dictionary/object, got {type(section_data).__name__}",  # noqa: E501, EM102
                     )
 
-                schema_config = create_config(schema, section_data)
+                # Cast to YAMLDict for type safety
+                section_dict = section_data
+                schema_config = create_config(schema, section_dict)
                 schema_configs.append(schema_config)
                 processed_schemas.add(schema_name)
 
@@ -140,7 +152,7 @@ class Manager(IPythonMixin):
 
     def _validate_groups(
         self,
-        raw_data: YAMLDocument,
+        raw_data: YAMLDict,
         file_path: str | Path,
     ) -> None:
         for group in self._groups:
