@@ -94,9 +94,8 @@ class Field(typing.Generic[T]):
         )
 
 
-## BASIC FIELDS
 class StringField(Field[str]):
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         name: str,
         *,
@@ -126,7 +125,7 @@ class StringField(Field[str]):
 
 
 class StringListField(Field[list[str]]):
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         name: str,
         *,
@@ -170,7 +169,7 @@ class StringListField(Field[list[str]]):
 
 
 class IntegerField(Field[int]):
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         name: str,
         *,
@@ -201,7 +200,7 @@ class IntegerField(Field[int]):
 
 
 class IntegerListField(Field[list[int]]):
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         name: str,
         *,
@@ -249,7 +248,7 @@ class IntegerListField(Field[list[int]]):
 
 
 class FloatField(Field[float]):
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         name: str,
         *,
@@ -259,7 +258,7 @@ class FloatField(Field[float]):
         ge: float | None = None,
         lt: float | None = None,
         le: float | None = None,
-    ):
+    ) -> None:
         constraints: list[Constraint[float]] = []
 
         if gt:
@@ -280,7 +279,7 @@ class FloatField(Field[float]):
 
 
 class FloatListField(Field[list[float]]):
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         name: str,
         *,
@@ -293,7 +292,7 @@ class FloatListField(Field[list[float]]):
         ge: float | None = None,
         lt: float | None = None,
         le: float | None = None,
-    ):
+    ) -> None:
         constraints: list[Constraint[list[float]]] = []
 
         if min_items:
@@ -332,7 +331,7 @@ class DateField(Field[datetime]):
         *,
         description: str,
         default_value: datetime | None = None,
-    ):
+    ) -> None:
         super().__init__(
             name=name,
             description=description,
@@ -342,7 +341,7 @@ class DateField(Field[datetime]):
 
 
 class DateListField(Field[list[datetime]]):
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         name: str,
         *,
@@ -351,7 +350,7 @@ class DateListField(Field[list[datetime]]):
         min_items: int | None = None,
         max_items: int | None = None,
         unique_items: bool | None = None,
-    ):
+    ) -> None:
         constraints: list[Constraint[list[datetime]]] = []
 
         if min_items:
@@ -376,7 +375,7 @@ class BytesField(Field[bytes]):
         *,
         description: str,
         default_value: bytes | None = None,
-    ):
+    ) -> None:
         super().__init__(
             name=name,
             description=description,
@@ -386,7 +385,7 @@ class BytesField(Field[bytes]):
 
 
 class BooleanListField(Field[list[bool]]):
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         name: str,
         *,
@@ -395,7 +394,7 @@ class BooleanListField(Field[list[bool]]):
         min_items: int | None = None,
         max_items: int | None = None,
         unique_items: bool | None = None,
-    ):
+    ) -> None:
         constraints: list[Constraint[list[bool]]] = []
 
         if min_items:
@@ -420,7 +419,7 @@ class BooleanField(Field[bool]):
         *,
         description: str,
         default_value: bool | None = None,
-    ):
+    ) -> None:
         super().__init__(
             name=name,
             description=description,
@@ -430,7 +429,7 @@ class BooleanField(Field[bool]):
 
 
 class BytesListField(Field[list[bytes]]):
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         name: str,
         *,
@@ -439,7 +438,7 @@ class BytesListField(Field[list[bytes]]):
         min_items: int | None = None,
         max_items: int | None = None,
         unique_items: bool | None = None,
-    ):
+    ) -> None:
         constraints: list[Constraint[list[bytes]]] = []
 
         if min_items:

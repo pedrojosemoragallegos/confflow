@@ -44,7 +44,6 @@ class Manager(IPythonMixin):
                     self._schema_to_group[schema.name] = item
 
     def template(self, file_path: str | Path, *, descriptions: bool = False) -> None:
-        # Add standalone schemas
         standalone_schemas: list[Schema] = [
             schema
             for schema in self._schemas.values()
@@ -56,7 +55,6 @@ class Manager(IPythonMixin):
             for schema in standalone_schemas
         ]
 
-        # Add grouped schemas with comments
         for group in self._groups:
             sections.append(group.template_comment)
 
@@ -65,7 +63,7 @@ class Manager(IPythonMixin):
                     sections.append("# ┌─── OR ───┐")
                 sections.append(format_schema(schema, descriptions=descriptions))
 
-            sections.append("")  # Empty line after group
+            sections.append("")  # empty line after group
 
         Path(file_path).write_text(
             "\n\n".join(sections),
@@ -84,28 +82,24 @@ class Manager(IPythonMixin):
         except yaml.YAMLError as e:
             raise ValueError(f"Invalid YAML in config file {config_path}: {e}") from e  # noqa: EM102, TRY003
 
-        # Ensure raw_data is a dictionary for processing
         if not isinstance(raw_data, dict):
             raise TypeError(  # noqa: TRY003
                 f"Root YAML content must be a dictionary/object, got {type(raw_data).__name__}",  # noqa: E501, EM102
             )
 
-        # Now we can safely treat raw_data as YAMLDict
         yaml_dict: YAMLDict = raw_data
 
-        # Validate groups first
         self._validate_groups(yaml_dict, config_path)
 
         schema_configs: list[Config] = []
         processed_schemas: set[str] = set()
 
-        # Process standalone schemas
         schema: Schema
         section_data: YAMLValue
         schema_config: Config
         for schema in self._schemas.values():
             if schema.name in self._schema_to_group:
-                continue  # Will be processed with group
+                continue
 
             section_data = yaml_dict[schema.name]
 
@@ -114,13 +108,11 @@ class Manager(IPythonMixin):
                     f"Section '{schema.name}' must be a dictionary/object, got {type(section_data).__name__}",  # noqa: E501, EM102
                 )
 
-            # Now we know section_data is a dict, cast to YAMLDict for type safety
             section_dict: YAMLDict = section_data
             schema_config = create_config(schema, section_dict)
             schema_configs.append(schema_config)
             processed_schemas.add(schema.name)
 
-        # Process groups - validate and process according to group rules
         for group in self._groups:
             present_schemas: list[str] = [
                 schema_name for schema_name in group.names if schema_name in yaml_dict
@@ -132,7 +124,6 @@ class Manager(IPythonMixin):
                     f"Must include at least one of: {list(group.names)}",
                 )
 
-            # Process all present schemas from the group (behavior depends on group type)  # noqa: E501
             for schema_name in present_schemas:
                 schema = self._schemas[schema_name]
                 section_data = yaml_dict[schema_name]
@@ -187,14 +178,12 @@ class Manager(IPythonMixin):
     def __repr__(self) -> str:
         items: list[str] = []
 
-        # Add standalone schemas
         standalone: list[str] = [
             name for name in self._schemas if name not in self._schema_to_group
         ]
         if standalone:
             items.extend(standalone)
 
-        # Add groups
         items.extend(
             f"{group.__class__.__name__}({list(group.names)})" for group in self._groups
         )
