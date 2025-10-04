@@ -5,11 +5,11 @@ from abc import abstractmethod
 
 import typing_extensions
 
-from confflow.mixins import FormattedStringMixin
-from confflow.shared import create_frame, yaml_indent
+from confflow._mixins import FormattedStringMixin
+from confflow._shared import create_frame, yaml_indent
 
 if typing.TYPE_CHECKING:
-    from confflow.schema import Schema
+    from confflow._schema import Schema
 
 
 ## Base Group

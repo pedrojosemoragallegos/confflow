@@ -1,7 +1,7 @@
 from dataclasses import make_dataclass
 from typing import Any, Protocol, TypeVar, cast
 
-from .shared import YamlValue
+from ._shared import YamlValue
 
 
 class Config(Protocol):

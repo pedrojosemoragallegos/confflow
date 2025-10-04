@@ -1,6 +1,6 @@
 # ConfFlow
 
-A Python library for schema-based YAML configuration management with built-in validation, constraints, and type safety.
+An extremely fast Python library for schema-based YAML configuration management with built-in validation, constraints, and type safety.
 
 ## Features
 
@@ -17,6 +17,7 @@ A Python library for schema-based YAML configuration management with built-in va
   - **Nested Schemas**: Create hierarchical configuration structures with unlimited nesting depth
   - **Multiple Independent Schemas**: Compose configurations from separate schema definitions
   - **Split Configuration Files**: Load and merge multiple YAML files into a single validated config
+  - **Directory Loading**: Automatically load all `.yml` files from a directory
 
 - **Group Constraints**: Advanced validation logic
   - `OneOf`: Exactly one schema from a group must be present
@@ -86,6 +87,7 @@ This creates separate YAML template files with inline documentation:
 **`templates/database_template.yml`:**
 
 ```yaml
+# Database configuration
 database:
   # Database host
   # type: str
@@ -93,12 +95,14 @@ database:
   #  - Minimum length = 1
   #  - Maximum length = 255
   host: localhost
+  
   # Database port
   # type: int
   # constraints:
   #  - Greater than: 0
   #  - Less than or equal: 65535
   port: 5432
+  
   # Enable SSL
   # type: bool
   ssl_enabled: True
@@ -107,11 +111,14 @@ database:
 ### 3. Load and Validate Configuration
 
 ```python
-# Load configuration from one or more files
+# Load configuration from a single file
 config = manager.load("config.yml")
 
 # Or load from multiple files (later files override earlier ones)
 config = manager.load("base.yml", "environment.yml", "overrides.yml")
+
+# Or load all .yml files from a directory
+config = manager.load("./config")
 
 # Access configuration with dot notation or subscription
 print(config.database.host)  # Dot notation
@@ -158,27 +165,36 @@ manager.create_templates("./templates")
 **Generated `app_template.yml`:**
 
 ```yaml
+# Application configuration
 app:
   # App name
   # type: str
   name: MyApp
+  
   # App version
   # type: str
   version: 1.0.0
+  
+  # Database settings
   database:
     # DB host
     # type: str
     host: localhost
+    
     # DB port
     # type: int
     port: 5432
+    
     # Use SSL
     # type: bool
     ssl: True
+  
+  # Cache settings
   cache:
     # Cache backend
     # type: str
     backend: redis
+    
     # TTL in seconds
     # type: int
     ttl: 3600
@@ -333,6 +349,31 @@ print(config.database.port)        # 5433 (from local.yml - overrides base)
 print(config.database.ssl_enabled) # True (from production.yml)
 ```
 
+### Directory Loading
+
+Load all `.yml` files from a directory automatically:
+
+```python
+# Directory structure:
+# ./config/
+#   ├── database.yml
+#   ├── api.yml
+#   └── logging.yml
+
+# Load all .yml files from directory (sorted alphabetically)
+config = manager.load("./config")
+
+# Equivalent to:
+# config = manager.load("./config/api.yml", "./config/database.yml", "./config/logging.yml")
+
+# Access configurations
+print(config.database.host)
+print(config.api.base_url)
+print(config.logging.level)
+```
+
+**Note:** Directory loading is non-recursive and only loads files directly in the specified directory. Files are loaded in alphabetical order.
+
 ## Advanced Features
 
 ### Group Constraints
@@ -468,18 +509,6 @@ data = {
 config = manager.loads(data)
 ```
 
-### Loading from File Buffers
-
-```python
-# Load from file-like objects
-with open("config.yml") as f:
-    config = manager.load(f)
-
-# Mix file paths and buffers
-with open("overrides.yml") as f:
-    config = manager.load("base.yml", f, "local.yml")
-```
-
 ## API Reference
 
 ### Manager
@@ -502,14 +531,15 @@ The `Manager` class coordinates validation and template generation for your sche
 - Loads and validates configuration from a dictionary
 - Returns a frozen `Config` dataclass
 
-**`manager.load(*filepaths_or_buffers) -> Config`**
+**`manager.load(*filepaths: str | Path) -> Config`**
 
-- Loads and merges configuration from multiple files or buffers
+- Loads and merges configuration from multiple files or a directory
+- If a single directory path is provided, loads all `.yml` files from that directory
 - Later files override earlier ones for duplicate keys
-- Accepts file paths (str/PathLike) or file-like objects
 - Returns a validated `Config` object
+- Raises `ValueError` if no files provided or if a directory contains no `.yml` files
 
-**`manager.create_templates(directory)`**
+**`manager.create_templates(directory: str | Path)`**
 
 - Creates `{schema_name}_template.yml` for each schema
 - Creates directory if it doesn't exist

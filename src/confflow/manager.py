@@ -5,13 +5,11 @@ from pathlib import Path
 
 import yaml
 
-from .config import Config, dict_to_dataclass
+from ._config import Config, dict_to_dataclass
 
 if typing.TYPE_CHECKING:
-    from os import PathLike
-
-    from confflow.schema import Schema
-    from confflow.shared import YamlDict
+    from confflow._schema import Schema
+    from confflow._shared import YamlDict
 
 
 @typing.final
@@ -87,7 +85,7 @@ class Manager:
 
         return dict_to_dataclass(name="Config", data=data, frozen=True)
 
-    def create_templates(self, directory: str | PathLike[str], /) -> None:
+    def create_templates(self, directory: str | Path, /) -> None:
         """Create individual template YAML files for each schema in a directory.
 
         Generates a separate {schemaname}_template.yml file for each registered
@@ -97,12 +95,6 @@ class Manager:
             directory: Path to the directory where template files will be created.
                 The directory will be created (including parent directories) if it
                 doesn't exist.
-
-        Example:
-            >>> manager.create_templates("./templates")
-            # Creates:
-            # - ./templates/database_template.yml
-            # - ./templates/api_template.yml
 
         """
         dir_path = Path(directory)
@@ -117,51 +109,51 @@ class Manager:
 
     def load(
         self,
-        *filepaths_or_buffers: str | PathLike[str] | typing.IO[str],
+        *filepaths: str | Path,
     ) -> Config:
-        """Load and merge configuration from multiple YAML files or buffers.
+        """Load and merge configuration from multiple YAML files.
 
-        Reads YAML data from one or more file paths or file-like buffers, merges
-        them into a single configuration, validates against schemas, and returns
-        a Config object. If multiple files contain the same keys, later files
-        override earlier ones.
+        Reads YAML data from one or more file paths, merges them into a single
+        configuration, validates against schemas, and returns a Config object.
+        If multiple files contain the same keys, later files override earlier ones.
+
+        If a single argument is provided and it's a directory, all files ending
+        with .yml in that directory will be loaded (non-recursively).
 
         Args:
-            *filepaths_or_buffers: One or more file paths (str or PathLike) or
-                file-like buffers to load configuration from.
+            *filepaths: One or more file paths (str or Path) to load configuration
+                from. If a single directory path is provided, all .yml files in
+                that directory are loaded.
 
         Returns:
             Config: A frozen dataclass containing the validated merged configuration.
 
         Raises:
-            ValueError: If no filepaths or buffers are provided, or if the merged
-                data fails validation.
+            ValueError: If no filepaths are provided, or if the merged data fails
+                validation.
             FileNotFoundError: If any specified file path doesn't exist.
             yaml.YAMLError: If any file contains invalid YAML.
 
-        Example:
-            >>> config = manager.load("base.yml", "overrides.yml")
-            >>> # or with buffers:
-            >>> with open("config.yml") as f:
-            ...     config = manager.load(f, "extra.yml")
-
         """
-        if not filepaths_or_buffers:
-            raise ValueError("At least one filepath or buffer is required")  # noqa: EM101, TRY003
+        if not filepaths:
+            raise ValueError("At least one filepath is required")  # noqa: EM101, TRY003
+
+        paths_to_load: list[str | Path] = list(filepaths)
+
+        if len(filepaths) == 1:
+            path = Path(filepaths[0])
+            if path.is_dir():
+                # Load all .yml files from directory
+                paths_to_load = sorted(path.glob("*.yml"))
+                if not paths_to_load:
+                    raise ValueError(f"No .yml files found in directory: {path}")  # noqa: EM102, TRY003
 
         merged_data: YamlDict = {}
 
-        for filepath_or_buffer in filepaths_or_buffers:
-            if isinstance(filepath_or_buffer, str):
-                data = yaml.safe_load(
-                    Path(filepath_or_buffer).read_text(encoding="utf-8"),
-                )
-            elif hasattr(filepath_or_buffer, "read"):
-                data = yaml.safe_load(filepath_or_buffer.read())  # type: ignore  # noqa: PGH003
-            else:
-                data = yaml.safe_load(
-                    Path(filepath_or_buffer).read_text(encoding="utf-8"),  # type: ignore  # noqa: PGH003
-                )  # type: ignore  # noqa: PGH003
+        for filepath in paths_to_load:
+            data = yaml.safe_load(
+                Path(filepath).read_text(encoding="utf-8"),
+            )
 
             if data:
                 merged_data.update(data)

@@ -6,8 +6,8 @@ from datetime import datetime
 
 import typing_extensions
 
-from confflow.mixins import FormattedStringMixin
-from confflow.shared import yaml_indent
+from confflow._mixins import FormattedStringMixin
+from confflow._shared import yaml_indent
 
 from .constraint import (
     EnumValues,

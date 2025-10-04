@@ -7,7 +7,7 @@ from re import Pattern
 
 import typing_extensions
 
-from confflow.mixins import FormattedStringMixin
+from confflow._mixins import FormattedStringMixin
 
 T = typing.TypeVar("T")
 TList = typing.TypeVar("TList")
