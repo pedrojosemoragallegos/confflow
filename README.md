@@ -81,6 +81,7 @@ manager.create_templates("./templates")
 This creates separate YAML template files with inline documentation:
 
 **`templates/database_template.yml`:**
+
 ```yaml
 database:
   # Database host
