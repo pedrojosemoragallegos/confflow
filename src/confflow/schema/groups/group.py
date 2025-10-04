@@ -47,7 +47,7 @@ class OneOf(Group):
         ) != 1:
             raise ValueError(  # noqa: TRY003
                 f"Expected exactly one of {', '.join([repr(schema) for schema in self._schemas])}, but found {matches} matches",  # noqa: E501, EM102
-            )  # TODO: create own error class
+            )
 
     @typing_extensions.override
     def __repr__(self) -> str:
@@ -79,7 +79,7 @@ class AnyOf(Group):
         if not any(schema.name in schemas for schema in self._schemas):
             raise ValueError(  # noqa: TRY003
                 f"Expected at least one of {self._schemas}, but found no matches",  # noqa: EM102
-            )  # TODO: create own error class
+            )
 
     @typing_extensions.override
     def __repr__(self) -> str:
