@@ -1,9 +1,6 @@
-from __future__ import annotations
+from abc import ABC, abstractmethod
 
 
-class IPythonMixin:
-    def _ipython_key_completions_(self) -> list[str]:
-        try:
-            return list(self.keys())
-        except AttributeError:
-            return []
+class FormattedStringMixin(ABC):
+    @abstractmethod
+    def to_formatted_string(self, indent: int = 0) -> str: ...

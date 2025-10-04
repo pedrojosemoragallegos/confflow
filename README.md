@@ -1,551 +1,413 @@
-# Confflow
+# ConfFlow
 
-![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13-blue)
-![License](https://img.shields.io/badge/license-MIT-blue)
-![Zero Dependencies](https://img.shields.io/badge/dependencies-zero-green)
+A Python library for schema-based YAML configuration management with built-in validation, constraints, and type safety.
 
-**Confflow** is a lightweight, zero-dependency configuration management library for Python applications. It provides an intuitive API for defining, validating, and managing configuration schemas with built-in support for mutually exclusive groups and automatic YAML template generation.
+## Features
 
-## Why Confflow?
+- **Type-Safe Configuration**: Support for all common data types
+  - Scalars: `str`, `int`, `float`, `bool`, `datetime`, `bytes`
+  - Lists: `list[str]`, `list[int]`, `list[float]`, `list[bool]`, `list[datetime]`, `list[bytes]`
 
-- **Zero Dependencies**: No external dependencies beyond Python's standard library
-- **Type Safety**: Built-in validation with clear error messages
-- **Flexible Architecture**: Support for nested schemas and mutually exclusive configuration groups
-- **Auto-Generated Templates**: Create YAML configuration templates with detailed descriptions
-- **Clean API**: Intuitive schema definition using method chaining
-- **Production Ready**: Comprehensive validation and error handling
+- **Comprehensive Validation**: Built-in constraint system
+  - String constraints: min/max length, regex patterns, enum values
+  - Numeric constraints: greater/less than (or equal), ranges
+  - List constraints: min/max length, item-level validation
 
-## Key Features
+- **Nested Schemas**: Hierarchical configuration structures with unlimited nesting
 
-### Schema Definition with Method Chaining
+- **Group Constraints**: Advanced validation logic
+  - `OneOf`: Exactly one schema from a group must be present
+  - `AnyOf`: At least one schema from a group must be present
 
-```python
-from confflow import Manager, Schema, StringField, IntegerField, BooleanField
+- **Template Generation**: Automatic YAML template creation with inline documentation
 
-config_manager = Manager(
-    Schema("app", description="Application settings")
-    .add(StringField("name", description="App name", default_value="my-app"))
-    .add(IntegerField("port", description="Port number", default_value=8080, ge=1024, le=65535))
-    .add(BooleanField("debug", description="Debug mode", default_value=False))
-)
-```
-
-### Mutually Exclusive Configuration Groups
-
-```python
-from confflow import MutualExclusive
-
-config_manager = Manager(
-    # Choose exactly one database backend
-    MutualExclusive(
-        Schema("database_postgres", description="PostgreSQL configuration")
-        .add(StringField("host", default_value="localhost"))
-        .add(IntegerField("port", default_value=5432)),
-        
-        Schema("database_mysql", description="MySQL configuration")
-        .add(StringField("host", default_value="localhost"))
-        .add(IntegerField("port", default_value=3306))
-    )
-)
-```
-
-### Rich Field Types with Validation
-
-```python
-from confflow import StringField, IntegerField, FloatField, BooleanField, StringListField, DateField
-from datetime import datetime
-
-Schema("advanced", description="Advanced configuration options")
-.add(StringField("email", regex=r"^[^@]+@[^@]+\.[^@]+$"))
-.add(StringField("log_level", enum=["DEBUG", "INFO", "WARN", "ERROR"]))
-.add(StringListField("allowed_ips", min_items=1, unique_items=True))
-.add(FloatField("timeout", ge=0.1, le=300.0))
-.add(DateField("start_date", default_value=datetime.now()))
-```
+- **Default Values**: Support for defaults at all levels
 
 ## Installation
-
-### Using pip (Recommended)
 
 ```bash
 pip install confflow
 ```
 
-### From Source
-
-```bash
-git clone https://github.com/pedrojosemoragallegos/confflow.git
-cd confflow
-pip install .
-```
-
 ## Quick Start
 
-### 1. Define Your Configuration Schema
+### 1. Define Your Schema
 
 ```python
-from confflow import Manager, Schema, StringField, IntegerField, BooleanField, MutualExclusive
+from confflow import Manager
+from confflow.schema import Schema
+from confflow.schema.fields import StringField, IntegerField, BooleanField
+from confflow.schema.groups import OneOf
 
-config_manager = Manager(
-    # Core application settings
-    Schema("app", description="Core application configuration")
-    .add(StringField("name", description="Application name", 
-                     default_value="my-service", min_length=3, max_length=50))
-    .add(StringField("version", description="Application version", 
-                     default_value="1.0.0", regex=r"^\d+\.\d+\.\d+$"))
-    .add(IntegerField("port", description="HTTP port", 
-                      default_value=8080, ge=1024, le=65535)),
-    
-    # Environment-specific configuration (choose one)
-    MutualExclusive(
-        Schema("development", description="Development environment")
-        .add(BooleanField("debug", description="Enable debug logging", default_value=True))
-        .add(StringField("log_level", description="Logging level", 
-                        default_value="DEBUG", enum=["DEBUG", "INFO", "WARN", "ERROR"])),
-        
-        Schema("production", description="Production environment")
-        .add(BooleanField("debug", description="Enable debug logging", default_value=False))
-        .add(StringField("log_level", description="Logging level", 
-                        default_value="ERROR", enum=["DEBUG", "INFO", "WARN", "ERROR"]))
-        .add(StringField("secret_key", description="Production secret key", min_length=32))
-    ),
-    
-    # Feature toggles
-    Schema("features", description="Feature flags and toggles")
-    .add(BooleanField("enable_auth", description="Enable authentication", default_value=True))
-    .add(BooleanField("enable_cache", description="Enable caching", default_value=False))
+# Create a schema
+database_schema = Schema(
+    "database",
+    description="Database configuration"
+).add(
+    StringField(
+        "host",
+        description="Database host",
+        default="localhost",
+        min_length=1,
+        max_length=255
+    )
+).add(
+    IntegerField(
+        "port",
+        description="Database port",
+        default=5432,
+        gt=0,
+        le=65535
+    )
+).add(
+    BooleanField(
+        "ssl_enabled",
+        description="Enable SSL",
+        default=True
+    )
 )
+
+# Create configuration manager
+manager = Manager(database_schema)
 ```
 
-### 2. Generate Configuration Template
+### 2. Generate Configuration Templates
 
 ```python
-# Generate a YAML template with descriptions
-config_manager.template("config_template.yaml", descriptions=True)
+# Generate individual template files for each schema
+manager.create_templates("./templates")
 ```
 
-This creates a comprehensive template with detailed validation information:
+This creates separate YAML template files with inline documentation:
 
+**`templates/database_template.yml`:**
 ```yaml
-# Core application configuration
-app:
-  # Application name
-  # type: string
+database:
+  # Database host
+  # type: str
   # constraints:
-  #   - MinLength('Value must be at least 3 characters long')
-  #   - MaxLength('Value must be at most 50 characters long')
-  name: my-service
-  # Application version
-  # type: string
+  #  - Minimum length = 1
+  #  - Maximum length = 255
+  host: localhost
+  # Database port
+  # type: int
   # constraints:
-  #   - Regex('Value must match pattern ^\d+\.\d+\.\d+$')
-  version: 1.0.0
-  # HTTP port
-  # type: integer
-  # constraints:
-  #   - GreaterThanOrEqual('Value must be >= 1024')
-  #   - LessThanOrEqual('Value must be <= 65535')
-  port: 8080
-
-# ╔══════════════════════════════════════════════════════════════╗
-# ║ MUTUALLY EXCLUSIVE: Choose ONE of the following 2 options  ║
-# ╚══════════════════════════════════════════════════════════════╝
-
-# Development environment
-development:
-  # Enable debug logging
-  # type: boolean
-  debug: true
-  # Logging level
-  # type: string
-  # constraints:
-  #   - EnumValues("Value must be one of ['DEBUG', 'INFO', 'WARN', 'ERROR']")
-  log_level: DEBUG
-
-# ┌─── OR ───┐
-
-# Production environment
-production:
-  # Enable debug logging  
-  # type: boolean
-  debug: false
-  # Logging level
-  # type: string
-  # constraints:
-  #   - EnumValues("Value must be one of ['DEBUG', 'INFO', 'WARN', 'ERROR']")
-  log_level: ERROR
-  # Production secret key
-  # type: string
-  # constraints:
-  #   - MinLength('Value must be at least 32 characters long')
-  secret_key:
-
-# Feature flags and toggles
-features:
-  # Enable authentication
-  # type: boolean
-  enable_auth: true
-  # Enable caching
-  # type: boolean
-  enable_cache: false
+  #  - Greater than: 0
+  #  - Less than or equal: 65535
+  port: 5432
+  # Enable SSL
+  # type: bool
+  ssl_enabled: True
 ```
 
-### 3. Load and Use Configuration
+### 3. Load and Validate Configuration
 
 ```python
-# Load configuration from YAML file
-config = config_manager.load("my_config.yaml")
+# Load configuration from one or more files
+config = manager.load("config.yml")
 
-# Access configuration values with type safety
-app_name = config["app"]["name"]                    # str
-port = config["app"]["port"]                        # int
-debug_enabled = config["development"]["debug"]      # bool (if development was chosen)
-auth_enabled = config["features"]["enable_auth"]   # bool
+# Or load from multiple files (later files override earlier ones)
+config = manager.load("base.yml", "environment.yml", "overrides.yml")
 
-print(f"Starting {app_name} on port {port}")
-if debug_enabled:
-    print("Debug mode is enabled")
+# Access configuration values
+print(config.database.host)  # "localhost"
+print(config.database.port)  # 5432
+print(config.database.ssl_enabled)  # True
+
+# Or use dictionary-style access
+print(config["database"]["host"])  # "localhost"
 ```
 
 ## Advanced Usage
 
+### Multiple Schemas and Template Generation
+
+```python
+# Create multiple schemas
+database_schema = Schema("database", description="Database configuration").add(
+    StringField("host", description="DB host", default="localhost")
+).add(
+    IntegerField("port", description="DB port", default=5432)
+)
+
+api_schema = Schema("api", description="API configuration").add(
+    StringField("base_url", description="API base URL", default="http://localhost:8000")
+).add(
+    IntegerField("timeout", description="Request timeout (seconds)", default=30)
+)
+
+# Initialize manager with multiple schemas
+manager = Manager(database_schema, api_schema)
+
+# Generate separate template files for each schema
+manager.create_templates("./config/templates")
+# Creates:
+#   - ./config/templates/database_template.yml
+#   - ./config/templates/api_template.yml
+
+# Load configuration from multiple template files
+config = manager.load(
+    "./config/templates/database_template.yml",
+    "./config/templates/api_template.yml"
+)
+```
+
 ### Nested Schemas
 
 ```python
-Schema("database", description="Database configuration")
-.add(
-    Schema("connection", description="Connection settings")
-    .add(StringField("host", default_value="localhost"))
-    .add(IntegerField("port", default_value=5432))
-    .add(
-        Schema("credentials", description="Authentication")
-        .add(StringField("username", default_value="user"))
-        .add(StringField("password_env", description="Environment variable for password"))
+app_schema = Schema(
+    "app",
+    description="Application configuration"
+).add(
+    StringField("name", description="App name", default="MyApp")
+).add(
+    Schema("database", description="Database settings")
+    .add(StringField("host", description="DB host", default="localhost"))
+    .add(IntegerField("port", description="DB port", default=5432))
+)
+```
+
+### Group Constraints
+
+```python
+from confflow.schema.groups import OneOf, AnyOf
+
+# OneOf: Exactly one cloud provider must be configured
+cloud_schema = Schema("config", description="Cloud configuration").add(
+    OneOf(
+        Schema("aws", description="AWS config")
+        .add(StringField("region", description="AWS region", default="us-east-1")),
+        
+        Schema("gcp", description="GCP config")
+        .add(StringField("project", description="GCP project", default="my-project")),
+        
+        Schema("azure", description="Azure config")
+        .add(StringField("subscription", description="Subscription ID"))
+    )
+)
+
+# AnyOf: At least one observability tool must be enabled
+observability_schema = Schema("config", description="Config").add(
+    AnyOf(
+        Schema("logging", description="Logging config")
+        .add(StringField("level", description="Log level", default="INFO")),
+        
+        Schema("monitoring", description="Monitoring config")
+        .add(StringField("provider", description="Provider", default="prometheus")),
+        
+        Schema("tracing", description="Tracing config")
+        .add(StringField("backend", description="Backend", default="jaeger"))
     )
 )
 ```
 
-### Complex Validation
+### Field Constraints
 
 ```python
-from confflow import StringListField, FloatField
-from datetime import datetime
+from confflow.schema.fields import (
+    StringField, IntegerField, FloatField,
+    Stringlist, Integerlist, Floatlist
+)
 
-Schema("monitoring", description="Monitoring and alerting")
-.add(StringListField("alert_emails", description="Email addresses for alerts",
-                     min_items=1, max_items=10, regex=r"^[^@]+@[^@]+\.[^@]+$"))
-.add(FloatField("cpu_threshold", description="CPU alert threshold (0-100)",
-                ge=0.0, le=100.0, default_value=80.0))
-.add(DateField("maintenance_start", description="Maintenance window start",
-               default_value=datetime(2024, 1, 1, 2, 0)))
-```
-
-### Environment-based Configuration
-
-```python
-# Define environment-specific schemas
-MutualExclusive(
-    Schema("local", description="Local development")
-    .add(StringField("db_file", default_value="./local.db")),
-    
-    Schema("staging", description="Staging environment")
-    .add(StringField("db_host", default_value="staging-db.internal"))
-    .add(BooleanField("mock_external_apis", default_value=True)),
-    
-    Schema("production", description="Production environment")
-    .add(StringField("db_host", default_value="prod-db.internal"))
-    .add(StringField("monitoring_endpoint"))
-    .add(BooleanField("strict_mode", default_value=True))
+schema = Schema("app", description="Application").add(
+    # String with regex and enum
+    StringField(
+        "environment",
+        description="Deployment environment",
+        default="development",
+        enum=["development", "staging", "production"]
+    )
+).add(
+    # Integer with range
+    IntegerField(
+        "max_connections",
+        description="Max connections",
+        default=100,
+        ge=1,
+        le=1000
+    )
+).add(
+    # Float with precision
+    FloatField(
+        "threshold",
+        description="Threshold percentage",
+        default=95.5,
+        ge=0.0,
+        le=100.0
+    )
+).add(
+    # String list with item validation
+    Stringlist(
+        "allowed_origins",
+        description="CORS origins",
+        default=["http://localhost:3000"],
+        min_length=1,
+        max_length=10,
+        item_regex=r"^https?://"
+    )
+).add(
+    # Integer list with item constraints
+    Integerlist(
+        "port_ranges",
+        description="Allowed ports",
+        default=[8000, 8080, 8443],
+        min_length=1,
+        max_length=20,
+        item_gt=0,
+        item_le=65535
+    )
 )
 ```
 
-## Field Types and Validation
-
-| Field Type        | Description          | Validation Options                                          |
-| ----------------- | -------------------- | ----------------------------------------------------------- |
-| `StringField`     | Text values          | `min_length`, `max_length`, `regex`, `enum`                 |
-| `IntegerField`    | Whole numbers        | `ge` (≥), `le` (≤), `gt` (>), `lt` (<)                      |
-| `FloatField`      | Decimal numbers      | `ge`, `le`, `gt`, `lt`                                      |
-| `BooleanField`    | True/false values    | None                                                        |
-| `StringListField` | List of strings      | `min_items`, `max_items`, `unique_items`, string validation |
-| `DateField`       | Date/datetime values | None                                                        |
-
-### Built-in Constraint System
-
-Confflow uses a robust constraint system with descriptive error messages. Each constraint generates clear validation feedback:
+### Custom Constraints
 
 ```python
-# String constraints
-StringField("username", min_length=3, max_length=20)
-# Generates: MinLength('Value must be at least 3 characters long')
-#           MaxLength('Value must be at most 20 characters long')
+from confflow.schema.constraint import Constraint, ValidationError
 
-StringField("email", regex=r"^[^@]+@[^@]+\.[^@]+$")  
-# Generates: Regex('Value must match pattern ^[^@]+@[^@]+\\.[^@]+$')
-
-StringField("status", enum=["active", "inactive", "pending"])
-# Generates: EnumValues("Value must be one of ['active', 'inactive', 'pending']")
-
-# Numeric constraints  
-IntegerField("port", ge=1024, le=65535)
-# Generates: GreaterThanOrEqual('Value must be >= 1024')
-#           LessThanOrEqual('Value must be <= 65535')
-
-FloatField("cpu_threshold", gt=0.0, lt=100.0)
-# Generates: GreaterThan('Value must be greater than 0.0')
-#           LessThan('Value must be less than 100.0')
-```
-
-### Validation Examples
-
-```python
-# Email validation with detailed constraints
-StringField("email", 
-           description="User email address",
-           regex=r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
-           min_length=5, max_length=100)
-
-# Port number with range validation
-IntegerField("port", 
-            description="HTTP server port",
-            ge=1024, le=65535, default_value=8080)
-
-# Enum field with restricted values
-StringField("log_level", 
-           description="Application logging level",
-           enum=["DEBUG", "INFO", "WARN", "ERROR"], 
-           default_value="INFO")
-
-# List field with item constraints
-StringListField("allowed_origins", 
-               description="CORS allowed origins",
-               min_items=1, max_items=10, unique_items=True,
-               regex=r"^https?://[a-zA-Z0-9.-]+$")
-```
-
-## Best Practices
-
-### 1. Use Descriptive Names and Documentation
-
-```python
-Schema("cache", description="Redis caching configuration for session storage and API responses")
-.add(StringField("redis_url", description="Redis connection URL (redis://host:port/db)"))
-.add(IntegerField("ttl_seconds", description="Default TTL for cached items in seconds",
-                  default_value=3600, ge=60, le=86400))
-```
-
-### 2. Leverage Mutually Exclusive Groups
-
-```python
-# Good: Clear separation of deployment targets
-MutualExclusive(
-    Schema("aws_deployment", description="AWS ECS deployment"),
-    Schema("kubernetes_deployment", description="Kubernetes deployment"),
-    Schema("docker_deployment", description="Standalone Docker deployment")
-)
-```
-
-### 3. Provide Sensible Defaults
-
-```python
-# Good: Reasonable defaults for common use cases
-Schema("http", description="HTTP server configuration")
-.add(IntegerField("port", default_value=8080, ge=1024, le=65535))
-.add(IntegerField("timeout_seconds", default_value=30, ge=1, le=300))
-.add(BooleanField("enable_compression", default_value=True))
-```
-
-### 4. Create Custom Field Types for Reusability
-
-Confflow allows you to create custom field types that encapsulate common validation patterns, making your schemas more maintainable and expressive:
-
-```python
-from confflow import Field, Constraint
-from confflow.constraints import Regex, GreaterThanOrEqual, LessThanOrEqual
-from typing import Optional, Literal
-
-class IPAddressField(Field[str]):
-    def __init__(
-        self,
-        name: str,
-        description: str,
-        *,
-        default_value: Optional[str] = None,
-        version: Optional[Literal[4, 6]] = None,
-    ):
-        constraints: list[Constraint[str]] = []
-        
-        if version == 4:
-            ipv4_pattern = r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
-            constraints.append(Regex(ipv4_pattern))
-        elif version == 6:
-            ipv6_pattern = r"^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^::$"
-            constraints.append(Regex(ipv6_pattern))
-        else:
-            # Accept both IPv4 and IPv6
-            ip_pattern = r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$|^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^::$"
-            constraints.append(Regex(ip_pattern))
-        
-        super().__init__(
-            name=name,
-            description=description,
-            default_value=default_value,
-            constraints=constraints,
-        )
-
-class PortField(Field[int]):
-    def __init__(
-        self,
-        name: str,
-        description: str,
-        *,
-        default_value: Optional[int] = None,
-        range_type: Optional[Literal["well_known", "registered", "dynamic"]] = None,
-    ):
-        constraints: list[Constraint[int]] = []
-        
-        if range_type == "well_known":
-            constraints.extend([GreaterThanOrEqual(0), LessThanOrEqual(1023)])
-        elif range_type == "registered":
-            constraints.extend([GreaterThanOrEqual(1024), LessThanOrEqual(49151)])
-        elif range_type == "dynamic":
-            constraints.extend([GreaterThanOrEqual(49152), LessThanOrEqual(65535)])
-        else:
-            constraints.extend([GreaterThanOrEqual(0), LessThanOrEqual(65535)])
-        
-        super().__init__(
-            name=name,
-            description=description,
-            default_value=default_value,
-            constraints=constraints,
-        )
-
-class URLField(Field[str]):
-    def __init__(
-        self,
-        name: str,
-        description: str,
-        *,
-        default_value: Optional[str] = None,
-        schemes: Optional[list[Literal["http", "https", "ftp", "ftps", "ws", "wss"]]] = None,
-        max_length: Optional[int] = None,
-    ):
-        constraints: list[Constraint[str]] = []
-        
-        if schemes:
-            scheme_pattern = "|".join(schemes)
-            url_pattern = rf"^(?:{scheme_pattern})://[^\s/$.?#].[^\s]*$"
-        else:
-            url_pattern = r"^https?://[^\s/$.?#].[^\s]*$"
-        
-        constraints.append(Regex(url_pattern))
-        
-        if max_length:
-            constraints.append(MaxLength(max_length))
-        
-        super().__init__(
-            name=name,
-            description=description,
-            default_value=default_value,
-            constraints=constraints,
-        )
-
-# Usage in schemas
-config_manager = Manager(
-    Schema("network", description="Network configuration")
-    .add(IPAddressField("bind_address", description="Server bind address", 
-                        version=4, default_value="127.0.0.1"))
-    .add(PortField("http_port", description="HTTP server port", 
-                   range_type="registered", default_value=8080))
-    .add(URLField("api_endpoint", description="External API endpoint",
-                  schemes=["https"], max_length=200)),
+class CustomEmailConstraint(Constraint[str]):
+    def __call__(self, value: str) -> str:
+        if not value.endswith("@company.com"):
+            raise ValidationError(f"{value} must be a company email")
+        return value
     
-    Schema("firewall", description="Firewall configuration")
-    .add(StringListField("allowed_ips", description="Allowed IP addresses",
-                         # Use IPAddressField validation logic here
-                         regex=r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"))
+    def __repr__(self) -> str:
+        return "CustomEmailConstraint()"
+    
+    def to_formatted_string(self, indent: int = 0) -> str:
+        return "Must end with @company.com"
+
+# Use in field
+StringField(
+    "email",
+    CustomEmailConstraint(),
+    description="Company email",
+    regex=r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
 )
 ```
 
-**Benefits of custom fields:**
-
-- **Reusability**: Define validation logic once, use everywhere
-- **Domain-specific**: Create fields that match your application's domain (e.g., `EmailField`, `PhoneField`, `CurrencyField`)
-- **Encapsulation**: Keep complex validation logic contained within field definitions
-- **Consistency**: Ensure the same validation rules across your entire configuration schema
-- **Documentation**: Custom fields serve as self-documenting domain concepts
-
-### 5. Use Validation Appropriately
+### Validation from Dictionary
 
 ```python
-# Good: Validate critical configuration
-StringField("database_url", 
-           description="Database connection string",
-           regex=r"^(postgresql|mysql|sqlite)://.*",
-           min_length=10)
+# Validate dictionary data directly
+data = {
+    "database": {
+        "host": "db.example.com",
+        "port": 5432,
+        "ssl_enabled": True
+    }
+}
 
-IntegerField("max_connections", 
-            description="Maximum database connections",
-            ge=1, le=1000, default_value=20)
+config = manager.loads(data)
 ```
+
+### Loading from File Buffers
+
+```python
+# Load from file-like objects
+with open("config.yml") as f:
+    config = manager.load(f)
+
+# Mix file paths and buffers
+with open("overrides.yml") as f:
+    config = manager.load("base.yml", f, "local.yml")
+```
+
+## API Reference
+
+### Manager
+
+```python
+class Manager:
+    """
+    Manages multiple configuration schemas for validation and template generation.
+    """
+    
+    def __init__(self, *schemas: Schema) -> None:
+        """
+        Initialize manager with one or more schemas.
+        
+        Raises:
+            ValueError: If no schemas provided or duplicates detected.
+        """
+    
+    def validate(self, data: dict) -> None:
+        """Validate configuration data against all schemas."""
+    
+    def loads(self, data: dict) -> Config:
+        """Load and validate configuration from dictionary."""
+    
+    def load(self, *filepaths_or_buffers: str | PathLike | IO) -> Config:
+        """
+        Load and merge configuration from multiple files or buffers.
+        
+        Args:
+            *filepaths_or_buffers: One or more file paths or file-like buffers.
+        
+        Returns:
+            Config: Validated merged configuration.
+        
+        Raises:
+            ValueError: If no paths provided or validation fails.
+        """
+    
+    def create_templates(self, directory: str | PathLike) -> None:
+        """
+        Create individual template YAML files for each schema.
+        
+        Args:
+            directory: Directory where template files will be created.
+        """
+```
+
+### Schema
+
+```python
+class Schema:
+    def __init__(self, name: str, description: str) -> None: ...
+    def add(self, item: Schema | Group | Field) -> Self: ...
+    def validate(self, data: dict) -> None: ...
+```
+
+### Fields
+
+**Scalar Fields:**
+
+- `StringField(name, *, description, default, min_length, max_length, regex, enum)`
+- `IntegerField(name, *, description, default, gt, ge, lt, le)`
+- `FloatField(name, *, description, default, gt, ge, lt, le)`
+- `BooleanField(name, *, description, default)`
+- `DateField(name, *, description, default)`
+- `BytesField(name, *, description, default)`
+
+**List Fields:**
+
+- `Stringlist(name, *, description, default, min_length, max_length, item_min_length, item_max_length, item_regex, item_enum)`
+- `Integerlist(name, *, description, default, min_length, max_length, item_gt, item_ge, item_lt, item_le)`
+- `Floatlist(name, *, description, default, min_length, max_length, item_gt, item_ge, item_lt, item_le)`
+- `Booleanlist(name, *, description, default, min_length, max_length)`
+- `Datelist(name, *, description, default, min_length, max_length)`
+- `Byteslist(name, *, description, default, min_length, max_length)`
+
+### Groups
+
+- `OneOf(*schemas)`: Exactly one schema must be present
+- `AnyOf(*schemas)`: At least one schema must be present
 
 ## Error Handling
 
-Confflow provides clear error messages for validation failures:
+ConfFlow raises `ValueError` exceptions with descriptive messages for validation failures:
 
 ```python
 try:
-    config = config_manager.load("invalid_config.yaml")
-except ValidationError as e:
+    config = manager.load("config.yml")
+except ValueError as e:
     print(f"Configuration validation failed: {e}")
-    # Handle the error appropriately
-```
-
-## Development
-
-### Requirements
-
-- Python 3.10–3.13
-- No external dependencies
-
-### Setup
-
-```bash
-git clone https://github.com/pedrojosemoragallegos/confflow.git
-cd confflow
-pip install -e .
-```
-
-### Testing
-
-```bash
-python -m pytest tests/
 ```
 
 ## Contributing
 
-Contributions are welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Add tests for new functionality
-5. Ensure all tests pass
-6. Commit your changes (`git commit -m 'Add amazing feature'`)
-7. Push to the branch (`git push origin feature/amazing-feature`)
-8. Open a Pull Request
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## Author
-
-**Pedro José Mora Gallegos**  
-
-- LinkedIn: [pedro-jose-mora-gallegos](https://www.linkedin.com/in/pedro-jose-mora-gallegos)
-- GitHub: [pedrojosemoragallegos](https://github.com/pedrojosemoragallegos)
-
----
-
-**Why choose Confflow?** In a world of complex configuration management tools with heavy dependencies, Confflow offers a refreshing approach: powerful features with zero external dependencies, making it perfect for projects that value simplicity and reliability.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
