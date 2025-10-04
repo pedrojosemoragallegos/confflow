@@ -585,17 +585,6 @@ The `Manager` class coordinates validation and template generation for your sche
 - `OneOf(*schemas)`: Exactly one schema must be present
 - `AnyOf(*schemas)`: At least one schema must be present
 
-## Error Handling
-
-ConfFlow raises `ValueError` exceptions with descriptive messages for validation failures:
-
-```python
-try:
-    config = manager.load("config.yml")
-except ValueError as e:
-    print(f"Configuration validation failed: {e}")
-```
-
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
