@@ -1,0 +1,71 @@
+# Deployment strategy configuration
+deployment:
+  # Next scheduled deployment window
+  # type: date
+  next_deployment_window: 2025-10-15T02:00:00+00:00
+  # Scheduled maintenance windows
+  # type: list[datetime]
+  # constraints:
+  #  - Maximum length = 12
+  #  - Minimum length = 1
+  maintenance_windows: [2025-10-15T02:00:00+00:00, 2025-11-15T02:00:00+00:00, 2025-12-15T02:00:00+00:00]
+  # +--------------------------------------------------+
+  # | Chosse ONE of: `rolling`, `canary`, `blue_green` |
+  # +--------------------------------------------------+
+  # Rolling update strategy
+  rolling:
+    # Maximum pods above desired count
+    # type: integer
+    # constraints:
+    #  - Less than or equal: 10
+    #  - Greater than or equal: 0
+    max_surge: 1
+    # Maximum unavailable pods during update
+    # type: integer
+    # constraints:
+    #  - Greater than or equal: 0
+    #  - Less than or equal: 10
+    max_unavailable: 0
+    # Minimum seconds for pod to be ready
+    # type: integer
+    # constraints:
+    #  - Greater than or equal: 0
+    #  - Less than or equal: 300
+    min_ready_seconds: 10
+  # Canary deployment strategy
+  canary:
+    # Traffic percentages for each canary stage
+    # type: list[int]
+    # constraints:
+    #  - Minimum length = 2
+    #  - Maximum length = 10
+    traffic_increments: [10, 25, 50, 100]
+    # Duration of each canary stage
+    # type: integer
+    # constraints:
+    #  - Greater than or equal: 5
+    #  - Less than or equal: 240
+    stage_duration_minutes: 30
+    # Metrics to monitor during canary
+    # type: list[str]
+    # constraints:
+    #  - Minimum length = 1
+    #  - Maximum length = 20
+    metrics_to_monitor: ['error_rate', 'latency_p99', 'cpu_usage']
+  # Blue-Green deployment strategy
+  blue_green:
+    # Time to verify new version before cutover
+    # type: integer
+    # constraints:
+    #  - Less than or equal: 120
+    #  - Greater than or equal: 1
+    verification_time_minutes: 15
+    # Automatically rollback on errors
+    # type: bool
+    auto_rollback: True
+    # Error rate threshold for rollback
+    # type: float
+    # constraints:
+    #  - Less than or equal: 100.0
+    #  - Greater than or equal: 0.0
+    error_threshold_percent: 5.0

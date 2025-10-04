@@ -1,0 +1,47 @@
+# Service mesh and networking configuration
+service_mesh:
+  # Service mesh provider
+  # type: string
+  # constraints:
+  #  - Regex: ['istio', 'linkerd', 'consul', 'envoy']
+  provider: istio
+  # Mutual TLS configuration
+  mtls:
+    # Enable mTLS
+    # type: bool
+    enabled: True
+    # List of trusted CA certificates (PEM format)
+    # type: list[bytes]
+    # constraints:
+    #  - Maximum length = 10
+    #  - Minimum length = 1
+    trusted_ca_certs: [b'-----BEGIN CERTIFICATE-----\nMIIC...', b'-----BEGIN CERTIFICATE-----\nMIID...']
+    # Service certificate
+    # type: bytes
+    service_cert: b'-----BEGIN CERTIFICATE-----\nMIIE...'
+    # Certificate rotation period in days
+    # type: integer
+    # constraints:
+    #  - Greater than or equal: 1
+    #  - Less than or equal: 365
+    cert_rotation_days: 30
+  # Traffic management policies
+  traffic_policy:
+    # Default request timeout
+    # type: float
+    # constraints:
+    #  - Less than or equal: 300.0
+    #  - Greater than: 0.0
+    timeout_seconds: 30.0
+    # Maximum retry attempts
+    # type: integer
+    # constraints:
+    #  - Less than or equal: 10
+    #  - Greater than or equal: 0
+    max_retries: 3
+    # Error rate thresholds for circuit breaking (percentages)
+    # type: list[float]
+    # constraints:
+    #  - Maximum length = 5
+    #  - Minimum length = 1
+    circuit_breaker_thresholds: [50.0, 75.0, 90.0]

@@ -1,0 +1,91 @@
+# Observability and telemetry configuration
+observability:
+  # Environment name for telemetry
+  # type: string
+  # constraints:
+  #  - Regex: ['development', 'staging', 'production']
+  environment: production
+  # +-------------------------------------------------------------+
+  # | Chosse ANY of: `logging`, `profiling`, `tracing`, `metrics` |
+  # +-------------------------------------------------------------+
+  # Centralized logging
+  logging:
+    # Enable centralized logging
+    # type: bool
+    enabled: True
+    # Logging backend
+    # type: string
+    # constraints:
+    #  - Regex: ['elasticsearch', 'loki', 'splunk', 'cloudwatch']
+    backend: elasticsearch
+    # Minimum log level
+    # type: string
+    # constraints:
+    #  - Regex: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+    log_level: INFO
+    # Log retention period
+    # type: integer
+    # constraints:
+    #  - Less than or equal: 365
+    #  - Greater than or equal: 1
+    retention_days: 30
+  # Continuous profiling
+  profiling:
+    # Enable continuous profiling
+    # type: bool
+    enabled: False
+    # Profiling provider
+    # type: string
+    # constraints:
+    #  - Regex: ['pyroscope', 'pprof', 'datadog']
+    provider: pyroscope
+    # Profiling sample rate
+    # type: integer
+    # constraints:
+    #  - Less than or equal: 1000
+    #  - Greater than or equal: 10
+    sample_rate_hz: 100
+  # Distributed tracing
+  tracing:
+    # Enable distributed tracing
+    # type: bool
+    enabled: True
+    # Tracing backend
+    # type: string
+    # constraints:
+    #  - Regex: ['jaeger', 'zipkin', 'tempo', 'xray']
+    backend: jaeger
+    # Trace sampling rate (0.0 to 1.0)
+    # type: float
+    # constraints:
+    #  - Greater than or equal: 0.0
+    #  - Less than or equal: 1.0
+    sampling_rate: 0.1
+    # Trace context propagation formats
+    # type: list[str]
+    # constraints:
+    #  - Minimum length = 1
+    #  - Maximum length = 5
+    propagation_formats: ['w3c', 'b3']
+  # Metrics collection
+  metrics:
+    # Enable metrics collection
+    # type: bool
+    enabled: True
+    # Metrics provider
+    # type: string
+    # constraints:
+    #  - Regex: ['prometheus', 'datadog', 'cloudwatch', 'newrelic']
+    provider: prometheus
+    # Metrics scrape interval
+    # type: integer
+    # constraints:
+    #  - Less than or equal: 300
+    #  - Greater than or equal: 1
+    scrape_interval_seconds: 15
+    # Custom metric labels
+    # type: list[str]
+    # constraints:
+    #  - Minimum length = 0
+    #  - Maximum length = 50
+    custom_labels: ['version', 'region', 'cluster']

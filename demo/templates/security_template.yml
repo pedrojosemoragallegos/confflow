@@ -1,0 +1,50 @@
+# Security and compliance configuration
+security:
+  # Encryption settings
+  encryption:
+    # Encryption keys for data at rest (base64 encoded)
+    # type: list[bytes]
+    # constraints:
+    #  - Maximum length = 5
+    #  - Minimum length = 1
+    encryption_keys: [b'a2V5LTEtYmFzZTY0LWVuY29kZWQ=', b'a2V5LTItYmFzZTY0LWVuY29kZWQ=']
+    # Key rotation period
+    # type: integer
+    # constraints:
+    #  - Greater than or equal: 1
+    #  - Less than or equal: 365
+    key_rotation_days: 90
+    # Enable encryption at rest
+    # type: bool
+    encrypt_at_rest: True
+  # Compliance settings
+  compliance:
+    # Compliance frameworks to enforce
+    # type: list[str]
+    # constraints:
+    #  - Minimum length = 1
+    #  - Maximum length = 10
+    frameworks: ['SOC2', 'HIPAA', 'GDPR']
+    # Last compliance audit date
+    # type: date
+    last_audit_date: 2025-01-15T00:00:00+00:00
+    # Next scheduled audit date
+    # type: date
+    next_audit_date: 2025-07-15T00:00:00+00:00
+  # Access control policies
+  access_control:
+    # Enable role-based access control
+    # type: bool
+    rbac_enabled: True
+    # Allowed IAM roles
+    # type: list[str]
+    # constraints:
+    #  - Maximum length = 50
+    #  - Minimum length = 1
+    allowed_roles: ['admin', 'developer', 'operator', 'viewer']
+    # Session timeouts per role (maps to allowed_roles order)
+    # type: list[int]
+    # constraints:
+    #  - Maximum length = 50
+    #  - Minimum length = 1
+    session_timeout_minutes: [120, 60, 90, 30]
