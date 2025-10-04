@@ -109,10 +109,11 @@ config = manager.load("config.yml")
 # Or load from multiple files (later files override earlier ones)
 config = manager.load("base.yml", "environment.yml", "overrides.yml")
 
-# Access configuration values
-print(config.database.host)  # "localhost"
-print(config.database.port)  # 5432
-print(config.database.ssl_enabled)  # True
+# Both access patterns work and are interchangeable
+print(config.database.host)  # Dot notation
+print(config["database"]["host"])  # Subscription
+print(config.database["port"])  # Mixed!
+print(config["database"].ssl_enabled)  # Also mixed!
 
 # Or use dictionary-style access
 print(config["database"]["host"])  # "localhost"
