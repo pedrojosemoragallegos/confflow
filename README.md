@@ -1,5 +1,10 @@
 # ConfFlow
 
+[![PyPI version](https://img.shields.io/pypi/v/confflow)](https://pypi.org/project/confflow/)
+[![Python Versions](https://img.shields.io/pypi/pyversions/confflow)](https://pypi.org/project/confflow/)
+[![Downloads](https://pepy.tech/badge/confflow)](https://pepy.tech/project/confflow)
+[![Wheel](https://img.shields.io/pypi/wheel/confflow)](https://pypi.org/project/confflow/)
+
 An extremely fast Python library for schema-based YAML configuration management with built-in validation, constraints, and type safety.
 
 ## Features
