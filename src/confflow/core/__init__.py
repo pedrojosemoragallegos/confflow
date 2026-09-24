@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from .core import (
+from .fields import (
     Array,
     ArrayOfTables,
     Boolean,
-    ConfigurationError,
     Date,
     Field,
     Float,
@@ -12,10 +11,11 @@ from .core import (
     Literal,
     LocalDateTime,
     OffsetDateTime,
-    Schema,
     String,
     Time,
 )
+from .schema import Schema
+from .shared import ConfigurationError, TOMLScalar, TOMLValue
 
 __all__: list[str] = [
     "Array",
@@ -31,5 +31,7 @@ __all__: list[str] = [
     "OffsetDateTime",
     "Schema",
     "String",
+    "TOMLScalar",
+    "TOMLValue",
     "Time",
 ]
