@@ -1,0 +1,31 @@
+line-length = 88
+target-version = "py311"
+
+[lint]
+select = ["ALL"]
+
+ignore = [
+    "D100",  # docstring in public module
+    "D101",  # docstring
+    "D102",  # docstring public method
+    "D103",  # docstring in public function
+    "D104",  # docstring public packageRuff
+    "D105",  # docstring magic function
+    "D107",  # docstring __init__
+    "TD002", # missing author in TODO
+    "TD003", # missing issue link for this 
+]
+
+[lint.isort]
+combine-as-imports = true
+
+[lint.per-file-ignores]
+"src/confflow/core/schema.py" = ["N802", "PLR0913", "SLF001"]
+"src/confflow/core/fields/array.py" = ["PLR0913"]
+"src/confflow/core/fields/float.py" = ["PLR0913"]
+"src/confflow/core/fields/integer.py" = ["PLR0913"]
+"src/confflow/core/fields/string.py" = ["PLR0913"]
+
+[format]
+quote-style = "double"
+indent-style = "space"
