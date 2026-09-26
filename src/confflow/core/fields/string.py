@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from typing import ClassVar
 
 from typing_extensions import override
 
@@ -10,6 +11,10 @@ from .base import Field
 
 
 class String(Field[str]):
+    option_names: ClassVar[tuple[str, ...]] = ("min_length", "max_length", "pattern")
+
+    __slots__ = ("_compiled_pattern", "_max_length", "_min_length", "_pattern")
+
     def __init__(
         self,
         name: str,

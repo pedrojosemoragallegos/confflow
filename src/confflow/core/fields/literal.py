@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Generic
+import math
+from typing import ClassVar, Generic
 
 from typing_extensions import override
 
@@ -10,6 +11,10 @@ from .base import Field
 
 
 class Literal(Field[S], Generic[S]):
+    option_names: ClassVar[tuple[str, ...]] = ("values",)
+
+    __slots__ = ("_values",)
+
     def __init__(
         self,
         name: str,
@@ -33,6 +38,10 @@ class Literal(Field[S], Generic[S]):
         if any(type(value) is not type(values[0]) for value in values[1:]):
             msg = "Literal values must all have the same type"
             raise TypeError(msg)
+
+        if any(isinstance(value, float) and math.isnan(value) for value in values):
+            msg = "Literal values must not be NaN"
+            raise ValueError(msg)
 
         if len(set(values)) != len(values):
             msg = "Literal values must be unique"

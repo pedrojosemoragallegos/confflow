@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from typing import ClassVar
 
 from typing_extensions import override
 
@@ -10,6 +11,10 @@ from .base import Field
 
 
 class Float(Field[float]):
+    option_names: ClassVar[tuple[str, ...]] = ("minimum", "maximum")
+
+    __slots__ = ("_maximum", "_minimum")
+
     def __init__(
         self,
         name: str,
@@ -53,6 +58,9 @@ class Float(Field[float]):
     @override
     def validate(self, value: object, path: str, /) -> float:
         value: float = super().validate(value, path)
+
+        if math.isnan(value):
+            raise ConfigurationError(path, "must not be NaN")
 
         if self.minimum is not None and value < self.minimum:
             raise ConfigurationError(path, f"must be >= {self.minimum}")

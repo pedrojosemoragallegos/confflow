@@ -8,6 +8,8 @@ from .base import Field
 
 
 class Time(Field[time]):
+    __slots__ = ()
+
     @override
     def _typecheck(self, value: object, /) -> bool:
         return type(value) is time and value.tzinfo is None

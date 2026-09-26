@@ -8,6 +8,8 @@ from .base import Field
 
 
 class Date(Field[date]):
+    __slots__ = ()
+
     @override
     def _typecheck(self, value: object, /) -> bool:
         return type(value) is date

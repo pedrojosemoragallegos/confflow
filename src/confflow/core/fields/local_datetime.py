@@ -8,6 +8,8 @@ from .base import Field
 
 
 class LocalDateTime(Field[datetime]):
+    __slots__ = ()
+
     @override
     def _typecheck(self, value: object, /) -> bool:
         return type(value) is datetime and value.tzinfo is None

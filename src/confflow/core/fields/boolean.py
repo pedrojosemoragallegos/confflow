@@ -6,6 +6,8 @@ from .base import Field
 
 
 class Boolean(Field[bool]):
+    __slots__ = ()
+
     @override
     def _typecheck(self, value: object, /) -> bool:
         return type(value) is bool

@@ -27,10 +27,6 @@ A Python library for schema-based **TOML** configuration management with built-i
   - [`Requires`](#requires)
   - [Comparison constraints](#comparison-constraints)
   - [Error handling](#error-handling)
-- [API Reference](#api-reference)
-  - [`Schema`](#schema)
-  - [Field types](#field-types)
-  - [`ConfigurationError`](#configurationerror)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -55,7 +51,7 @@ pip install confflow
 ### 1. Define a schema
 
 ```python
-from confflow import Schema, String, Integer, Boolean
+from confflow import Schema
 
 app = Schema("app", "Application configuration")
 app.String("name", "Application name", default="MyApp")
@@ -113,25 +109,37 @@ config = app.validate({"name": "X", "database": {"host": "h", "port": 1}})
 
 Both `load()` and `validate()` return a plain `dict[str, TOMLValue]` and raise `ConfigurationError` (a `ValueError` subclass with a `.path` property) on failure.
 
+`default` is only ever used to pre-fill `template()` output and to validate itself eagerly at
+schema-construction time — it is **never** injected into the result of `load()`/`validate()`. The
+returned dict reflects exactly what was present in the source; an optional field that's absent from
+the input is simply absent from the result, not silently backfilled with its default.
+
 ## Building Schemas
 
 ### Nested tables
 
-Use `schema.Schema(name, description)` to create a nested TOML table. It registers the child on the parent and returns the child, so keep a reference to keep building it:
+Use `schema.Schema(name, description, *, required=False)` to create a nested TOML table. It registers
+the child on the parent and returns the child, so keep a reference to keep building it:
 
 ```python
 root = Schema("app", "Application configuration")
 cache = root.Schema("cache", "Cache settings")
 cache.String("backend", "Cache backend", default="redis")
 cache.Integer("ttl", "TTL in seconds", default=3600)
+
+database = root.Schema("database", "Database settings", required=True)
+database.String("host", "Database host", required=True)
 ```
+
+A nested table is optional by default (like any other field); pass `required=True` to demand it be
+present in the input.
 
 ### Arrays
 
 `Array` validates a list whose elements are each validated against a nested `Field`:
 
 ```python
-from confflow import Array, String
+from confflow import String
 
 root.Array(
     "tags",
@@ -160,8 +168,6 @@ root.ArrayOfTables("users", "Users", user, default=[{"name": "bob"}])
 `Literal` restricts a field to a fixed set of scalar values (an enum):
 
 ```python
-from confflow import Literal
-
 root.Literal("env", "Deployment environment", "dev", "staging", "prod", default="dev")
 ```
 
@@ -208,6 +214,21 @@ class Email(String):
         return value
 
 root.add(Email("contact", "Contact email", required=True))
+```
+
+If a custom field adds its own constructor options (like `Email` might add `allowed_domains`), expose each one as a read-only property and list its name in `option_names` so it shows up in generated templates, the same way built-in fields do:
+
+```python
+class Email(String):
+    option_names: ClassVar[tuple[str, ...]] = (*String.option_names, "allowed_domains")
+
+    def __init__(self, name, description, /, *, allowed_domains=None, **kwargs) -> None:
+        self._allowed_domains = allowed_domains
+        super().__init__(name, description, **kwargs)
+
+    @property
+    def allowed_domains(self) -> tuple[str, ...] | None:
+        return self._allowed_domains
 ```
 
 To introduce an entirely new base type (not built on an existing field), subclass `Field` directly and implement `_typecheck` for the type check.
@@ -276,62 +297,6 @@ except ConfigurationError as exc:
     print(exc.path)  # "app"
     print(exc)        # "app: Requires(api_secret, api_key)"
 ```
-
-## API Reference
-
-### `Schema`
-
-**`Schema(name: str, description: str)`** creates a schema representing a TOML table.
-
-Field-builder methods construct the field and call `add()`, returning `self` for chaining (except `Schema(...)` itself, which returns the new **nested** schema):
-
-- `schema.String(name, description, *, required=False, default=None, min_length=None, max_length=None, pattern=None)`
-- `schema.Literal(name, description, *values, required=False, default=None)`
-- `schema.Integer(name, description, *, required=False, default=None, minimum=None, maximum=None)`
-- `schema.Float(name, description, *, required=False, default=None, minimum=None, maximum=None)`
-- `schema.Boolean(name, description, *, required=False, default=None)`
-- `schema.Date(name, description, *, required=False, default=None)`
-- `schema.Time(name, description, *, required=False, default=None)`
-- `schema.LocalDateTime(name, description, *, required=False, default=None)`
-- `schema.OffsetDateTime(name, description, *, required=False, default=None)`
-- `schema.Array(name, description, *, element, required=False, default=None, min_length=None, max_length=None)`
-- `schema.ArrayOfTables(name, description, schema, *, required=False, default=None)`
-- `schema.Schema(name, description)` — creates and returns a nested `Schema`
-
-Constraint-builder methods:
-
-- `schema.Exclusive(*targets)`, `schema.ExactlyOne(*targets)`, `schema.AtLeastOne(*targets)`, `schema.AllOrNone(*targets)`
-- `schema.Requires(source, requirement)`
-- `schema.Equal(a, b)`, `schema.NotEqual(a, b)`, `schema.LessThan(a, b)`, `schema.LessThanOrEqual(a, b)`, `schema.GreaterThan(a, b)`, `schema.GreaterThanOrEqual(a, b)`
-
-Other methods:
-
-- `schema.add(*fields: Field) -> Self` — registers one or more independently-constructed fields
-- `schema.validate(data: dict) -> dict` — validates a raw mapping, returns the validated data
-- `schema.load(path: str | PathLike) -> dict` — reads and validates a TOML file
-- `schema.template(path, *, overwrite=False, parents=True) -> None` — writes a commented `.toml` template
-
-### Field types
-
-All field constructors share the signature `(name, description, /, *, required=False, default=None, ...)`.
-
-| Field | Extra parameters |
-| --- | --- |
-| `String` | `min_length`, `max_length`, `pattern` |
-| `Literal` | `*values` (positional, at least one) |
-| `Integer` | `minimum`, `maximum` |
-| `Float` | `minimum`, `maximum` |
-| `Boolean` | — |
-| `Date` | — |
-| `Time` | naive `datetime.time` only |
-| `LocalDateTime` | naive `datetime.datetime` only |
-| `OffsetDateTime` | timezone-aware `datetime.datetime` only |
-| `Array` | `element: Field`, `min_length`, `max_length` |
-| `ArrayOfTables` | `schema: Schema` (positional) |
-
-### `ConfigurationError`
-
-A `ValueError` subclass raised by `validate()`/`load()`. Exposes a `.path` property identifying where validation failed.
 
 ## Contributing
 

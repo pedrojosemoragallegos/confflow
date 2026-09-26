@@ -13,9 +13,6 @@ T_co = TypeVar(name="T_co", bound=TOMLValue, covariant=True)
 S = TypeVar(name="S", bound=TOMLScalar)
 V = TypeVar(name="V", bound=TOMLValue)
 
-# Bare TOML keys may only contain ASCII letters, digits, underscores and
-# dashes. Field/schema names double as TOML keys (and dotted table headers)
-# in generated templates, so anything else would render an unparsable file.
 _BARE_KEY_RE = re.compile(r"[A-Za-z0-9_-]+")
 
 TOML_INT_MIN: Final[int] = -(2**63)

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import ClassVar
+
 from typing_extensions import override
 
 from confflow.core.shared import TOML_INT_MAX, TOML_INT_MIN, ConfigurationError
@@ -8,6 +10,10 @@ from .base import Field
 
 
 class Integer(Field[int]):
+    option_names: ClassVar[tuple[str, ...]] = ("minimum", "maximum")
+
+    __slots__ = ("_maximum", "_minimum")
+
     def __init__(
         self,
         name: str,

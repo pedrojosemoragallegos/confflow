@@ -1,12 +1,17 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Generic, cast
+from typing import ClassVar, Generic, cast
 
 from confflow.core.shared import ConfigurationError, T_co, TOMLValue, validate_name
 
 
 class Field(ABC, Generic[T_co]):
+    # TODO: find a less error-prone alternative to this manual list.  # noqa: FIX002
+    option_names: ClassVar[tuple[str, ...]] = ()
+
+    __slots__ = ("_default", "_description", "_name", "_required")
+
     def __init__(
         self,
         name: str,

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Generic
+from typing import ClassVar, Generic
 
 from typing_extensions import override
 
@@ -10,6 +10,10 @@ from .base import Field
 
 
 class Array(Field[list[V]], Generic[V]):  # ty: ignore[invalid-type-arguments]
+    option_names: ClassVar[tuple[str, ...]] = ("min_length", "max_length")
+
+    __slots__ = ("_element", "_max_length", "_min_length")
+
     def __init__(
         self,
         name: str,

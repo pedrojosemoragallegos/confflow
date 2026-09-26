@@ -21,6 +21,8 @@ combine-as-imports = true
 
 [lint.per-file-ignores]
 "src/confflow/core/schema.py" = ["N802", "PLR0913", "SLF001"]
+"src/confflow/core/render.py" = ["PLR0913", "SLF001"]
+"src/confflow/core/validate.py" = ["SLF001"]
 "src/confflow/core/fields/array.py" = ["PLR0913"]
 "src/confflow/core/fields/float.py" = ["PLR0913"]
 "src/confflow/core/fields/integer.py" = ["PLR0913"]

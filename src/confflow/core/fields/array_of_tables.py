@@ -13,6 +13,8 @@ if TYPE_CHECKING:
 
 
 class ArrayOfTables(Field[list[dict[str, TOMLValue]]]):  # ty: ignore[invalid-type-arguments]
+    __slots__ = ("_schema",)
+
     def __init__(
         self,
         name: str,
@@ -33,11 +35,6 @@ class ArrayOfTables(Field[list[dict[str, TOMLValue]]]):  # ty: ignore[invalid-ty
         )
 
         if self._default is not None:
-            # Field.__init__ only shallow-typechecks the default (list of
-            # dicts); catch defaults that don't satisfy the nested schema
-            # (e.g. a missing required field) here instead of failing later,
-            # confusingly, on every validate()/load() call that omits this
-            # field.
             for index, row in enumerate(self._default):
                 schema._prepare(row, f"{name}[{index}]")  # noqa: SLF001
 

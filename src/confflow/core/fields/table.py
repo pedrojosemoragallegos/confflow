@@ -13,10 +13,12 @@ if TYPE_CHECKING:
 
 
 class _Table(Field[dict[str, TOMLValue]]):
-    def __init__(self, schema: Schema, /) -> None:
+    __slots__ = ("_schema",)
+
+    def __init__(self, schema: Schema, /, *, required: bool = False) -> None:
         self._schema: Schema = schema
 
-        super().__init__(schema.name, schema.description)
+        super().__init__(schema.name, schema.description, required=required)
 
     @property
     def schema(self) -> Schema:

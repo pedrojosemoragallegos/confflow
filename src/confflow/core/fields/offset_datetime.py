@@ -8,6 +8,8 @@ from .base import Field
 
 
 class OffsetDateTime(Field[datetime]):
+    __slots__ = ()
+
     @override
     def _typecheck(self, value: object, /) -> bool:
         return (
