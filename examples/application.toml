@@ -2,109 +2,124 @@
 # Comprehensive TOML configuration example.
 # Demonstrates every supported TOML-facing feature.
 
+# Account settings
+# optional | Account
+# Account identity settings.
 # Account email address
 # Used for account notifications
 # required | Email (Text) | default: "admin@example.com"
-email = "admin@example.com"
+account.email = "admin@example.com"
 
 # Account username
 # required | Text
-username = 
+account.username = 
 
 # Two-letter country code
 # optional | Text
-country_code = 
+account.country_code = 
 
+# Runtime settings
+# optional | Runtime
+# Runtime behavior settings.
 # Maximum retry count
 # optional | Number | default: 3
-retries = 3
+runtime.retries = 3
 
 # Request timeout in seconds
 # optional | Decimal | default: 5.0
-timeout = 5.0
+runtime.timeout = 5.0
 
 # Enable debug mode
 # optional | Bool | default: false
-debug = false
+runtime.debug = false
 
+# Lifecycle settings
+# optional | Lifecycle
+# Application lifecycle and scheduling settings.
 # Configuration creation instant
 # required | OffsetDateTime
-created_at = 
+lifecycle.created_at = 
 
 # Local maintenance date and time
 # optional | LocalDateTime
-maintenance_at = 
+lifecycle.maintenance_at = 
 
 # Application launch date
 # optional | LocalDate
-launch_date = 
+lifecycle.launch_date = 
 
 # Daily execution time
 # optional | LocalTime
-daily_time = 
+lifecycle.daily_time = 
 
+# Deployment settings
+# optional | Deployment
+# Deployment and release settings.
 # Deployment environment
 # optional | Text Literal | default: "development"
-environment = "development"
+deployment.environment = "development"
 
 # Worker count preset
 # optional | Number Literal | default: 4
-workers = 4
+deployment.workers = 4
 
 # Ratio preset
 # optional | Decimal Literal | default: 1.0
-ratio = 1.0
+deployment.ratio = 1.0
 
 # Allowed feature-switch values
 # optional | Boolean Literal | default: true
-feature_switch = true
+deployment.feature_switch = true
 
 # Allowed release instants
 # optional | Offset Date Time Literal
-release_instant = 
+deployment.release_instant = 
 
 # Allowed local release date-times
 # optional | Local Date Time Literal
-local_release = 
+deployment.local_release = 
 
 # Allowed billing dates
 # optional | Local Date Literal
-billing_day = 
+deployment.billing_day = 
 
 # Allowed backup times
 # optional | Local Time Literal
-backup_time = 
+deployment.backup_time = 
 
+# Server settings
+# optional | Servers
+# Server configuration settings.
 # Primary server
 # required | Server
 # Reusable server connection settings.
 # Server hostname
 # required | Text
-primary.host = 
+server_settings.primary.host = 
 
 # Server port
 # required | Port (Number)
-primary.port = 
+server_settings.primary.port = 
 
 # Whether TLS is enabled
 # optional | Bool | default: true
-primary.tls = true
+server_settings.primary.tls = true
 
 # Password used by this server
 # optional | Text
 # exactly one of [password, token] must be present.
-primary.password = 
+server_settings.primary.password = 
 
 # Token used by this server
 # optional | Text
 # exactly one of [password, token] must be present.
-primary.token = 
+server_settings.primary.token = 
 
 # Additional servers
 # optional | Server list
 # --- Server ---
 # Reusable server connection settings.
-# [[servers]]
+# [[server_settings.servers]]
 
 # Server hostname
 # required | Text
@@ -128,28 +143,12 @@ primary.token =
 # exactly one of [password, token] must be present.
 # token = 
 # --- end Server ---
-
-# Notification email addresses
-# optional | Email (Text) set
-# notification_emails = 
-
-# Assigned roles
-# optional | Text Literal set
-# roles = 
-
-# Free-form labels
-# optional | Text mapping
-# labels.<key> = 
-
-# Named contact email addresses
-# optional | Email (Text) mapping
-# contacts_by_role.<key> = 
 
 # Named server configurations
 # optional | Server mapping
 # --- Server ---
 # Reusable server connection settings.
-# [named_servers.<key>]
+# [server_settings.named_servers.<key>]
 
 # Server hostname
 # required | Text
@@ -173,6 +172,28 @@ primary.token =
 # exactly one of [password, token] must be present.
 # token = 
 # --- end Server ---
+
+# Notification settings
+# optional | Notifications
+# Notification and contact settings.
+# Notification email addresses
+# optional | Email (Text) set
+# notifications.notification_emails = 
+
+# Named contact email addresses
+# optional | Email (Text) mapping
+# notifications.contacts_by_role.<key> = 
+
+# Metadata settings
+# optional | Metadata
+# Role and label settings.
+# Assigned roles
+# optional | Text Literal set
+# metadata.roles = 
+
+# Free-form labels
+# optional | Text mapping
+# metadata.labels.<key> = 
 
 # First mutually exclusive option
 # optional | Text

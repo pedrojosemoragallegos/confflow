@@ -13,7 +13,6 @@ from confflow import (
     Boolean,
     BooleanLiteral,
     Configuration,
-    ConfigurationData,
     Decimal,
     DecimalLiteral,
     ExactlyOneOf,
@@ -542,6 +541,8 @@ if __name__ == "__main__":
     )
 
     directory: Final[Path] = Path(__file__).parent
-    configuration.template(directory, overwrite=True)
+    configuration.template(
+        directory, overwrite=True
+    )  # TODO: instead of creating a template file we create a spec which users take to create the own configuration and can we create a toml schema for the tools??
     config: Final[Path] = directory / "config.toml"
-    loaded: Final[ConfigurationData] = configuration.load(config)
+    # loaded: Final[ConfigurationData] = configuration.load(config)
