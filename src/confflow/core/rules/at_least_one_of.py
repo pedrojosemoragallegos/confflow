@@ -31,10 +31,7 @@ class AtLeastOneOf(Rule):
         self, present_members: Collection[Entry], path: tuple[str | int, ...]
     ) -> None:
         if _present_count(self.__members, present_members) < 1:
-            raise ValidationError(
-                "at least one member must be present",
-                path,
-            )
+            raise ValidationError("at least one member must be present", path)
 
     @override
     def __repr__(self) -> str:

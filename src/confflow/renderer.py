@@ -205,9 +205,7 @@ def _render_schema_members(schema: Schema, prefix: tuple[str, ...] = ()) -> list
 
 
 def _render_member(
-    member: Entry,
-    prefix: tuple[str, ...],
-    rules: tuple[Rule, ...],
+    member: Entry, prefix: tuple[str, ...], rules: tuple[Rule, ...]
 ) -> list[str]:
     lines = _render_metadata(member, _format_toml_scalar)
     lines.extend(_render_member_rules(member, rules))
@@ -231,9 +229,8 @@ def _render_member(
             section_path = (*prefix, member.name)
             lines.extend(
                 _render_commented_schema_template(
-                    member.element,
-                    f"[[{'.'.join(section_path)}]]",
-                ),
+                    member.element, f"[[{'.'.join(section_path)}]]"
+                )
             )
         else:
             member_path = (*prefix, member.name)
@@ -246,9 +243,8 @@ def _render_member(
             template_path = (*map_path, "<key>")
             lines.extend(
                 _render_commented_schema_template(
-                    member.value,
-                    f"[{'.'.join(template_path)}]",
-                ),
+                    member.value, f"[{'.'.join(template_path)}]"
+                )
             )
         else:
             lines.append(f"# {'.'.join((*map_path, '<key>'))} = ")

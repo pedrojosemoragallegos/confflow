@@ -44,8 +44,7 @@ class RequiresAll(Rule):
             target not in present_members for target in self.__targets
         ):
             raise ValidationError(
-                f"{self.__source.name!r} requires all target members",
-                path,
+                f"{self.__source.name!r} requires all target members", path
             )
 
     @override

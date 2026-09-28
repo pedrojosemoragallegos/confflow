@@ -38,8 +38,7 @@ class MutuallyExclusive(Rule):
     ) -> None:
         if _present_count(self.__members, present_members) > 1:
             raise ValidationError(
-                "mutually exclusive members cannot be present together",
-                path,
+                "mutually exclusive members cannot be present together", path
             )
 
     @override

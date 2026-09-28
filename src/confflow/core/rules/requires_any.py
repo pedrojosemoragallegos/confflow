@@ -44,8 +44,7 @@ class RequiresAny(Rule):
             target in present_members for target in self.__targets
         ):
             raise ValidationError(
-                f"{self.__source.name!r} requires at least one alternative member",
-                path,
+                f"{self.__source.name!r} requires at least one alternative member", path
             )
 
     @override

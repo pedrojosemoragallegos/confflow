@@ -122,8 +122,7 @@ def _same_rule(left: Rule, right: Rule) -> bool:
         return left.source is right.source and left.target is right.target
 
     if isinstance(left, (RequiresAny, RequiresAll, ForbidsAny)) and isinstance(
-        right,
-        (RequiresAny, RequiresAll, ForbidsAny),
+        right, (RequiresAny, RequiresAll, ForbidsAny)
     ):
         return left.source is right.source and _same_unordered_members(
             left.targets, right.targets

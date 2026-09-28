@@ -52,8 +52,7 @@ def _validate_present_members(
         if member.name not in mapping:
             if member.required:
                 raise ValidationError(
-                    f"required member {member.name!r} is missing",
-                    (*path, member.name),
+                    f"required member {member.name!r} is missing", (*path, member.name)
                 )
             continue
 

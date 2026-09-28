@@ -18,8 +18,7 @@ if TYPE_CHECKING:
 
 
 def freeze_configuration(
-    schema: Schema,
-    data: Mapping[str, object],
+    schema: Schema, data: Mapping[str, object]
 ) -> Mapping[str, ConfigurationValue]:
     frozen: dict[str, ConfigurationValue] = {}
     for member in schema.members:
@@ -33,10 +32,7 @@ def _freeze_member(member: Entry, value: object) -> ConfigurationValue:
     if isinstance(member, Field):
         return cast("_ConfigurationScalar", value)
     if isinstance(member, Section):
-        return freeze_configuration(
-            member.schema,
-            cast("Mapping[str, object]", value),
-        )
+        return freeze_configuration(member.schema, cast("Mapping[str, object]", value))
     if isinstance(member, Array):
         return _freeze_array(member, value)
     if isinstance(member, Map):
@@ -68,7 +64,6 @@ def _freeze_map(member: Map, value: object) -> Mapping[str, ConfigurationValue]:
             frozen[key] = cast("_ConfigurationScalar", mapped_value)
         else:
             frozen[key] = freeze_configuration(
-                target,
-                cast("Mapping[str, object]", mapped_value),
+                target, cast("Mapping[str, object]", mapped_value)
             )
     return MappingProxyType(frozen)

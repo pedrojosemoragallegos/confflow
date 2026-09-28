@@ -33,8 +33,7 @@ class AllOrNone(Rule):
         count = _present_count(self.__members, present_members)
         if count not in (0, len(self.__members)):
             raise ValidationError(
-                "either all members or none of them must be present",
-                path,
+                "either all members or none of them must be present", path
             )
 
     @override

@@ -44,8 +44,7 @@ class Forbids(Rule):
     ) -> None:
         if self.__source in present_members and self.__target in present_members:
             raise ValidationError(
-                f"{self.__source.name!r} forbids {self.__target.name!r}",
-                path,
+                f"{self.__source.name!r} forbids {self.__target.name!r}", path
             )
 
     @override

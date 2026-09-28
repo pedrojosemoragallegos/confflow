@@ -49,8 +49,7 @@ class ForbidsAny(Rule):
             target in present_members for target in self.__targets
         ):
             raise ValidationError(
-                f"{self.__source.name!r} forbids all target members",
-                path,
+                f"{self.__source.name!r} forbids all target members", path
             )
 
     @override

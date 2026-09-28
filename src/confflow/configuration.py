@@ -33,13 +33,7 @@ class Configuration:
     ) -> None:
         self.__schema: Final[Schema] = Schema(name, description, *members, rules=rules)
 
-    def template(
-        self,
-        path: str | Path,
-        /,
-        *,
-        overwrite: bool = False,
-    ) -> None:
+    def template(self, path: str | Path, /, *, overwrite: bool = False) -> None:
         if type(overwrite) is not bool:
             raise TypeError("overwrite must be a boolean")
 
