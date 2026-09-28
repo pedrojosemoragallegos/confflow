@@ -113,143 +113,6 @@ if __name__ == "__main__":
         rules=server_rules,
     )
 
-    email: Final[Email] = Email(
-        "email",
-        "Account email address\nUsed for account notifications",
-        required=True,
-        default="admin@example.com",
-        minimum_length=5,
-    )
-
-    username: Final[Text] = Text(
-        "username",
-        "Account username",
-        required=True,
-        minimum_length=3,
-        maximum_length=32,
-        pattern=r"[a-z][a-z0-9_]*",
-    )
-
-    country_code: Final[Text] = Text(
-        "country_code",
-        "Two-letter country code",
-        exact_length=2,
-        pattern=r"[A-Z]{2}",
-    )
-
-    retries: Final[Number] = Number(
-        "retries",
-        "Maximum retry count",
-        default=3,
-        minimum=0,
-        maximum=10,
-    )
-
-    timeout: Final[Decimal] = Decimal(
-        "timeout",
-        "Request timeout in seconds",
-        default=5.0,
-        minimum=0.0,
-        maximum=60.0,
-    )
-
-    debug: Final[Boolean] = Boolean("debug", "Enable debug mode", default=False)
-
-    created_at: Final[OffsetDateTime] = OffsetDateTime(
-        "created_at",
-        "Configuration creation instant",
-        required=True,
-        minimum=datetime(year=2026, month=1, day=1, tzinfo=UTC),
-        maximum=datetime(year=2027, month=1, day=1, tzinfo=UTC),
-    )
-
-    maintenance_at: Final[LocalDateTime] = LocalDateTime(
-        "maintenance_at",
-        "Local maintenance date and time",
-        minimum=datetime(year=2026, month=1, day=1, hour=0, minute=0),
-        maximum=datetime(year=2027, month=1, day=1, hour=0, minute=0),
-    )
-
-    launch_date: Final[LocalDate] = LocalDate(
-        "launch_date",
-        "Application launch date",
-        minimum=date(year=2026, month=1, day=1),
-        maximum=date(year=2027, month=1, day=1),
-    )
-
-    daily_time: Final[LocalTime] = LocalTime(
-        "daily_time",
-        "Daily execution time",
-        minimum=time(hour=0, minute=0),
-        maximum=time(hour=23, minute=59, second=59),
-    )
-
-    environment: Final[TextLiteral] = TextLiteral(
-        "environment",
-        "Deployment environment",
-        values=("development", "staging", "production"),  # TODO: *values?
-        default="development",
-    )
-
-    workers: Final[NumberLiteral] = NumberLiteral(
-        "workers",
-        "Worker count preset",
-        values=(1, 2, 4, 8),  # TODO: *values?
-        default=4,
-    )
-
-    ratio: Final[DecimalLiteral] = DecimalLiteral(
-        "ratio",
-        "Ratio preset",
-        values=(0.5, 1.0, 2.0),  # TODO: *values?
-        default=1.0,
-    )
-
-    feature_switch: Final[BooleanLiteral] = (
-        BooleanLiteral(  # TODO: booleanliteral?? does it make any sense??
-            "feature_switch",
-            "Allowed feature-switch values",
-            values=(True, False),  # TODO: *values?
-            default=True,
-        )
-    )
-
-    release_instant: Final[OffsetDateTimeLiteral] = OffsetDateTimeLiteral(
-        "release_instant",
-        "Allowed release instants",
-        values=(  # TODO: *values?
-            datetime(year=2026, month=10, day=1, hour=12, minute=0, tzinfo=UTC),
-            datetime(year=2026, month=11, day=1, hour=12, minute=0, tzinfo=UTC),
-        ),
-    )
-
-    local_release: Final[LocalDateTimeLiteral] = LocalDateTimeLiteral(
-        "local_release",
-        "Allowed local release date-times",
-        values=(  # TODO: *values?
-            datetime(year=2026, month=10, day=1, hour=12, minute=0),
-            datetime(year=2026, month=11, day=1, hour=12, minute=0),
-        ),
-    )
-
-    billing_day: Final[LocalDateLiteral] = LocalDateLiteral(
-        "billing_day",
-        "Allowed billing dates",
-        values=(  # TODO: *values?
-            date(year=2026, month=10, day=1),
-            date(year=2026, month=11, day=1),
-        ),
-    )
-
-    backup_time: Final[LocalTimeLiteral] = LocalTimeLiteral(
-        "backup_time",
-        "Allowed backup times",
-        values=(  # TODO: *values?
-            time(hour=1, minute=0),
-            time(hour=2, minute=0),
-        ),
-    )
-
     primary: Final[Section] = Section(
         "primary",
         "Primary server",
@@ -263,62 +126,6 @@ if __name__ == "__main__":
         server_schema,  # TODO: keyword and positional only
         minimum_length=1,
         maximum_length=3,
-    )
-
-    notification_email: Final[Email] = Email(
-        "notification_email",
-        "One notification email",
-    )
-
-    notification_emails: Final[Array] = Array(
-        "notification_emails",
-        "Notification email addresses",
-        notification_email,
-        minimum_length=1,
-        maximum_length=5,
-        unique=True,
-    )
-
-    role: Final[TextLiteral] = TextLiteral(
-        "role",
-        "One role",
-        values=("admin", "operator", "viewer"),  # TODO: *values?
-    )
-
-    roles: Final[Array] = Array(
-        "roles",
-        "Assigned roles",
-        role,
-        unique=True,
-    )
-
-    label_name: Final[Text] = Text(
-        "label_name",
-        "Label name",
-        pattern=r"[a-z][a-z0-9_]*",
-    )
-
-    label_value: Final[Text] = Text(
-        "label_value",
-        "Label value",
-        minimum_length=1,
-    )
-
-    labels: Final[Map] = Map(
-        "labels",
-        "Free-form labels",
-        key=label_name,
-        value=label_value,
-        minimum_entries=1,
-        maximum_entries=5,
-    )
-
-    contact_email: Final[Email] = Email("contact_email", "Contact email address")
-
-    contacts_by_role: Final[Map] = Map(
-        "contacts_by_role",
-        "Named contact email addresses",
-        value=contact_email,
     )
 
     named_servers: Final[Map] = Map(
@@ -378,6 +185,7 @@ if __name__ == "__main__":
     requires_all_source: Final[Text] = Text(
         "requires_all_source", "Source of a requires-all rule"
     )
+
     requires_all_left: Final[Text] = Text(
         "requires_all_left", "First requires-all target"
     )
@@ -424,13 +232,11 @@ if __name__ == "__main__":
         requires_source,
         requires_target,
     )
-
     requires_any_rule: Final[RequiresAny] = RequiresAny(
         requires_any_source,
         requires_any_left,
         requires_any_right,
     )
-
     requires_all_rule: Final[RequiresAll] = RequiresAll(
         requires_all_source,
         requires_all_left,
@@ -460,41 +266,241 @@ if __name__ == "__main__":
         forbids_any_rule,
     )
 
-    scalar_fields: Final = (
-        email,
-        username,
-        country_code,
-        retries,
-        timeout,
-        debug,
+    account: Final[Section] = Section(
+        "account",
+        "Account settings",
+        schema=Schema(
+            "Account",
+            "Account identity settings.",
+            Email(
+                "email",
+                "Account email address\nUsed for account notifications",
+                required=True,
+                default="admin@example.com",
+                minimum_length=5,
+            ),
+            Text(
+                "username",
+                "Account username",
+                required=True,
+                minimum_length=3,
+                maximum_length=32,
+                pattern=r"[a-z][a-z0-9_]*",
+            ),
+            Text(
+                "country_code",
+                "Two-letter country code",
+                exact_length=2,
+                pattern=r"[A-Z]{2}",
+            ),
+        ),
     )
 
-    temporal_fields: Final = (
-        created_at,
-        maintenance_at,
-        launch_date,
-        daily_time,
+    runtime: Final[Section] = Section(
+        "runtime",
+        "Runtime settings",
+        schema=Schema(
+            "Runtime",
+            "Runtime behavior settings.",
+            Number(
+                "retries",
+                "Maximum retry count",
+                default=3,
+                minimum=0,
+                maximum=10,
+            ),
+            Decimal(
+                "timeout",
+                "Request timeout in seconds",
+                default=5.0,
+                minimum=0.0,
+                maximum=60.0,
+            ),
+            Boolean("debug", "Enable debug mode", default=False),
+        ),
     )
 
-    literal_fields: Final = (
-        environment,
-        workers,
-        ratio,
-        feature_switch,
-        release_instant,
-        local_release,
-        billing_day,
-        backup_time,
+    lifecycle: Final[Section] = Section(
+        "lifecycle",
+        "Lifecycle settings",
+        schema=Schema(
+            "Lifecycle",
+            "Application lifecycle and scheduling settings.",
+            OffsetDateTime(
+                "created_at",
+                "Configuration creation instant",
+                required=True,
+                minimum=datetime(year=2026, month=1, day=1, tzinfo=UTC),
+                maximum=datetime(year=2027, month=1, day=1, tzinfo=UTC),
+            ),
+            LocalDateTime(
+                "maintenance_at",
+                "Local maintenance date and time",
+                minimum=datetime(year=2026, month=1, day=1, hour=0, minute=0),
+                maximum=datetime(year=2027, month=1, day=1, hour=0, minute=0),
+            ),
+            LocalDate(
+                "launch_date",
+                "Application launch date",
+                minimum=date(year=2026, month=1, day=1),
+                maximum=date(year=2027, month=1, day=1),
+            ),
+            LocalTime(
+                "daily_time",
+                "Daily execution time",
+                minimum=time(hour=0, minute=0),
+                maximum=time(hour=23, minute=59, second=59),
+            ),
+        ),
     )
 
-    structured_fields: Final = (
-        primary,
-        servers,
-        notification_emails,
-        roles,
-        labels,
-        contacts_by_role,
-        named_servers,
+    deployment: Final[Section] = Section(
+        "deployment",
+        "Deployment settings",
+        schema=Schema(
+            "Deployment",
+            "Deployment and release settings.",
+            TextLiteral(
+                "environment",
+                "Deployment environment",
+                values=("development", "staging", "production"),  # TODO: *values?
+                default="development",
+            ),
+            NumberLiteral(
+                "workers",
+                "Worker count preset",
+                values=(1, 2, 4, 8),  # TODO: *values?
+                default=4,
+            ),
+            DecimalLiteral(
+                "ratio",
+                "Ratio preset",
+                values=(0.5, 1.0, 2.0),  # TODO: *values?
+                default=1.0,
+            ),
+            (
+                BooleanLiteral(  # TODO: booleanliteral?? does it make any sense??
+                    "feature_switch",
+                    "Allowed feature-switch values",
+                    values=(True, False),  # TODO: *values?
+                    default=True,
+                )
+            ),
+            OffsetDateTimeLiteral(
+                "release_instant",
+                "Allowed release instants",
+                values=(  # TODO: *values?
+                    datetime(year=2026, month=10, day=1, hour=12, minute=0, tzinfo=UTC),
+                    datetime(year=2026, month=11, day=1, hour=12, minute=0, tzinfo=UTC),
+                ),
+            ),
+            LocalDateTimeLiteral(
+                "local_release",
+                "Allowed local release date-times",
+                values=(  # TODO: *values?
+                    datetime(year=2026, month=10, day=1, hour=12, minute=0),
+                    datetime(year=2026, month=11, day=1, hour=12, minute=0),
+                ),
+            ),
+            LocalDateLiteral(
+                "billing_day",
+                "Allowed billing dates",
+                values=(  # TODO: *values?
+                    date(year=2026, month=10, day=1),
+                    date(year=2026, month=11, day=1),
+                ),
+            ),
+            LocalTimeLiteral(
+                "backup_time",
+                "Allowed backup times",
+                values=(  # TODO: *values?
+                    time(hour=1, minute=0),
+                    time(hour=2, minute=0),
+                ),
+            ),
+        ),
+    )
+
+    server_settings: Final[Section] = Section(
+        "server_settings",
+        "Server settings",
+        schema=Schema(
+            "Servers",
+            "Server configuration settings.",
+            primary,
+            servers,
+            named_servers,
+        ),
+    )
+
+    notifications: Final[Section] = Section(
+        "notifications",
+        "Notification settings",
+        schema=Schema(
+            "Notifications",
+            "Notification and contact settings.",
+            Array(
+                "notification_emails",
+                "Notification email addresses",
+                Email(
+                    "notification_email",
+                    "One notification email",
+                ),
+                minimum_length=1,
+                maximum_length=5,
+                unique=True,
+            ),
+            Map(
+                "contacts_by_role",
+                "Named contact email addresses",
+                value=Email("contact_email", "Contact email address"),
+            ),
+        ),
+    )
+
+    metadata: Final[Section] = Section(
+        "metadata",
+        "Metadata settings",
+        schema=Schema(
+            "Metadata",
+            "Role and label settings.",
+            Array(
+                "roles",
+                "Assigned roles",
+                TextLiteral(
+                    "role",
+                    "One role",
+                    values=("admin", "operator", "viewer"),  # TODO: *values?
+                ),
+                unique=True,
+            ),
+            Map(
+                "labels",
+                "Free-form labels",
+                key=Text(
+                    "label_name",
+                    "Label name",
+                    pattern=r"[a-z][a-z0-9_]*",
+                ),
+                value=Text(
+                    "label_value",
+                    "Label value",
+                    minimum_length=1,
+                ),
+                minimum_entries=1,
+                maximum_entries=5,
+            ),
+        ),
+    )
+
+    section_fields: Final = (
+        account,
+        runtime,
+        lifecycle,
+        deployment,
+        server_settings,
+        notifications,
+        metadata,
     )
 
     rule_fields: Final = (
@@ -522,10 +528,7 @@ if __name__ == "__main__":
     )
 
     fields: Final = (
-        *scalar_fields,
-        *temporal_fields,
-        *literal_fields,
-        *structured_fields,
+        *section_fields,
         *rule_fields,
     )
 
@@ -533,14 +536,12 @@ if __name__ == "__main__":
         "Application",
         "Comprehensive TOML configuration example.\n"
         "Demonstrates every supported TOML-facing feature.",
+        # TODO: create lists which you open here like *list_as_varibale_of_fields
         *fields,
         rules=rules,
     )
 
     directory: Final[Path] = Path(__file__).parent
-
     configuration.template(directory, overwrite=True)
-
     config: Final[Path] = directory / "config.toml"
-
     loaded: Final[ConfigurationData] = configuration.load(config)
