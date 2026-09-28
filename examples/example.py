@@ -49,8 +49,10 @@ class Email(Text):
     @override
     def validate(self, value: object, path: tuple[str | int, ...]) -> None:
         super().validate(value, path)
-        email = cast("str", value)
+
+        email: str = cast(typ="str", val=value)
         local_part, separator, domain = email.partition("@")
+
         if separator == "" or local_part == "" or domain == "" or "@" in domain:
             raise InvalidValueError("expected an email address", path)
         if "." not in domain:
@@ -67,12 +69,17 @@ class Port(Number):
     @override
     def validate(self, value: object, path: tuple[str | int, ...]) -> None:
         super().validate(value, path)
-        port = cast("int", value)
+
+        port: int = cast(typ="int", val=value)
+
         if port < 1 or port > _MAXIMUM_PORT_NUMBER:
             raise InvalidValueError("port must be between 1 and 65535", path)
 
 
 if __name__ == "__main__":
+    # TODO: each field should be defined as variable?
+    # TODO: each rule too?
+
     server_password: Final[Text] = Text("password", "Password used by this server")
     server_token: Final[Text] = Text("token", "Token used by this server")
     server_schema: Final[Schema] = Schema(
@@ -83,7 +90,7 @@ if __name__ == "__main__":
         Boolean("tls", "Whether TLS is enabled", default=True),
         server_password,
         server_token,
-        rules=(ExactlyOneOf(server_password, server_token),),
+        rules=(ExactlyOneOf(server_password, server_token),),  # TODO: *rules?
     )
 
     mutually_exclusive_left: Final[Text] = Text(
@@ -176,26 +183,26 @@ if __name__ == "__main__":
             "created_at",
             "Configuration creation instant",
             required=True,
-            minimum=datetime(2026, 1, 1, tzinfo=UTC),
-            maximum=datetime(2027, 1, 1, tzinfo=UTC),
+            minimum=datetime(year=2026, month=1, day=1, tzinfo=UTC),
+            maximum=datetime(year=2027, month=1, day=1, tzinfo=UTC),
         ),
         LocalDateTime(
             "maintenance_at",
             "Local maintenance date and time",
-            minimum=datetime(2026, 1, 1, 0, 0),
-            maximum=datetime(2027, 1, 1, 0, 0),
+            minimum=datetime(year=2026, month=1, day=1, hour=0, minute=0),
+            maximum=datetime(year=2027, month=1, day=1, hour=0, minute=0),
         ),
         LocalDate(
             "launch_date",
             "Application launch date",
-            minimum=date(2026, 1, 1),
-            maximum=date(2027, 1, 1),
+            minimum=date(year=2026, month=1, day=1),
+            maximum=date(year=2027, month=1, day=1),
         ),
         LocalTime(
             "daily_time",
             "Daily execution time",
-            minimum=time(0, 0),
-            maximum=time(23, 59, 59),
+            minimum=time(hour=0, minute=0),
+            maximum=time(hour=23, minute=59, second=59),
         ),
         TextLiteral(
             "environment",
@@ -203,36 +210,52 @@ if __name__ == "__main__":
             values=("development", "staging", "production"),
             default="development",
         ),
-        NumberLiteral("workers", "Worker count preset", values=(1, 2, 4, 8), default=4),
-        DecimalLiteral("ratio", "Ratio preset", values=(0.5, 1.0, 2.0), default=1.0),
-        BooleanLiteral(
+        NumberLiteral(
+            "workers",
+            "Worker count preset",
+            values=(1, 2, 4, 8),  # TODO: *values?
+            default=4,
+        ),
+        DecimalLiteral(
+            "ratio",
+            "Ratio preset",
+            values=(0.5, 1.0, 2.0),  # TODO: *values?
+            default=1.0,
+        ),
+        BooleanLiteral(  # TODO: booleanliteral?? does it make any sense??
             "feature_switch",
             "Allowed feature-switch values",
-            values=(True, False),
+            values=(True, False),  # TODO: *values?
             default=True,
         ),
         OffsetDateTimeLiteral(
             "release_instant",
             "Allowed release instants",
-            values=(
-                datetime(2026, 10, 1, 12, 0, tzinfo=UTC),
-                datetime(2026, 11, 1, 12, 0, tzinfo=UTC),
+            values=(  # TODO: *values?
+                datetime(year=2026, month=10, day=1, hour=12, minute=0, tzinfo=UTC),
+                datetime(year=2026, month=11, day=1, hour=12, minute=0, tzinfo=UTC),
             ),
         ),
         LocalDateTimeLiteral(
             "local_release",
             "Allowed local release date-times",
-            values=(datetime(2026, 10, 1, 12, 0), datetime(2026, 11, 1, 12, 0)),
+            values=(  # TODO: *values?
+                datetime(year=2026, month=10, day=1, hour=12, minute=0),
+                datetime(year=2026, month=11, day=1, hour=12, minute=0),
+            ),
         ),
         LocalDateLiteral(
             "billing_day",
             "Allowed billing dates",
-            values=(date(2026, 10, 1), date(2026, 11, 1)),
+            values=(  # TODO: *values?
+                date(year=2026, month=10, day=1),
+                date(year=2026, month=11, day=1),
+            ),
         ),
         LocalTimeLiteral(
             "backup_time",
             "Allowed backup times",
-            values=(time(1, 0), time(2, 0)),
+            values=(time(hour=1, minute=0), time(hour=2, minute=0)),  # TODO: *values?
         ),
         Section("primary", "Primary server", required=True, schema=server_schema),
         Array(
@@ -256,7 +279,7 @@ if __name__ == "__main__":
             TextLiteral(
                 "role",
                 "One role",
-                values=("admin", "operator", "viewer"),
+                values=("admin", "operator", "viewer"),  # TODO: *values?
             ),
             unique=True,
         ),
@@ -306,10 +329,10 @@ if __name__ == "__main__":
             ExactlyOneOf(exactly_one_left, exactly_one_right),
             AtLeastOneOf(at_least_one_left, at_least_one_right),
             AllOrNone(all_or_none_left, all_or_none_right),
-            Requires(requires_source, requires_target),
+            Requires(requires_source, requires_target),  # TODO: keyword only?
             RequiresAny(requires_any_source, requires_any_left, requires_any_right),
             RequiresAll(requires_all_source, requires_all_left, requires_all_right),
-            Forbids(forbids_source, forbids_target),
+            Forbids(forbids_source, forbids_target),  # TODO: keyword only? sss
             ForbidsAny(forbids_any_source, forbids_any_left, forbids_any_right),
         ),
     )
