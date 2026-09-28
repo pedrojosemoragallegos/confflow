@@ -337,8 +337,10 @@ if __name__ == "__main__":
         ),
     )
 
-    example_directory: Final[Path] = Path(__file__).parent
-    configuration_path: Final[Path] = example_directory / "config.toml"
-
-    configuration.template(example_directory, overwrite=True)
-    loaded: Final[ConfigurationData] = configuration.load(configuration_path)
+    directory: Final[Path] = Path(__file__).parent
+    configuration.template(  # TODO: should it return the path?
+        directory,
+        overwrite=True,
+    )
+    config: Final[Path] = directory / "config.toml"
+    loaded: Final[ConfigurationData] = configuration.load(config)
