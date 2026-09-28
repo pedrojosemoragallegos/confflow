@@ -29,7 +29,9 @@ class Configuration:
         description: str,
         /,
         *members: Entry,
-        rules: Iterable[Rule] = (),
+        rules: Iterable[
+            Rule
+        ] = (),  # TODO: shouldn't it better be optional None and internally set to an empty tuple if None is provided?
     ) -> None:
         self.__schema: Final[Schema] = Schema(name, description, *members, rules=rules)
 
