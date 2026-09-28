@@ -2,7 +2,7 @@
 description = "A Python library for schema-based TOML configuration management with built-in validation, constraints, and type safety"
 readme = "README.md"
 name = "confflow"
-version = "5.0.1"
+version = "6.0.0"
 authors = [
     { name = "Pedro José Mora Gallegos", email = "developmentbypedrojose@gmail.com" },
 ]

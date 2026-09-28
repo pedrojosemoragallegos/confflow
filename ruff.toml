@@ -14,19 +14,39 @@ ignore = [
     "D107",  # docstring __init__
     "TD002", # missing author in TODO
     "TD003", # missing issue link for this 
+
+    # The validation/schema/config-loading pipeline raises SchemaError,
+    # ValidationError and InvalidValueError with short, human-readable inline
+    # messages at hundreds of call sites throughout the package. This is the
+    # library's core error-reporting design, not an oversight, so we don't
+    # force every call site into an `msg = "..."` local variable or a custom
+    # exception subclass just to satisfy these style rules.
+    "TRY003", # raise-vanilla-args (long messages passed directly to raise)
+    "EM101",  # raw-string-in-exception
+    "EM102",  # f-string-in-exception
+
+    # Relative imports (`.` / `..`) are the deliberate, consistent import
+    # style used throughout every module in this package.
+    "TID252", # relative-imports
+
+    # Conflicts with the ruff formatter itself; ruff recommends disabling
+    # this rule when using `ruff format`.
+    "COM812", # missing-trailing-comma
 ]
 
 [lint.isort]
 combine-as-imports = true
 
 [lint.per-file-ignores]
-"src/confflow/core/schema.py" = ["N802", "PLR0913", "SLF001"]
-"src/confflow/core/render.py" = ["PLR0913", "SLF001"]
-"src/confflow/core/validate.py" = ["SLF001"]
-"src/confflow/core/fields/array.py" = ["PLR0913"]
-"src/confflow/core/fields/float.py" = ["PLR0913"]
-"src/confflow/core/fields/integer.py" = ["PLR0913"]
-"src/confflow/core/fields/string.py" = ["PLR0913"]
+# examples/ is a standalone, runnable demo script (not part of the installed
+# package): asserts are the intentional way it verifies its own output, naive
+# datetimes are deliberately used to demonstrate the LocalDateTime definitions,
+# and it has no __init__.py because it isn't meant to be imported as a package.
+"examples/*.py" = [
+    "S101",   # assert used to self-verify demo output
+    "DTZ001", # naive datetime()s used on purpose for LocalDateTime examples
+    "INP001", # implicit namespace package (standalone script, not a package)
+]
 
 [format]
 quote-style = "double"
