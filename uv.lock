@@ -4,7 +4,7 @@ requires-python = ">=3.11"
 
 [[package]]
 name = "confflow"
-version = "5.0.0"
+version = "5.0.1"
 source = { editable = "." }
 dependencies = [
     { name = "tomlkit" },
