@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import UTC, date, datetime, time
 from pathlib import Path
-from typing import Final, cast, final
+from typing import TYPE_CHECKING, Final, cast, final
 
 from typing_extensions import override
 
@@ -40,7 +40,9 @@ from confflow import (
     Text,
     TextLiteral,
 )
-from confflow.core.rules import Rule
+
+if TYPE_CHECKING:
+    from confflow.core.rules import Rule
 
 
 @final
@@ -50,14 +52,10 @@ class Email(Text):
     @override
     def validate(self, value: object, path: tuple[str | int, ...]) -> None:
         super().validate(value, path)
-
         email: str = cast(typ="str", val=value)
-
         local_part, separator, domain = email.partition("@")
-
         if separator == "" or local_part == "" or domain == "" or "@" in domain:
             raise InvalidValueError("expected an email address", path)
-
         if "." not in domain:
             raise InvalidValueError("email domain must contain a dot", path)
 
@@ -72,9 +70,7 @@ class Port(Number):
     @override
     def validate(self, value: object, path: tuple[str | int, ...]) -> None:
         super().validate(value, path)
-
         port: int = cast(typ="int", val=value)
-
         if port < 1 or port > _MAXIMUM_PORT_NUMBER:
             raise InvalidValueError("port must be between 1 and 65535", path)
 
@@ -102,14 +98,18 @@ if __name__ == "__main__":
 
     server_rules: tuple[Rule, ...] = (server_authentication_rule,)
 
-    server_schema: Final[Schema] = Schema(
-        "Server",
-        "Reusable server connection settings.",
+    server_fields: Final = (
         server_host,
         server_port,
         server_tls,
         server_password,
         server_token,
+    )
+
+    server_schema: Final[Schema] = Schema(
+        "Server",
+        "Reusable server connection settings.",
+        *server_fields,
         rules=server_rules,
     )
 
@@ -260,7 +260,7 @@ if __name__ == "__main__":
     servers: Final[Array] = Array(
         "servers",
         "Additional servers",
-        server_schema,
+        server_schema,  # TODO: keyword and positional only
         minimum_length=1,
         maximum_length=3,
     )
@@ -314,11 +314,13 @@ if __name__ == "__main__":
     )
 
     contact_email: Final[Email] = Email("contact_email", "Contact email address")
+
     contacts_by_role: Final[Map] = Map(
         "contacts_by_role",
         "Named contact email addresses",
         value=contact_email,
     )
+
     named_servers: Final[Map] = Map(
         "named_servers",
         "Named server configurations",
@@ -331,12 +333,14 @@ if __name__ == "__main__":
         "mutually_exclusive_left",
         "First mutually exclusive option",
     )
+
     mutually_exclusive_right: Final[Text] = Text(
         "mutually_exclusive_right",
         "Second mutually exclusive option",
     )
 
     exactly_one_left: Final[Text] = Text("exactly_one_left", "First exactly-one option")
+
     exactly_one_right: Final[Text] = Text(
         "exactly_one_right", "Second exactly-one option"
     )
@@ -374,7 +378,6 @@ if __name__ == "__main__":
     requires_all_source: Final[Text] = Text(
         "requires_all_source", "Source of a requires-all rule"
     )
-
     requires_all_left: Final[Text] = Text(
         "requires_all_left", "First requires-all target"
     )
@@ -427,11 +430,13 @@ if __name__ == "__main__":
         requires_any_left,
         requires_any_right,
     )
+
     requires_all_rule: Final[RequiresAll] = RequiresAll(
         requires_all_source,
         requires_all_left,
         requires_all_right,
     )
+
     forbids_rule: Final[Forbids] = Forbids(  # TODO: keyword only?
         forbids_source,
         forbids_target,
@@ -455,20 +460,23 @@ if __name__ == "__main__":
         forbids_any_rule,
     )
 
-    configuration: Final[Configuration] = Configuration(
-        "Application",
-        "Comprehensive TOML configuration example.\n"
-        "Demonstrates every supported TOML-facing feature.",
+    scalar_fields: Final = (
         email,
         username,
         country_code,
         retries,
         timeout,
         debug,
+    )
+
+    temporal_fields: Final = (
         created_at,
         maintenance_at,
         launch_date,
         daily_time,
+    )
+
+    literal_fields: Final = (
         environment,
         workers,
         ratio,
@@ -477,6 +485,9 @@ if __name__ == "__main__":
         local_release,
         billing_day,
         backup_time,
+    )
+
+    structured_fields: Final = (
         primary,
         servers,
         notification_emails,
@@ -484,6 +495,9 @@ if __name__ == "__main__":
         labels,
         contacts_by_role,
         named_servers,
+    )
+
+    rule_fields: Final = (
         mutually_exclusive_left,
         mutually_exclusive_right,
         exactly_one_left,
@@ -505,6 +519,21 @@ if __name__ == "__main__":
         forbids_any_source,
         forbids_any_left,
         forbids_any_right,
+    )
+
+    fields: Final = (
+        *scalar_fields,
+        *temporal_fields,
+        *literal_fields,
+        *structured_fields,
+        *rule_fields,
+    )
+
+    configuration: Final[Configuration] = Configuration(
+        "Application",
+        "Comprehensive TOML configuration example.\n"
+        "Demonstrates every supported TOML-facing feature.",
+        *fields,
         rules=rules,
     )
 
