@@ -26,7 +26,6 @@ Define a `Schema` once, and ConfFlow will:
 - [Custom definitions](#custom-definitions)
 - [Errors](#errors)
 - [Full example](#full-example)
-- [Development](#development)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -213,16 +212,6 @@ definition type, `Section`, `Array`, `Map`, custom definitions, and every rule t
 
 ```bash
 uv run python examples/example.py
-```
-
-## Development
-
-This project uses [`uv`](https://docs.astral.sh/uv/) for dependency management:
-
-```bash
-uv sync
-uv run ruff check src/confflow   # lint
-uv run ty check src/confflow     # type check
 ```
 
 ## Contributing
