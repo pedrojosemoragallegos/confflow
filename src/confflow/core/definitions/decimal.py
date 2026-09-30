@@ -1,64 +1,62 @@
 from __future__ import annotations
 
 from math import isnan
-from typing import Final
+from typing import ClassVar, Final
 
 from typing_extensions import override
 
-from ..exceptions import InvalidValueError
-from ._validation import (
-    _validate_float_bounds,
-    _validate_non_nan_float,
-    _validate_optional_float,
+from ._validators import (
+    validate_float,
+    validate_float_bounds,
+    validate_non_nan_float,
 )
-from .scalar import Scalar
+from .base import Definition
+from .exceptions import DefinitionError
 
 
-class Decimal(Scalar[float]):
-    __slots__ = ("_maximum", "_minimum")
+class Decimal(Definition[float]):
+    __slots__ = ("__maximum", "__minimum")
+
+    VALUE_TYPE: ClassVar[type[float]] = float
 
     @override
     def __init__(
         self,
-        name: str,
-        description: str = "",
-        /,
         *,
-        required: bool = False,
-        default: float | None = None,
         minimum: float | None = None,
         maximum: float | None = None,
     ) -> None:
-        _validate_optional_float(minimum, "minimum")
-        _validate_optional_float(maximum, "maximum")
-        _validate_non_nan_float(minimum, "minimum")
-        _validate_non_nan_float(maximum, "maximum")
-        _validate_float_bounds(minimum, maximum, "decimal")
-        self._minimum: Final[float | None] = minimum
-        self._maximum: Final[float | None] = maximum
-        super().__init__(name, description, required=required, default=default)
+        if minimum is not None:
+            validate_float(value=minimum, label="minimum")
+            validate_non_nan_float(value=minimum, label="minimum")
 
-    @property
-    @override
-    def value_type(self) -> type[float]:
-        return float
+        if maximum is not None:
+            validate_float(value=maximum, label="maximum")
+            validate_non_nan_float(value=maximum, label="maximum")
+
+        if minimum is not None and maximum is not None:
+            validate_float_bounds(minimum=minimum, maximum=maximum, label="decimal")
+
+        self.__minimum: Final[float | None] = minimum
+        self.__maximum: Final[float | None] = maximum
 
     @override
-    def validate(self, value: object, path: tuple[str | int, ...]) -> None:
+    def validate(self, value: object) -> None:
         if type(value) is not float:
-            raise InvalidValueError("expected a decimal", path)
+            raise DefinitionError("expected a decimal")
+
         if isnan(value):
-            raise InvalidValueError("NaN is not allowed", path)
-        if (minimum := self._minimum) is not None and value < minimum:
-            raise InvalidValueError("decimal is smaller than the minimum", path)
-        if (maximum := self._maximum) is not None and value > maximum:
-            raise InvalidValueError("decimal exceeds the maximum", path)
+            raise DefinitionError("NaN is not allowed")
+
+        if (minimum := self.__minimum) is not None and value < minimum:
+            raise DefinitionError("decimal is smaller than the minimum")
+
+        if (maximum := self.__maximum) is not None and value > maximum:
+            raise DefinitionError("decimal exceeds the maximum")
 
     @override
     def __repr__(self) -> str:
         return (
-            f"{type(self).__name__}(name={self.name!r}, "
-            f"description={self.description!r}, required={self.required!r}, "
-            f"default={self.default!r}, "
-            f"minimum={self._minimum!r}, maximum={self._maximum!r})"
+            f"{type(self).__name__}("
+            f"minimum={self.__minimum!r}, maximum={self.__maximum!r})"
         )

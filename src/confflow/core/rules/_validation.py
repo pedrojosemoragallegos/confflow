@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from ..entries.base import Entry
 from ..exceptions import SchemaError
-from ..members.base import Entry
 
 if TYPE_CHECKING:
     from collections.abc import Collection, Sequence

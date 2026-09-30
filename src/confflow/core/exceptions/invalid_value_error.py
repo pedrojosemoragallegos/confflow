@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import final
 
-from .validation_error import ValidationError
+from ..definitions.exceptions import DefinitionError
 
 
 @final
-class InvalidValueError(ValidationError):
+class InvalidValueError(DefinitionError):
     __slots__ = ()

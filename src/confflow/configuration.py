@@ -5,8 +5,9 @@ from typing import TYPE_CHECKING, Final, cast, final
 
 from typing_extensions import override
 
-from .core.schema import Schema
-from .core.validator import validate
+from .core._composition_validation import validate_composition
+from .core._validators import validate_configuration
+from .core.definitions._validators import validate_name
 from .parser import parse
 from .renderer import render
 from .utils.freeze import freeze_configuration
@@ -14,14 +15,14 @@ from .utils.freeze import freeze_configuration
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-    from .core.members.base import Entry
+    from .core.entries.base import Entry
     from .core.rules.base import Rule
     from .types import ConfigurationData
 
 
 @final
 class Configuration:
-    __slots__ = ("__schema",)
+    __slots__ = ("__description", "__entries", "__name", "__rules")
 
     def __init__(
         self,
@@ -29,11 +30,14 @@ class Configuration:
         description: str,
         /,
         *members: Entry,
-        rules: Iterable[
-            Rule
-        ] = (),  # TODO: shouldn't it better be optional None and internally set to an empty tuple if None is provided?
+        rules: Iterable[Rule] | None = None,
     ) -> None:
-        self.__schema: Final[Schema] = Schema(name, description, *members, rules=rules)
+        validate_name(value=name, label="configuration name")
+        self.__name: Final[str] = name
+        self.__description: Final[str] = description
+        self.__entries, self.__rules = validate_composition(
+            members, rules, label="configuration", recursive=True
+        )
 
     def template(self, path: str | Path, /, *, overwrite: bool = False) -> None:
         if type(overwrite) is not bool:
@@ -45,14 +49,17 @@ class Configuration:
         if not directory.is_dir():
             raise NotADirectoryError(f"template path is not a directory: {directory}")
 
-        target = directory / f"{self.__schema.name.lower()}.toml"
+        target = directory / f"{self.__name.lower()}.toml"
         if target.exists():
             if target.is_dir():
                 raise IsADirectoryError(f"template path is a directory: {target}")
             if not overwrite:
                 raise FileExistsError(f"template file already exists: {target}")
 
-        target.write_text(render(self.__schema), encoding="utf-8")
+        target.write_text(
+            render(self.__name, self.__description, self.__entries, self.__rules),
+            encoding="utf-8",
+        )
 
     def load(self, path: str | Path, /) -> ConfigurationData:
         source = Path(path)
@@ -64,11 +71,14 @@ class Configuration:
             raise ValueError("configuration file must use .toml")
 
         data = parse(source)
-        validate(self.__schema, data)
+        validate_configuration(self.__entries, self.__rules, data)
         if not isinstance(data, dict):
             raise TypeError("configuration loader must return a dictionary")
-        return freeze_configuration(self.__schema, cast("dict[str, object]", data))
+        return freeze_configuration(self.__entries, cast("dict[str, object]", data))
 
     @override
     def __repr__(self) -> str:
-        return f"Configuration(schema={self.__schema!r})"
+        return (
+            f"Configuration(name={self.__name!r}, description={self.__description!r}, "
+            f"entries={self.__entries!r}, rules={self.__rules!r})"
+        )

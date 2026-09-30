@@ -1,40 +1,23 @@
 from __future__ import annotations
 
+from typing import ClassVar
+
 from typing_extensions import override
 
-from ..exceptions import InvalidValueError
-from .scalar import Scalar
+from .base import Definition
+from .exceptions import DefinitionError
 
 
-class Boolean(Scalar[bool]):
+class Boolean(Definition[bool]):
     __slots__ = ()
 
-    @override
-    def __init__(
-        self,
-        name: str,
-        description: str = "",
-        /,
-        *,
-        required: bool = False,
-        default: bool | None = None,
-    ) -> None:
-        super().__init__(name, description, required=required, default=default)
-
-    @property
-    @override
-    def value_type(self) -> type[bool]:
-        return bool
+    VALUE_TYPE: ClassVar[type[bool]] = bool
 
     @override
-    def validate(self, value: object, path: tuple[str | int, ...]) -> None:
+    def validate(self, value: object) -> None:
         if type(value) is not bool:
-            raise InvalidValueError("expected a boolean", path)
+            raise DefinitionError("expected a boolean")
 
     @override
     def __repr__(self) -> str:
-        return (
-            f"{type(self).__name__}(name={self.name!r}, "
-            f"description={self.description!r}, required={self.required!r}, "
-            f"default={self.default!r})"
-        )
+        return f"{type(self).__name__}()"

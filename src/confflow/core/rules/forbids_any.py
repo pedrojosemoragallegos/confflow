@@ -11,7 +11,7 @@ from .base import Rule
 if TYPE_CHECKING:
     from collections.abc import Collection
 
-    from ..members.base import Entry
+    from ..entries.base import Entry
 
 
 @final
@@ -20,7 +20,7 @@ class ForbidsAny(Rule):
 
     def __init__(self, source: Entry, *targets: Entry) -> None:
         target_tuple = _validate_directional_group(source, targets)
-        if source.required and any(target.required for target in target_tuple):
+        if not source.optional and any(not target.optional for target in target_tuple):
             raise SchemaError(
                 "forbids-any rule cannot forbid a required target from a "
                 "required source"

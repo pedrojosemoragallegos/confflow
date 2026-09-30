@@ -11,16 +11,16 @@ from .base import Rule
 if TYPE_CHECKING:
     from collections.abc import Collection
 
-    from ..members.base import Entry
+    from ..entries.base import Entry
 
 
 @final
 class Forbids(Rule):
     __slots__ = ("__source", "__target")
 
-    def __init__(self, source: Entry, target: Entry) -> None:
+    def __init__(self, *, source: Entry, target: Entry) -> None:
         _validate_pair(source, target)
-        if source.required and target.required:
+        if not source.optional and not target.optional:
             raise SchemaError("forbids rule cannot reference two required members")
         self.__source: Final[Entry] = source
         self.__target: Final[Entry] = target

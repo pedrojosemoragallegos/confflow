@@ -6,26 +6,25 @@ from json import dumps as json_dumps
 from math import isinf
 from typing import TYPE_CHECKING
 
-from .core.definitions.boolean import Boolean as BooleanField
-from .core.definitions.boolean_literal import BooleanLiteral
-from .core.definitions.decimal import Decimal as DecimalField
-from .core.definitions.decimal_literal import DecimalLiteral
-from .core.definitions.local_date import LocalDate as LocalDateField
-from .core.definitions.local_date_literal import LocalDateLiteral
-from .core.definitions.local_date_time import LocalDateTime as LocalDateTimeField
-from .core.definitions.local_date_time_literal import LocalDateTimeLiteral
-from .core.definitions.local_time import LocalTime as LocalTimeField
-from .core.definitions.local_time_literal import LocalTimeLiteral
-from .core.definitions.number import Number as NumberField
-from .core.definitions.number_literal import NumberLiteral
-from .core.definitions.offset_date_time import OffsetDateTime as OffsetDateTimeField
-from .core.definitions.offset_date_time_literal import OffsetDateTimeLiteral
-from .core.definitions.text import Text as TextField
-from .core.definitions.text_literal import TextLiteral
-from .core.members.array import Array
-from .core.members.field import Field
-from .core.members.map import Map
-from .core.members.section import Section
+from .core.entries.array import Array
+from .core.entries.mapping import Mapping
+from .core.entries.scalars.base import Scalar
+from .core.entries.scalars.boolean import Boolean as BooleanField
+from .core.entries.scalars.decimal import Decimal as DecimalField
+from .core.entries.scalars.literals.decimal import DecimalLiteral
+from .core.entries.scalars.literals.local_date import LocalDateLiteral
+from .core.entries.scalars.literals.local_date_time import LocalDateTimeLiteral
+from .core.entries.scalars.literals.local_time import LocalTimeLiteral
+from .core.entries.scalars.literals.number import NumberLiteral
+from .core.entries.scalars.literals.offset_date_time import OffsetDateTimeLiteral
+from .core.entries.scalars.literals.text import TextLiteral
+from .core.entries.scalars.local_date import LocalDate as LocalDateField
+from .core.entries.scalars.local_date_time import LocalDateTime as LocalDateTimeField
+from .core.entries.scalars.local_time import LocalTime as LocalTimeField
+from .core.entries.scalars.number import Number as NumberField
+from .core.entries.scalars.offset_date_time import OffsetDateTime as OffsetDateTimeField
+from .core.entries.scalars.text import Text as TextField
+from .core.entries.table import Table
 from .core.rules.all_or_none import AllOrNone
 from .core.rules.at_least_one_of import AtLeastOneOf
 from .core.rules.exactly_one_of import ExactlyOneOf
@@ -35,17 +34,18 @@ from .core.rules.mutually_exclusive import MutuallyExclusive
 from .core.rules.requires import Requires
 from .core.rules.requires_all import RequiresAll
 from .core.rules.requires_any import RequiresAny
-from .core.schema import Schema
 
 if TYPE_CHECKING:
-    from .core.definitions.base import Definition, TomlScalar
-    from .core.members.base import Entry
+    from .core.definitions.base import Definition, Value as ScalarValue
+    from .core.entries.base import Entry
     from .core.rules.base import Rule
 
 _ScalarFormatter = Callable[[object], str]
 
 
-def _render_description(description: str) -> list[str]:
+def _render_description(description: str | None) -> list[str]:
+    if description is None:
+        return []
     return [f"# {line}" if line else "#" for line in description.splitlines()]
 
 
@@ -54,28 +54,34 @@ def _render_metadata(member: Entry, format_scalar: _ScalarFormatter) -> list[str
     if member.description:
         lines.extend(_render_description(member.description))
 
-    presence = "required" if member.required else "optional"
+    presence = "optional" if member.optional else "required"
     metadata = f"# {presence} | {_type_name(member)}"
-    if isinstance(member, Field) and member.default is not None:
+    if isinstance(member, Scalar) and member.default is not None:
         metadata += f" | default: {format_scalar(member.default)}"
     lines.append(metadata)
     return lines
 
 
 def _type_name(member: Entry) -> str:
-    if isinstance(member, Field):
+    if isinstance(member, Scalar):
         return field__type_name(member)
-    if isinstance(member, Section):
-        return member.schema.name
+    if isinstance(member, Table):
+        return "Table"
     if isinstance(member, Array):
         collection_name = "set" if member.unique else "list"
-        return f"{_target_name(member.element)} {collection_name}"
-    if isinstance(member, Map):
-        return f"{_target_name(member.value)} mapping"
+        target_name = (
+            "Table" if member.entries is not None else _target_name(member.element)
+        )
+        return f"{target_name} {collection_name}"
+    if isinstance(member, Mapping):
+        target_name = (
+            "Table" if member.entries is not None else _target_name(member.value)
+        )
+        return f"{target_name} mapping"
     return type(member).__name__
 
 
-def field__type_name(field: Field[TomlScalar]) -> str:
+def field__type_name(field: Scalar[ScalarValue]) -> str:
     concrete_name = type(field).__name__
     if (literal_type := _literal__type_name(field)) is not None:
         literal_class, literal_name = literal_type
@@ -91,11 +97,9 @@ def field__type_name(field: Field[TomlScalar]) -> str:
     return root_name if type(field) is root_type else f"{concrete_name} ({root_name})"
 
 
-def _target_name(target: Definition[TomlScalar] | Schema) -> str:
-    if isinstance(target, Schema):
-        return target.name
-    if isinstance(target, Field):
-        return field__type_name(target)
+def _target_name(target: Definition[ScalarValue] | None) -> str:
+    if target is None:
+        raise TypeError("scalar target is missing")
     return type(target).__name__
 
 
@@ -115,7 +119,7 @@ _SCALAR_FIELD_TYPES: tuple[tuple[type[object], str], ...] = (
 )
 
 
-def _scalar_root(field: Field[TomlScalar]) -> tuple[type[object], str] | None:
+def _scalar_root(field: Scalar[ScalarValue]) -> tuple[type[object], str] | None:
     for field_type, name in _SCALAR_FIELD_TYPES:
         if isinstance(field, field_type):
             return field_type, name
@@ -126,7 +130,6 @@ _LITERAL_FIELD_TYPES: tuple[tuple[type[object], str], ...] = (
     (TextLiteral, "Text Literal"),
     (NumberLiteral, "Number Literal"),
     (DecimalLiteral, "Decimal Literal"),
-    (BooleanLiteral, "Boolean Literal"),
     (OffsetDateTimeLiteral, "Offset Date Time Literal"),
     (LocalDateTimeLiteral, "Local Date Time Literal"),
     (LocalDateLiteral, "Local Date Literal"),
@@ -134,7 +137,9 @@ _LITERAL_FIELD_TYPES: tuple[tuple[type[object], str], ...] = (
 )
 
 
-def _literal__type_name(field: Field[TomlScalar]) -> tuple[type[object], str] | None:
+def _literal__type_name(
+    field: Scalar[ScalarValue],
+) -> tuple[type[object], str] | None:
     for literal_type, name in _LITERAL_FIELD_TYPES:
         if isinstance(field, literal_type):
             return literal_type, name
@@ -179,29 +184,47 @@ def _member_list(members: tuple[Entry, ...]) -> str:
     return f"[{', '.join(member.name for member in members)}]"
 
 
-def render(schema: Schema) -> str:
-    if not isinstance(schema, Schema):
-        raise TypeError("schema must be a Schema")
-
-    lines = [f"# {schema.name}"]
-    if schema.description:
-        lines.extend(_render_description(schema.description))
+def render(
+    name: str,
+    description: str,
+    entries: tuple[Entry, ...],
+    rules: tuple[Rule, ...],
+) -> str:
+    lines = [f"# {name}"]
+    if description:
+        lines.extend(_render_description(description))
     lines.append("")
-    lines.extend(_render_schema(schema).splitlines())
+    lines.extend(_render_entries(entries, rules).splitlines())
     return "\n".join(lines).rstrip() + "\n"
 
 
-def _render_schema(schema: Schema, prefix: tuple[str, ...] = ()) -> str:
-    return "\n".join(_render_schema_members(schema, prefix))
+def _render_entries(
+    entries: tuple[Entry, ...],
+    rules: tuple[Rule, ...],
+    prefix: tuple[str, ...] = (),
+) -> str:
+    return "\n".join(_render_entry_list(entries, rules, prefix))
 
 
-def _render_schema_members(schema: Schema, prefix: tuple[str, ...] = ()) -> list[str]:
+def _render_entry_list(
+    entries: tuple[Entry, ...], rules: tuple[Rule, ...], prefix: tuple[str, ...] = ()
+) -> list[str]:
     lines: list[str] = []
-    for index, member in enumerate(schema.members):
-        lines.extend(_render_member(member, prefix, schema.rules))
-        if index != len(schema.members) - 1:
+    members = (
+        *(member for member in entries if not _is_table_member(member)),
+        *(member for member in entries if _is_table_member(member)),
+    )
+    for index, member in enumerate(members):
+        lines.extend(_render_member(member, prefix, rules))
+        if index != len(members) - 1:
             lines.append("")
     return lines
+
+
+def _is_table_member(member: Entry) -> bool:
+    return isinstance(member, (Table, Mapping)) or (
+        isinstance(member, Array) and member.entries is not None
+    )
 
 
 def _render_member(
@@ -210,64 +233,80 @@ def _render_member(
     lines = _render_metadata(member, _format_toml_scalar)
     lines.extend(_render_member_rules(member, rules))
 
-    if isinstance(member, Field):
-        member_path = (*prefix, member.name)
-        lines.append(f"{'.'.join(member_path)} = {_format_default(member.default)}")
+    if isinstance(member, Scalar):
+        lines.append(f"{member.name} = {_format_default(member.default)}")
         return lines
 
-    if isinstance(member, Section):
-        section_path = (*prefix, member.name)
-        if member.schema.description:
-            lines.extend(_render_description(member.schema.description))
-        nested = _render_schema(member.schema, section_path)
+    if isinstance(member, Table):
+        table_path = (*prefix, member.name)
+        lines.append("")
+        lines.append(f"[{'.'.join(table_path)}]")
+        nested = _render_entries(member.entries, member.rules, table_path)
         if nested:
             lines.extend(nested.splitlines())
         return lines
 
     if isinstance(member, Array):
-        if isinstance(member.element, Schema):
-            section_path = (*prefix, member.name)
+        if member.entries is not None:
+            table_path = (*prefix, member.name)
+            lines.append("")
             lines.extend(
-                _render_commented_schema_template(
-                    member.element, f"[[{'.'.join(section_path)}]]"
+                _render_commented_table_template(
+                    member.name,
+                    member.entries,
+                    member.rules,
+                    f"[[{'.'.join(table_path)}]]",
+                    table_path,
                 )
             )
         else:
-            member_path = (*prefix, member.name)
-            lines.append(f"# {'.'.join(member_path)} = ")
+            lines.append(f"# {member.name} = ")
         return lines
 
-    if isinstance(member, Map):
+    if isinstance(member, Mapping):
         map_path = (*prefix, member.name)
-        if isinstance(member.value, Schema):
+        if member.entries is not None:
             template_path = (*map_path, "<key>")
+            lines.append("")
             lines.extend(
-                _render_commented_schema_template(
-                    member.value, f"[{'.'.join(template_path)}]"
+                _render_commented_table_template(
+                    member.name,
+                    member.entries,
+                    member.rules,
+                    f"[{'.'.join(template_path)}]",
+                    template_path,
                 )
             )
         else:
-            lines.append(f"# {'.'.join((*map_path, '<key>'))} = ")
+            lines.append("")
+            lines.append(f"# [{'.'.join(map_path)}]")
+            lines.append("# <key> = ")
         return lines
 
     raise TypeError(f"unsupported member type: {type(member).__name__}")
 
 
-def _render_commented_schema_template(schema: Schema, header: str) -> list[str]:
-    lines: list[str] = [f"# --- {schema.name} ---"]
-    if schema.description:
-        lines.extend(_render_description(schema.description))
+def _render_commented_table_template(
+    title: str,
+    entries: tuple[Entry, ...],
+    rules: tuple[Rule, ...],
+    header: str,
+    prefix: tuple[str, ...],
+) -> list[str]:
+    lines: list[str] = [f"# --- {title} table ---"]
     lines.append(f"# {header}")
     lines.append("")
-    lines.extend(_comment_schema_members(schema))
-    lines.append(f"# --- end {schema.name} ---")
+    lines.extend(_comment_entries(entries, rules, prefix))
+    lines.append(f"# --- end {title} table ---")
     return lines
 
 
-def _comment_schema_members(schema: Schema) -> list[str]:
+def _comment_entries(
+    entries: tuple[Entry, ...], rules: tuple[Rule, ...], prefix: tuple[str, ...] = ()
+) -> list[str]:
     lines: list[str] = []
-    for line in _render_schema_members(schema):
-        lines.append("") if not line else lines.append(f"# {line.removeprefix('# ')}")
+    for line in _render_entry_list(entries, rules, prefix):
+        lines.append("#") if not line else lines.append(f"# {line.removeprefix('# ')}")
     return lines
 
 

@@ -1,28 +1,26 @@
 from __future__ import annotations
 
+from .builder import ConfigurationBuilder
 from .configuration import Configuration
-from .core.definitions import (
-    Boolean,
-    BooleanLiteral,
-    Decimal,
-    DecimalLiteral,
-    LocalDate,
-    LocalDateLiteral,
-    LocalDateTime,
-    LocalDateTimeLiteral,
-    LocalTime,
-    LocalTimeLiteral,
-    Number,
-    NumberLiteral,
-    OffsetDateTime,
-    OffsetDateTimeLiteral,
-    Text,
-    TextLiteral,
-)
+from .core.entries.array import Array
+from .core.entries.mapping import Mapping
+from .core.entries.scalars.boolean import Boolean
+from .core.entries.scalars.decimal import Decimal
+from .core.entries.scalars.literals.decimal import DecimalLiteral
+from .core.entries.scalars.literals.local_date import LocalDateLiteral
+from .core.entries.scalars.literals.local_date_time import LocalDateTimeLiteral
+from .core.entries.scalars.literals.local_time import LocalTimeLiteral
+from .core.entries.scalars.literals.number import NumberLiteral
+from .core.entries.scalars.literals.offset_date_time import OffsetDateTimeLiteral
+from .core.entries.scalars.literals.text import TextLiteral
+from .core.entries.scalars.local_date import LocalDate
+from .core.entries.scalars.local_date_time import LocalDateTime
+from .core.entries.scalars.local_time import LocalTime
+from .core.entries.scalars.number import Number
+from .core.entries.scalars.offset_date_time import OffsetDateTime
+from .core.entries.scalars.text import Text
+from .core.entries.table import Table
 from .core.exceptions import InvalidValueError, SchemaError, ValidationError
-from .core.members.array import Array
-from .core.members.map import Map
-from .core.members.section import Section
 from .core.rules import (
     AllOrNone,
     AtLeastOneOf,
@@ -34,7 +32,6 @@ from .core.rules import (
     RequiresAll,
     RequiresAny,
 )
-from .core.schema import Schema
 from .types import ConfigurationData, ConfigurationValue
 
 __all__ = (
@@ -42,8 +39,8 @@ __all__ = (
     "Array",
     "AtLeastOneOf",
     "Boolean",
-    "BooleanLiteral",
     "Configuration",
+    "ConfigurationBuilder",
     "ConfigurationData",
     "ConfigurationValue",
     "Decimal",
@@ -58,7 +55,7 @@ __all__ = (
     "LocalDateTimeLiteral",
     "LocalTime",
     "LocalTimeLiteral",
-    "Map",
+    "Mapping",
     "MutuallyExclusive",
     "Number",
     "NumberLiteral",
@@ -67,9 +64,8 @@ __all__ = (
     "Requires",
     "RequiresAll",
     "RequiresAny",
-    "Schema",
     "SchemaError",
-    "Section",
+    "Table",
     "Text",
     "TextLiteral",
     "ValidationError",

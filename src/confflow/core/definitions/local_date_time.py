@@ -1,60 +1,59 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Final
+from typing import ClassVar, Final
 
 from typing_extensions import override
 
-from ..exceptions import InvalidValueError
-from ._validation import (
-    _is_aware_datetime,
-    _validate_datetime_bounds,
-    _validate_optional_local_datetime,
+from ._validators import (
+    is_aware_datetime,
+    validate_datetime_bounds,
+    validate_local_datetime,
 )
-from .scalar import Scalar
+from .base import Definition
+from .exceptions import DefinitionError
 
 
-class LocalDateTime(Scalar[datetime]):
-    __slots__ = ("_maximum", "_minimum")
+class LocalDateTime(Definition[datetime]):
+    __slots__ = ("__maximum", "__minimum")
+
+    VALUE_TYPE: ClassVar[type[datetime]] = datetime
 
     @override
     def __init__(
         self,
-        name: str,
-        description: str = "",
-        /,
         *,
-        required: bool = False,
-        default: datetime | None = None,
         minimum: datetime | None = None,
         maximum: datetime | None = None,
     ) -> None:
-        _validate_optional_local_datetime(minimum, "minimum")
-        _validate_optional_local_datetime(maximum, "maximum")
-        _validate_datetime_bounds(minimum, maximum, "local date-time")
-        self._minimum: Final[datetime | None] = minimum
-        self._maximum: Final[datetime | None] = maximum
-        super().__init__(name, description, required=required, default=default)
+        if minimum is not None:
+            validate_local_datetime(value=minimum, label="minimum")
 
-    @property
-    @override
-    def value_type(self) -> type[datetime]:
-        return datetime
+        if maximum is not None:
+            validate_local_datetime(value=maximum, label="maximum")
+
+        if minimum is not None and maximum is not None:
+            validate_datetime_bounds(
+                minimum=minimum, maximum=maximum, label="local date-time"
+            )
+
+        self.__minimum: Final[datetime | None] = minimum
+        self.__maximum: Final[datetime | None] = maximum
 
     @override
-    def validate(self, value: object, path: tuple[str | int, ...]) -> None:
-        if type(value) is not datetime or _is_aware_datetime(value):
-            raise InvalidValueError("expected a timezone-naive datetime", path)
-        if (minimum := self._minimum) is not None and value < minimum:
-            raise InvalidValueError("date-time is smaller than the minimum", path)
-        if (maximum := self._maximum) is not None and value > maximum:
-            raise InvalidValueError("date-time exceeds the maximum", path)
+    def validate(self, value: object) -> None:
+        if type(value) is not datetime or is_aware_datetime(value):
+            raise DefinitionError("expected a timezone-naive datetime")
+
+        if (minimum := self.__minimum) is not None and value < minimum:
+            raise DefinitionError("date-time is smaller than the minimum")
+
+        if (maximum := self.__maximum) is not None and value > maximum:
+            raise DefinitionError("date-time exceeds the maximum")
 
     @override
     def __repr__(self) -> str:
         return (
-            f"{type(self).__name__}(name={self.name!r}, "
-            f"description={self.description!r}, required={self.required!r}, "
-            f"default={self.default!r}, "
-            f"minimum={self._minimum!r}, maximum={self._maximum!r})"
+            f"{type(self).__name__}("
+            f"minimum={self.__minimum!r}, maximum={self.__maximum!r})"
         )

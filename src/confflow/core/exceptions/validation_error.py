@@ -8,10 +8,7 @@ from typing_extensions import override
 class ValidationError(Exception):
     __slots__ = ("__path",)
 
-    @override
-    def __init__(  # ty: ignore[invalid-method-override]
-        self, message: str, path: tuple[str | int, ...]
-    ) -> None:
+    def __init__(self, message: str, path: tuple[str | int, ...]) -> None:
         super().__init__(message)
         self.__path: Final[tuple[str | int, ...]] = path
 

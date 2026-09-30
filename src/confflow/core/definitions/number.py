@@ -4,17 +4,19 @@ from typing import ClassVar, Final
 
 from typing_extensions import override
 
-from ..exceptions import InvalidValueError
-from ._validation import (
-    _validate_integer_bounds,
-    _validate_optional_integer,
-    _validate_toml_integer,
+from ._validators import (
+    validate_integer,
+    validate_integer_bounds,
+    validate_toml_integer,
 )
-from .scalar import Scalar
+from .base import Definition
+from .exceptions import DefinitionError
 
 
-class Number(Scalar[int]):
-    __slots__ = ("_maximum", "_minimum")
+class Number(Definition[int]):
+    __slots__ = ("__maximum", "__minimum")
+
+    VALUE_TYPE: ClassVar[type[int]] = int
 
     MINIMUM_TOML_INTEGER: ClassVar[int] = -(2**63)
     MAXIMUM_TOML_INTEGER: ClassVar[int] = (2**63) - 1
@@ -22,51 +24,47 @@ class Number(Scalar[int]):
     @override
     def __init__(
         self,
-        name: str,
-        description: str = "",
-        /,
         *,
-        required: bool = False,
-        default: int | None = None,
         minimum: int | None = None,
         maximum: int | None = None,
     ) -> None:
-        _validate_optional_integer(minimum, "minimum")
-        _validate_optional_integer(maximum, "maximum")
-        _validate_toml_integer(
-            minimum, self.MINIMUM_TOML_INTEGER, self.MAXIMUM_TOML_INTEGER
-        )
-        _validate_toml_integer(
-            maximum, self.MINIMUM_TOML_INTEGER, self.MAXIMUM_TOML_INTEGER
-        )
-        _validate_integer_bounds(minimum, maximum, "number")
-        self._minimum: Final[int | None] = minimum
-        self._maximum: Final[int | None] = maximum
-        super().__init__(name, description, required=required, default=default)
-
-    @property
-    @override
-    def value_type(self) -> type[int]:
-        return int
-
-    @override
-    def validate(self, value: object, path: tuple[str | int, ...]) -> None:
-        if type(value) is not int:
-            raise InvalidValueError("expected a number", path)
-        if value < self.MINIMUM_TOML_INTEGER or value > self.MAXIMUM_TOML_INTEGER:
-            raise InvalidValueError(
-                "number is outside the TOML signed 64-bit range", path
+        if minimum is not None:
+            validate_integer(value=minimum, label="minimum")
+            validate_toml_integer(
+                value=minimum,
+                minimum=self.MINIMUM_TOML_INTEGER,
+                maximum=self.MAXIMUM_TOML_INTEGER,
             )
-        if (minimum := self._minimum) is not None and value < minimum:
-            raise InvalidValueError("number is smaller than the minimum", path)
-        if (maximum := self._maximum) is not None and value > maximum:
-            raise InvalidValueError("number exceeds the maximum", path)
+        if maximum is not None:
+            validate_integer(value=maximum, label="maximum")
+            validate_toml_integer(
+                value=maximum,
+                minimum=self.MINIMUM_TOML_INTEGER,
+                maximum=self.MAXIMUM_TOML_INTEGER,
+            )
+        if minimum is not None and maximum is not None:
+            validate_integer_bounds(minimum=minimum, maximum=maximum, label="number")
+
+        self.__minimum: Final[int | None] = minimum
+        self.__maximum: Final[int | None] = maximum
+
+    @override
+    def validate(self, value: object) -> None:
+        if type(value) is not int:
+            raise DefinitionError("expected a number")
+
+        if value < self.MINIMUM_TOML_INTEGER or value > self.MAXIMUM_TOML_INTEGER:
+            raise DefinitionError("number is outside the TOML signed 64-bit range")
+
+        if (minimum := self.__minimum) is not None and value < minimum:
+            raise DefinitionError("number is smaller than the minimum")
+
+        if (maximum := self.__maximum) is not None and value > maximum:
+            raise DefinitionError("number exceeds the maximum")
 
     @override
     def __repr__(self) -> str:
         return (
-            f"{type(self).__name__}(name={self.name!r}, "
-            f"description={self.description!r}, required={self.required!r}, "
-            f"default={self.default!r}, "
-            f"minimum={self._minimum!r}, maximum={self._maximum!r})"
+            f"{type(self).__name__}("
+            f"minimum={self.__minimum!r}, maximum={self.__maximum!r})"
         )

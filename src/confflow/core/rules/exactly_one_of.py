@@ -11,7 +11,7 @@ from .base import Rule
 if TYPE_CHECKING:
     from collections.abc import Collection
 
-    from ..members.base import Entry
+    from ..entries.base import Entry
 
 
 @final
@@ -20,7 +20,7 @@ class ExactlyOneOf(Rule):
 
     def __init__(self, *members: Entry) -> None:
         member_tuple = _validate_group_members(members)
-        if sum(member.required for member in member_tuple) > 1:
+        if sum(not member.optional for member in member_tuple) > 1:
             raise SchemaError(
                 "exactly-one rule cannot contain more than one required member"
             )

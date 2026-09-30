@@ -1,60 +1,57 @@
 from __future__ import annotations
 
 from datetime import time
-from typing import Final
+from typing import ClassVar, Final
 
 from typing_extensions import override
 
-from ..exceptions import InvalidValueError
-from ._validation import (
-    _is_aware_time,
-    _validate_optional_local_time,
-    _validate_time_bounds,
+from ._validators import (
+    is_aware_time,
+    validate_local_time,
+    validate_time_bounds,
 )
-from .scalar import Scalar
+from .base import Definition
+from .exceptions import DefinitionError
 
 
-class LocalTime(Scalar[time]):
-    __slots__ = ("_maximum", "_minimum")
+class LocalTime(Definition[time]):
+    __slots__ = ("__maximum", "__minimum")
+
+    VALUE_TYPE: ClassVar[type[time]] = time
 
     @override
     def __init__(
         self,
-        name: str,
-        description: str = "",
-        /,
         *,
-        required: bool = False,
-        default: time | None = None,
         minimum: time | None = None,
         maximum: time | None = None,
     ) -> None:
-        _validate_optional_local_time(minimum, "minimum")
-        _validate_optional_local_time(maximum, "maximum")
-        _validate_time_bounds(minimum, maximum, "local time")
-        self._minimum: Final[time | None] = minimum
-        self._maximum: Final[time | None] = maximum
-        super().__init__(name, description, required=required, default=default)
+        if minimum is not None:
+            validate_local_time(value=minimum, label="minimum")
 
-    @property
-    @override
-    def value_type(self) -> type[time]:
-        return time
+        if maximum is not None:
+            validate_local_time(value=maximum, label="maximum")
+
+        if minimum is not None and maximum is not None:
+            validate_time_bounds(minimum=minimum, maximum=maximum, label="local time")
+
+        self.__minimum: Final[time | None] = minimum
+        self.__maximum: Final[time | None] = maximum
 
     @override
-    def validate(self, value: object, path: tuple[str | int, ...]) -> None:
-        if type(value) is not time or _is_aware_time(value):
-            raise InvalidValueError("expected a timezone-naive time", path)
-        if (minimum := self._minimum) is not None and value < minimum:
-            raise InvalidValueError("time is smaller than the minimum", path)
-        if (maximum := self._maximum) is not None and value > maximum:
-            raise InvalidValueError("time exceeds the maximum", path)
+    def validate(self, value: object) -> None:
+        if type(value) is not time or is_aware_time(value):
+            raise DefinitionError("expected a timezone-naive time")
+
+        if (minimum := self.__minimum) is not None and value < minimum:
+            raise DefinitionError("time is smaller than the minimum")
+
+        if (maximum := self.__maximum) is not None and value > maximum:
+            raise DefinitionError("time exceeds the maximum")
 
     @override
     def __repr__(self) -> str:
         return (
-            f"{type(self).__name__}(name={self.name!r}, "
-            f"description={self.description!r}, required={self.required!r}, "
-            f"default={self.default!r}, "
-            f"minimum={self._minimum!r}, maximum={self._maximum!r})"
+            f"{type(self).__name__}("
+            f"minimum={self.__minimum!r}, maximum={self.__maximum!r})"
         )

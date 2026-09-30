@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from collections.abc import Collection
 
-    from ..members.base import Entry
+    from ..entries.base import Entry
 
 
 class Rule(ABC):

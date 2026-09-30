@@ -2,24 +2,19 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from datetime import date, datetime, time
-from typing import Generic, TypeAlias, TypeVar
+from typing import ClassVar, Generic, TypeAlias, TypeVar
 
-TomlScalar: TypeAlias = str | int | float | bool | datetime | date | time
-TomlScalarT_co = TypeVar("TomlScalarT_co", bound=TomlScalar, covariant=True)
+Value: TypeAlias = str | int | float | bool | datetime | date | time
+ValueT_co = TypeVar(name="ValueT_co", bound=Value, covariant=True)
 
 
-class Definition(ABC, Generic[TomlScalarT_co]):
+class Definition(ABC, Generic[ValueT_co]):
     __slots__ = ()
 
-    @property
-    @abstractmethod
-    def value_type(self) -> type[TomlScalar]:
-        raise NotImplementedError
+    VALUE_TYPE: ClassVar[type[Value]]
 
     @abstractmethod
-    def validate(self, value: object, path: tuple[str | int, ...]) -> None:
-        raise NotImplementedError
+    def validate(self, value: object) -> None: ...
 
     @abstractmethod
-    def __repr__(self) -> str:
-        raise NotImplementedError
+    def __repr__(self) -> str: ...
