@@ -5,21 +5,33 @@ Snapshot of `src/confflow/` as of 2026-10-01. Generated caches are excluded.
 ```text
 confflow/
 ├── __init__.py
-├── py.typed
-└── core/
+├── core/
     ├── __init__.py
     ├── types.py
     ├── constraints/
     │   ├── __init__.py
-    │   ├── base.py
-    │   ├── float.py
-    │   ├── integer.py
-    │   ├── literal.py
-    │   ├── local_date.py
-    │   ├── local_date_time.py
-    │   ├── local_time.py
-    │   ├── offset_date_time.py
-    │   └── string.py
+    │   ├── definition/
+    │   │   ├── __init__.py
+    │   │   ├── base.py
+    │   │   ├── float.py
+    │   │   ├── integer.py
+    │   │   ├── literal.py
+    │   │   ├── local_date.py
+    │   │   ├── local_date_time.py
+    │   │   ├── local_time.py
+    │   │   ├── offset_date_time.py
+    │   │   └── string.py
+    │   └── table/
+    │       ├── __init__.py
+    │       ├── at_least_one_of.py
+    │       ├── at_most_one_of.py
+    │       ├── base.py
+    │       ├── compare.py
+    │       ├── equal.py
+    │       ├── exactly_one_of.py
+    │       ├── not_equal.py
+    │       ├── required_together.py
+    │       └── requires.py
     ├── definitions/
     │   ├── __init__.py
     │   ├── base.py
@@ -64,6 +76,11 @@ confflow/
             ├── local_time.py
             ├── offset_date_time.py
             └── string.py
+├── loader/
+│   └── __init__.py
+├── py.typed
+└── renderer/
+    └── __init__.py
 ```
 
 ## How the package fits together
@@ -72,8 +89,9 @@ confflow/
 - `core/schemas/base.py` defines the common `Schema` interface: a name, optional description, optional-entry flag, and `validate(value)` method.
 - `core/schemas/scalars/` describes individual Boolean, string, number, and date/time entries. Each scalar delegates value checks to a matching type in `core/definitions/`.
 - `core/definitions/` defines individual value types and applies their constraints; `numbers/` and `date_time/` group the numeric and date/time definitions.
-- `core/constraints/` contains reusable value checks such as literal value sets, ranges, string length and patterns, and the float not-NaN constraint.
+- `core/constraints/definition/` contains reusable value checks such as literal value sets, ranges, string length and patterns, and the float not-NaN constraint. `core/constraints/table/` contains constraints for relationships between table entries.
 - `core/schemas/arrays/` validates lists, including typed items, nested arrays, and tables. `mapping.py` validates mapping keys and values; `table.py` combines named schemas into a table and checks required entries.
 - `core/types.py` contains shared value types; `py.typed` marks the package as typed. Small validation checks live directly in the classes that use them.
+- `loader/` and `renderer/` are currently package placeholders with only `__init__.py` files.
 
 Validation starts with a schema's `validate(value)` method. A table validates each named entry, and scalar or collection schemas then validate the corresponding value. This snapshot describes the current package only, not an entire configuration-loading pipeline.

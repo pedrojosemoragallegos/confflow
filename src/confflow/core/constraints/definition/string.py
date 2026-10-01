@@ -5,7 +5,7 @@ from typing import Final
 
 from typing_extensions import override
 
-from confflow.core.constraints import Constraint
+from confflow.core.constraints.definition import Constraint
 
 
 class Length(Constraint[str]):
