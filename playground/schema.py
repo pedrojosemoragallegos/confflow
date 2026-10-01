@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import re
 from datetime import UTC, date, datetime, time
 from pathlib import Path
+from typing import Final
 
 from tomlkit import dumps
 
+from confflow.core.constraints.base import Constraint
 from confflow.core.schemas import (
     Boolean,
     BooleanArray,
@@ -22,37 +25,51 @@ from confflow.core.schemas import (
     TableArray,
 )
 
+
+class Email(Constraint[str]):
+    __slots__ = ()
+
+    NAME: Final[str] = "email"
+
+    def __call__(self, value: str, /) -> None:
+        if re.fullmatch(pattern=r"[^@\s]+@[^@\s]+\.[^@\s]+", string=value) is None:
+            raise ValueError("value is not a valid email address")
+
+
 schema = Table(
     "application",
-    schemas=(
-        String("name"),
-        Integer("version"),
-        Boolean("debug"),
-        LocalDate("release_date"),
-        LocalTime("maintenance_time"),
-        LocalDateTime("created_at"),
-        OffsetDateTime("published_at"),
-        StringArray("tags"),
-        BooleanArray("feature_flags"),
-        NestedArray("retry_schedule", array=IntegerArray("retry_window")),
+    "Application configuration",
+    String("name", "Name of the application"),
+    Integer("version", "Version of the application"),
+    String("email", "Email of the application", Email()),
+    Boolean("debug", "Debug mode of the application"),
+    LocalDate("release_date", "Release date of the application"),
+    LocalTime("maintenance_time", "Maintenance time of the application"),
+    LocalDateTime("created_at", "Creation timestamp of the application"),
+    OffsetDateTime("published_at", "Publication timestamp of the application"),
+    StringArray("tags", "Tags associated with the application"),
+    BooleanArray("feature_flags", "Feature flags of the application"),
+    NestedArray(
+        "retry_schedule",
+        "Retry schedule of the application",
+        array=IntegerArray("retry_window", "Retry window of the application"),
+    ),
+    Table(
+        "server",
+        "Server configuration",
+        String("host", "Server host"),
+        Integer("port", "Server port"),
+        Boolean("tls", "Server TLS enabled"),
+    ),
+    Mapping("ports", "Mapping of ports", value=Integer("port", "Port number")),
+    TableArray(
+        "backends",
+        "Backend servers of the application",
         Table(
-            "server",
-            schemas=(
-                String("host"),
-                Integer("port"),
-                Boolean("tls"),
-            ),
-        ),
-        Mapping("ports", value=Integer("port")),
-        TableArray(
-            "backends",
-            table=Table(
-                "backend",
-                schemas=(
-                    String("name"),
-                    String("url"),
-                ),
-            ),
+            "backend",
+            "Backend configuration",
+            String("name", "Backend name", literal=["primary", "replica"]),
+            String("url", "Backend URL"),
         ),
     ),
 )
@@ -61,6 +78,7 @@ schema = Table(
 value_model = {
     "name": "confflow",
     "version": 1,
+    "email": "contact@confflow.io",
     "debug": True,
     "release_date": date(2026, 10, 1),
     "maintenance_time": time(2, 30),

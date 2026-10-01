@@ -1,5 +1,6 @@
 name = "confflow"
 version = 1
+email = "contact@confflow.io"
 debug = true
 release_date = 2026-10-01
 maintenance_time = 02:30:00

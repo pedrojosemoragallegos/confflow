@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 from typing_extensions import override
 
@@ -8,16 +8,19 @@ from confflow.core.definitions import Float as FloatDefinition
 
 from .base import Array
 
+if TYPE_CHECKING:
+    from confflow.core.constraints import Constraint
 
-class Float(Array):
+
+class Float(Array[float]):
     __slots__ = ("__definition",)
 
     def __init__(
         self,
         name: str,
-        description: str | None = None,
+        description: str,
         /,
-        *,
+        *constraints: Constraint[float],
         optional: bool = False,
         minimum: float | None = None,
         maximum: float | None = None,
@@ -25,7 +28,7 @@ class Float(Array):
         super().__init__(name, description, optional=optional)
 
         self.__definition: Final[FloatDefinition] = FloatDefinition(
-            minimum=minimum, maximum=maximum
+            *constraints, minimum=minimum, maximum=maximum
         )
 
     @property
@@ -33,5 +36,5 @@ class Float(Array):
         return self.__definition
 
     @override
-    def _validate_item(self, value: object, /) -> None:
+    def _validate_item(self, value: float, /) -> None:
         self.__definition.validate(value)

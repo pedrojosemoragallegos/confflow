@@ -9,7 +9,7 @@ class Boolean(Scalar[bool]):
     def __init__(
         self,
         name: str,
-        description: str | None = None,
+        description: str,
         /,
         *,
         optional: bool = False,

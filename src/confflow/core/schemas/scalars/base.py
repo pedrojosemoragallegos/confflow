@@ -4,59 +4,56 @@ from typing import TYPE_CHECKING, Final, Generic, TypeVar
 
 from typing_extensions import override
 
-from confflow.core.definitions.exceptions import DefinitionError
 from confflow.core.schemas.base import Schema
-from confflow.core.schemas.exceptions import SchemaError
-from confflow.core.types import Value as ScalarValue
+from confflow.core.types import Value
 
 if TYPE_CHECKING:
     from confflow.core.definitions import Definition
 
-Value = TypeVar(name="Value", bound=ScalarValue)
+ValueT = TypeVar(name="ValueT", bound=Value)
 
 
-class Scalar(Schema, Generic[Value]):
+class Scalar(Schema[ValueT], Generic[ValueT]):
     __slots__ = ("__default", "__definition")
 
     def __init__(
         self,
         name: str,
-        description: str | None,
+        description: str,
         /,
         *,
         optional: bool,
-        definition: Definition[Value],
-        default: Value | None = None,
+        definition: Definition[ValueT],
+        default: ValueT | None = None,
     ) -> None:
         super().__init__(name, description, optional=optional)
 
         if default is not None:
-            try:
-                definition.validate(default)
-            except DefinitionError as error:
-                raise SchemaError(
-                    "field default does not satisfy its definition"
-                ) from error
+            # TODO: own exception
+            definition.validate(default)
 
-        self.__definition: Final[Definition[Value]] = definition
-        self.__default: Final[Value | None] = default
+        self.__definition: Final[Definition[ValueT]] = definition
+        self.__default: Final[ValueT | None] = default
 
     @property
-    def definition(self) -> Definition[Value]:
+    def definition(self) -> Definition[ValueT]:
         return self.__definition
 
     @property
-    def default(self) -> Value | None:
+    def default(self) -> ValueT | None:
         return self.__default
 
     @override
-    def validate(self, value: object, /) -> None:
+    def validate(self, value: ValueT, /) -> None:
         self.__definition.validate(value)
 
     @override
     def __repr__(self) -> str:
         return (
-            f"{type(self).__name__}(name={self.name!r}, "
-            f"description={self.description!r}, optional={self.optional!r}, "
-            f"definition={self.__definition!r}, default={self.__default!r})"
+            f"{type(self).__name__}("
+            f"name={self.name!r}, "
+            f"description={self.description!r}, "
+            f"optional={self.optional!r}, "
+            f"definition={self.__definition!r}, "
+            f"default={self.__default!r})"
         )

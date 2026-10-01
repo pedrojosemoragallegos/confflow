@@ -1,13 +1,17 @@
 from __future__ import annotations
 
 from collections.abc import Mapping as MappingABC
-from typing import Final
+from typing import TYPE_CHECKING, Final, Generic, TypeVar
 
 from typing_extensions import override
 
 from confflow.core.definitions import String as StringDefinition
 from confflow.core.schemas.base import Schema
-from confflow.core.schemas.exceptions import SchemaError
+
+if TYPE_CHECKING:
+    from confflow.core.constraints import Constraint
+
+ValueT = TypeVar(name="ValueT")  # TODO: not bounded to any specific type
 
 
 class Key:
@@ -15,17 +19,20 @@ class Key:
 
     def __init__(
         self,
-        *,
+        *constraints: Constraint[str],
         minimum: int | None = None,
         maximum: int | None = None,
-        length: int | None = None,
         pattern: str | None = None,
     ) -> None:
         self.__definition: Final[StringDefinition] = StringDefinition(
-            minimum=minimum, maximum=maximum, length=length, pattern=pattern
+            *constraints, minimum=minimum, maximum=maximum, pattern=pattern
         )
 
-    def validate(self, value: object, /) -> None:
+    @property
+    def definition(self) -> StringDefinition:
+        return self.__definition
+
+    def validate(self, value: str, /) -> None:
         self.__definition.validate(value)
 
     @override
@@ -33,39 +40,41 @@ class Key:
         return f"{type(self).__name__}(definition={self.__definition!r})"
 
 
-class Mapping(Schema):
+class Mapping(
+    Schema[MappingABC[str, ValueT]],
+    Generic[ValueT],
+):
     __slots__ = ("__key", "__value")
 
     def __init__(
         self,
         name: str,
-        description: str | None = None,
+        description: str,
         /,
         *,
         optional: bool = False,
         key: Key | None = None,
-        value: Schema,
+        value: Schema[ValueT],
     ) -> None:
-        super().__init__(name, description, optional=optional)
+        super().__init__(
+            name,
+            description,
+            optional=optional,
+        )
 
         self.__key: Final[Key] = key or Key()
-        self.__value: Final[Schema] = value
+        self.__value: Final[Schema[ValueT]] = value
 
     @property
     def key(self) -> Key:
         return self.__key
 
     @property
-    def value(self) -> Schema:
+    def value(self) -> Schema[ValueT]:
         return self.__value
 
     @override
-    def validate(self, value: object, /) -> None:
-        super().validate(value)
-
-        if not isinstance(value, MappingABC):
-            raise SchemaError("mapping value must be a mapping")
-
+    def validate(self, value: MappingABC[str, ValueT], /) -> None:
         for key, item in value.items():
             self.__key.validate(key)
             self.__value.validate(item)
@@ -73,7 +82,8 @@ class Mapping(Schema):
     @override
     def __repr__(self) -> str:
         return (
-            f"{type(self).__name__}(name={self.name!r}, "
+            f"{type(self).__name__}("
+            f"name={self.name!r}, "
             f"description={self.description!r}, "
             f"optional={self.optional!r}, "
             f"key={self.__key!r}, "

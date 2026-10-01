@@ -1,26 +1,28 @@
 from __future__ import annotations
 
+from datetime import time
 from typing import TYPE_CHECKING, ClassVar
 
-from confflow.core.constraints.integer import Range
+from confflow.core.constraints.local_time import Range
 from confflow.core.definitions.base import Definition
 
 if TYPE_CHECKING:
     from confflow.core.constraints.base import Constraint
 
 
-class Integer(Definition[int]):
-    VALUE_TYPE: ClassVar[type[int]] = int
+class LocalTime(Definition[time]):
+    VALUE_TYPE: ClassVar[type[time]] = time
 
     def __init__(
         self,
-        *constraints: Constraint[int],
-        minimum: int | None = None,
-        maximum: int | None = None,
+        *constraints: Constraint[time],
+        minimum: time | None = None,
+        maximum: time | None = None,
     ) -> None:
-        constraints: list[Constraint[int]] = list(constraints)
+        constraints: list[Constraint[time]] = list(constraints)
 
-        constraints.append(Range(minimum=minimum, maximum=maximum))
+        if minimum is not None or maximum is not None:
+            constraints.append(Range(minimum=minimum, maximum=maximum))
 
         # Reverse the constraints to maintain the intended order
         super().__init__(*reversed(constraints))

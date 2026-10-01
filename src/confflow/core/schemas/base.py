@@ -1,21 +1,22 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Final
+from re import compile as compile_pattern
+from typing import Final, Generic, TypeVar
 
-from ._validators import validate_name
+ValueT = TypeVar(name="ValueT")  # TODO: not bounded to any specific type
+_NAME_PATTERN = compile_pattern(pattern=r"[A-Za-z0-9_-]+")
 
 
-class Schema(ABC):
+class Schema(ABC, Generic[ValueT]):
     __slots__ = ("__description", "__name", "__optional")
 
-    def __init__(
-        self, name: str, description: str | None, /, *, optional: bool
-    ) -> None:
-        validate_name("entry name", value=name)
+    def __init__(self, name: str, description: str, /, *, optional: bool) -> None:
+        if type(name) is not str or _NAME_PATTERN.fullmatch(string=name) is None:
+            raise ValueError("Name must contain only ASCII letters, digits, '_' or '-'")
 
         self.__name: Final[str] = name
-        self.__description: Final[str | None] = description
+        self.__description: Final[str | None] = description if description else None
         self.__optional: Final[bool] = optional
 
     @property
@@ -30,8 +31,8 @@ class Schema(ABC):
     def optional(self) -> bool:
         return self.__optional
 
-    def validate(self, value: object, /) -> None:  # noqa: ARG002
-        return None
+    @abstractmethod
+    def validate(self, value: ValueT, /) -> None: ...
 
     @abstractmethod
     def __repr__(self) -> str: ...

@@ -1,28 +1,45 @@
 from __future__ import annotations
 
 from datetime import date
+from typing import TYPE_CHECKING
 
+from confflow.core.constraints.literal import Literal
 from confflow.core.definitions import LocalDate as LocalDateDefinition
 
 from .base import Scalar
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from confflow.core.constraints import Constraint
 
 
 class LocalDate(Scalar[date]):
     def __init__(
         self,
         name: str,
-        description: str | None = None,
+        description: str,
         /,
-        *,
+        *constraints: Constraint[date],
         optional: bool = False,
         default: date | None = None,
         minimum: date | None = None,
         maximum: date | None = None,
+        literal: Sequence[date] | None = None,
     ) -> None:
+        literal_constraint: tuple[()] | tuple[Literal[date]] = (
+            () if literal is None else (Literal(*literal),)
+        )
+
         super().__init__(
             name,
             description,
             optional=optional,
-            definition=LocalDateDefinition(minimum=minimum, maximum=maximum),
+            definition=LocalDateDefinition(
+                *constraints,
+                *literal_constraint,
+                minimum=minimum,
+                maximum=maximum,
+            ),
             default=default,
         )
