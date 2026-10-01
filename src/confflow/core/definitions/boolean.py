@@ -14,7 +14,7 @@ class Boolean(Definition[bool]):
     VALUE_TYPE: ClassVar[type[bool]] = bool
 
     @override
-    def validate(self, value: object) -> None:
+    def validate(self, value: object, /) -> None:
         if type(value) is not bool:
             raise DefinitionError("expected a boolean")
 
