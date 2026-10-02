@@ -49,13 +49,7 @@ class Email(StringConstraint):
     __slots__ = ()
 
     def __call__(self, value: str, /) -> None:
-        if (
-            re.fullmatch(
-                pattern=r"[^@\s]+@[^@\s]+\.[^@\s]+",
-                string=value,
-            )
-            is None
-        ):
+        if re.fullmatch(pattern=r"[^@\s]+@[^@\s]+\.[^@\s]+", string=value) is None:
             raise ValueError("value is not a valid email address")
 
 
@@ -379,95 +373,7 @@ def create_config() -> Configuration:
     )
 
 
-value_model = {
-    "name": "confflow",
-    "environment": "production",
-    "contact_email": "service@example.com",
-    "debug": False,
-    "load_factor": 0.5,
-    "release_date": date(2026, 10, 2),
-    "maintenance_time": time(2, 30),
-    "created_at": datetime.fromisoformat("2026-10-02T09:00:00"),
-    "published_at": datetime(2026, 10, 2, 9, 0, tzinfo=UTC),
-    "allowed_hosts": [
-        "example.com",
-        "api.example.com",
-    ],
-    "retry_delays": [
-        0.5,
-        1.0,
-        2.0,
-        5.0,
-    ],
-    "feature_flags": [True, False],
-    "retry_codes": [429, 503],
-    "maintenance_dates": [date(2026, 10, 10)],
-    "quiet_hours": [time(22, 0)],
-    "scheduled_checks": [datetime.fromisoformat("2026-10-03T09:00:00")],
-    "audit_timestamps": [datetime(2026, 10, 3, 9, 0, tzinfo=UTC)],
-    "clusters": [
-        ["node-a", "node-b"],
-        ["node-c", "node-d"],
-    ],
-    "server": {
-        "host": "localhost",
-        "port": 8080,
-        "tls": False,
-        "limits": {
-            "minimum_workers": 2,
-            "maximum_workers": 16,
-        },
-    },
-    "comparison_examples": {
-        "less_than": {"smaller": 1, "larger": 2},
-        "less_than_or_equal": {"lower": 2, "upper": 2},
-        "greater_than": {"larger": 2, "smaller": 1},
-        "greater_than_or_equal": {"left": 2, "right": 2},
-    },
-    "authentication": {
-        "username": "service",
-        "password": "example-secret",
-    },
-    "notifications": {
-        "email": "alerts@example.com",
-    },
-    "storage": {
-        "local_path": "/var/lib/confflow",
-    },
-    "replication": {
-        "primary_protocol": "https",
-        "replica_protocol": "https",
-        "primary_id": "primary",
-        "replica_id": "replica",
-    },
-    "ports": {
-        "http": 80,
-        "https": 443,
-    },
-    "services": {
-        "catalog": {
-            "url": "https://catalog.example.com",
-            "weight": 2,
-        },
-    },
-    "backends": [
-        {
-            "name": "primary",
-            "url": "https://primary.example.com",
-            "timeout": 5.0,
-        },
-        {
-            "name": "replica",
-            "url": "https://replica.example.com",
-            "timeout": 10.0,
-        },
-    ],
-}
-
-
 if __name__ == "__main__":
     OUTPUT: Final[Path] = Path(__file__).parent
-
     CONFIG: Final[Configuration] = create_config()
-
-    config: Final[Path] = CONFIG.template(OUTPUT, parents=True, overwrite=True)
+    TEMPLATE: Final[Path] = CONFIG.template(OUTPUT, parents=True, overwrite=True)
