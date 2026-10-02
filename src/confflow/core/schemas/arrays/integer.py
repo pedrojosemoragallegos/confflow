@@ -9,7 +9,7 @@ from confflow.core.definitions import Integer as IntegerDefinition
 from .base import Array
 
 if TYPE_CHECKING:
-    from confflow.core.constraints import Constraint
+    from confflow.core.definitions.constraints import Constraint
 
 
 class Integer(Array[int]):

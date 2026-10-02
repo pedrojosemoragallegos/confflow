@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, ClassVar
 
+from confflow.core.errors import SchemaError
+
 from .base import Constraint
 
 if TYPE_CHECKING:
@@ -15,10 +17,10 @@ class AtLeastOneOf(Constraint):
 
     def __init__(self, *fields: str) -> None:
         if not fields:
-            raise ValueError("at least one field is required")
+            raise SchemaError("at least one field is required")
 
         if len(set(fields)) != len(fields):
-            raise ValueError("fields must be unique")
+            raise SchemaError("fields must be unique")
 
         self.__fields: tuple[str, ...] = fields
 

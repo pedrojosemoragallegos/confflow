@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Final
 
-from confflow.core.constraints.base import Constraint
+from .base import Constraint
 
 
 class Range(Constraint[int]):

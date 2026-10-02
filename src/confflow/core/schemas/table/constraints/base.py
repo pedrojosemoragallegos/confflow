@@ -12,5 +12,9 @@ class Constraint(ABC):
 
     NAME: ClassVar[str]
 
+    @property
+    @abstractmethod
+    def fields(self) -> tuple[str, ...]: ...
+
     @abstractmethod
     def __call__(self, value: Mapping[str, object], /) -> None: ...

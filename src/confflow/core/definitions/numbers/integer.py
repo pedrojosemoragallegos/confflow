@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, ClassVar
 
-from confflow.core.constraints.integer import Range
 from confflow.core.definitions.base import Definition
+from confflow.core.definitions.constraints.integer import Range
 
 if TYPE_CHECKING:
-    from confflow.core.constraints.base import Constraint
+    from confflow.core.definitions.constraints import Constraint
 
 
 class Integer(Definition[int]):

@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Final, Generic, TypeVar
 
 from typing_extensions import override
 
+from confflow.core.errors import ValidationError
 from confflow.core.schemas.base import Schema
 from confflow.core.types import Value
 
@@ -29,8 +30,11 @@ class Scalar(Schema[ValueT], Generic[ValueT]):
         super().__init__(name, description, optional=optional)
 
         if default is not None:
-            # TODO: own exception
-            definition.validate(default)
+            try:
+                definition.validate(default)
+            except ValidationError as error:
+                error.prepend_path(name)
+                raise
 
         self.__definition: Final[Definition[ValueT]] = definition
         self.__default: Final[ValueT | None] = default

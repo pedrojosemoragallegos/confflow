@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import time
 from typing import Final
 
-from confflow.core.constraints.base import Constraint
+from .base import Constraint
 
 
 class Range(Constraint[time]):

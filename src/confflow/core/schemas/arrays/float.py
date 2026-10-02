@@ -9,7 +9,7 @@ from confflow.core.definitions import Float as FloatDefinition
 from .base import Array
 
 if TYPE_CHECKING:
-    from confflow.core.constraints import Constraint
+    from confflow.core.definitions.constraints import Constraint
 
 
 class Float(Array[float]):

@@ -3,10 +3,11 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, ClassVar, Generic, TypeVar
 
+from confflow.core.errors import ValidationError, constraint_rule
 from confflow.core.types import Value
 
 if TYPE_CHECKING:
-    from confflow.core.constraints import Constraint
+    from confflow.core.definitions.constraints import Constraint
 
 ValueT = TypeVar(name="ValueT", bound=Value)
 
@@ -24,9 +25,18 @@ class Definition(ABC, Generic[ValueT]):
         return self.__constraints
 
     def validate(self, value: ValueT, /) -> None:
-        # TODO: raise error if any constraint fails
         for constraint in self.__constraints:
-            constraint(value)
+            try:
+                constraint(value)
+            except ValidationError:
+                raise
+            except (TypeError, ValueError, RuntimeError) as error:
+                raise ValidationError(
+                    str(error),
+                    value=value,
+                    constraint=constraint.NAME,
+                    expected=constraint_rule(constraint),
+                ) from error
 
     @abstractmethod
     def __repr__(self) -> str: ...

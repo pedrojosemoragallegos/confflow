@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, ClassVar
 
+from confflow.core.errors import SchemaError
+
 from .base import Constraint
 
 if TYPE_CHECKING:
@@ -15,13 +17,13 @@ class Requires(Constraint):
 
     def __init__(self, field: str, *required: str) -> None:
         if not required:
-            raise ValueError("at least one required field is needed")
+            raise SchemaError("at least one required field is needed")
 
         if field in required:
-            raise ValueError("field cannot require itself")
+            raise SchemaError("field cannot require itself")
 
         if len(set(required)) != len(required):
-            raise ValueError("required fields must be unique")
+            raise SchemaError("required fields must be unique")
 
         self.__field: str = field
         self.__required: tuple[str, ...] = required
@@ -33,6 +35,10 @@ class Requires(Constraint):
     @property
     def required(self) -> tuple[str, ...]:
         return self.__required
+
+    @property
+    def fields(self) -> tuple[str, ...]:
+        return (self.__field, *self.__required)
 
     def __call__(self, value: Mapping[str, object], /) -> None:
         if self.__field not in value:

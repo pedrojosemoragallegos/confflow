@@ -6,12 +6,13 @@ from typing import TYPE_CHECKING, Final, Generic, TypeVar
 from typing_extensions import override
 
 from confflow.core.definitions import String as StringDefinition
+from confflow.core.errors import ValidationError
 from confflow.core.schemas.base import Schema
 
 if TYPE_CHECKING:
-    from confflow.core.constraints import Constraint
+    from confflow.core.definitions.constraints import Constraint
 
-ValueT = TypeVar(name="ValueT")  # TODO: not bounded to any specific type
+ValueT = TypeVar(name="ValueT")
 
 
 class Key:
@@ -76,8 +77,31 @@ class Mapping(
     @override
     def validate(self, value: MappingABC[str, ValueT], /) -> None:
         for key, item in value.items():
-            self.__key.validate(key)
-            self.__value.validate(item)
+            try:
+                self.__key.validate(key)
+            except ValidationError as error:
+                error.prepend_path("key")
+                raise
+            except (TypeError, ValueError, RuntimeError) as error:
+                raise ValidationError(
+                    str(error),
+                    path=("key",),
+                    value=key,
+                    expected="mapping key",
+                ) from error
+
+            try:
+                self.__value.validate(item)
+            except ValidationError as error:
+                error.prepend_path(f"[{key!r}]")
+                raise
+            except (TypeError, ValueError, RuntimeError) as error:
+                raise ValidationError(
+                    str(error),
+                    path=(f"[{key!r}]",),
+                    value=item,
+                    expected=type(self.__value).__name__,
+                ) from error
 
     @override
     def __repr__(self) -> str:

@@ -10,7 +10,7 @@ from confflow.core.definitions.date_time import LocalTime as LocalTimeDefinition
 from .base import Array
 
 if TYPE_CHECKING:
-    from confflow.core.constraints import Constraint
+    from confflow.core.definitions.constraints import Constraint
 
 
 class LocalTime(Array[time]):

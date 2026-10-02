@@ -1,4 +1,3 @@
-# TODO: clean toml file since its not aligned to the new structure
 line-length = 88
 target-version = "py311"
 

@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from re import compile as compile_pattern, error as regex_error, fullmatch
+from re import Pattern as RegexPattern, compile as compile_pattern, error as regex_error
 from typing import Final
 
 from typing_extensions import override
 
-from confflow.core.constraints.definition import Constraint
+from confflow.core.definitions.constraints import Constraint
+from confflow.core.errors import SchemaError
 
 
 class Length(Constraint[str]):
@@ -26,52 +27,81 @@ class Length(Constraint[str]):
             ("length", length),
         ):
             if value is not None and (type(value) is not int or value < 0):
-                raise ValueError(f"{label} must be a non-negative integer")
+                raise SchemaError(f"{label} must be a non-negative integer")
 
         if minimum is not None and maximum is not None and minimum > maximum:
-            raise ValueError("string length minimum cannot exceed maximum")
+            raise SchemaError("string length minimum cannot exceed maximum")
 
         if length is not None and (minimum is not None or maximum is not None):
-            # TODO: raise own exception
-            raise ValueError("length cannot be combined with minimum or maximum")
+            raise SchemaError("length cannot be combined with minimum or maximum")
 
         self.__minimum: Final[int | None] = minimum
         self.__maximum: Final[int | None] = maximum
         self.__length: Final[int | None] = length
 
+    @property
+    def minimum(self) -> int | None:
+        return self.__minimum
+
+    @property
+    def maximum(self) -> int | None:
+        return self.__maximum
+
+    @property
+    def length(self) -> int | None:
+        return self.__length
+
     @override
     def __call__(self, value: str, /) -> None:
         if (minimum := self.__minimum) is not None and len(value) < minimum:
-            # TODO: raise own exception
-            raise RuntimeError("string is shorter than the minimum length")
+            raise ValueError("string is shorter than the minimum length")
 
         if (maximum := self.__maximum) is not None and len(value) > maximum:
-            # TODO: raise own exception
-            raise RuntimeError("string exceeds the maximum length")
+            raise ValueError("string exceeds the maximum length")
 
         if (length := self.__length) is not None and len(value) != length:
-            # TODO: raise own exception
-            raise RuntimeError("string does not have the required exact length")
+            raise ValueError("string does not have the required exact length")
 
 
 class Pattern(Constraint[str]):
-    __slots__ = ("__pattern",)
+    __slots__ = ("__compiled", "__flags", "__pattern")
 
     NAME: Final[str] = "pattern"
 
-    def __init__(self, pattern: str) -> None:  # TODO: pattern or regex object
-        try:
-            compile_pattern(pattern)
-        except regex_error as error:
-            # TODO: raise own exception
-            raise ValueError(
-                "string pattern must be a valid regular expression"
-            ) from error
+    def __init__(self, pattern: str | RegexPattern[str]) -> None:
+        if isinstance(pattern, RegexPattern):
+            if not isinstance(pattern.pattern, str):
+                raise SchemaError("string pattern must be a text regular expression")
 
-        self.__pattern: Final[str] = pattern
+            compiled: Final[RegexPattern[str]] = pattern
+            pattern_text: Final[str] = pattern.pattern
+        elif isinstance(pattern, str):
+            try:
+                compiled = compile_pattern(pattern)
+            except regex_error as error:
+                raise SchemaError(
+                    "string pattern must be a valid regular expression"
+                ) from error
+
+            pattern_text = pattern
+        else:
+            raise SchemaError(
+                "pattern must be a string or compiled text regular expression"
+            )
+
+        self.__compiled: Final[RegexPattern[str]] = compiled
+        self.__pattern: Final[str] = pattern_text
+        self.__flags: Final[int] = compiled.flags
+
+    @property
+    def pattern(self) -> str:
+        return self.__pattern
+
+    @property
+    def flags(self) -> int:
+        return self.__flags
 
     @override
     def __call__(self, value: str, /) -> None:
-        if fullmatch(pattern=self.__pattern, string=value) is None:
-            # TODO: raise own exception
-            raise RuntimeError("string does not match the required pattern")
+        if self.__compiled.fullmatch(value) is None:
+            raise ValueError("string does not match the required pattern")

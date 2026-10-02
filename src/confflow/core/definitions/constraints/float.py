@@ -5,7 +5,7 @@ from typing import Final
 
 from typing_extensions import override
 
-from confflow.core.constraints.base import Constraint
+from .base import Constraint
 
 
 class Range(Constraint[float]):

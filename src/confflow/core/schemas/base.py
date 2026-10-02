@@ -4,7 +4,10 @@ from abc import ABC, abstractmethod
 from re import compile as compile_pattern
 from typing import Final, Generic, TypeVar
 
-ValueT = TypeVar(name="ValueT")  # TODO: not bounded to any specific type
+from confflow.core.errors import SchemaError
+
+ValueT = TypeVar(name="ValueT")
+
 _NAME_PATTERN = compile_pattern(pattern=r"[A-Za-z0-9_-]+")
 
 
@@ -13,7 +16,9 @@ class Schema(ABC, Generic[ValueT]):
 
     def __init__(self, name: str, description: str, /, *, optional: bool) -> None:
         if type(name) is not str or _NAME_PATTERN.fullmatch(string=name) is None:
-            raise ValueError("Name must contain only ASCII letters, digits, '_' or '-'")
+            raise SchemaError(
+                "Name must contain only ASCII letters, digits, '_' or '-'"
+            )
 
         self.__name: Final[str] = name
         self.__description: Final[str | None] = description if description else None

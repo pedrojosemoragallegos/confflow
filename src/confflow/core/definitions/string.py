@@ -4,12 +4,12 @@ from typing import TYPE_CHECKING, ClassVar
 
 from typing_extensions import override
 
-from confflow.core.constraints.string import Length, Pattern
+from confflow.core.definitions.constraints.string import Length, Pattern
 
 from .base import Definition
 
 if TYPE_CHECKING:
-    from confflow.core.constraints import Constraint
+    from confflow.core.definitions.constraints import Constraint
 
 
 class String(Definition[str]):

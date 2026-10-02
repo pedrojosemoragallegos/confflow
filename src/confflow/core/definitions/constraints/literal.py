@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from typing import Final, Generic, TypeVar
 
-from confflow.core.constraints.base import Constraint
 from confflow.core.types import Value
+
+from .base import Constraint
 
 ValueT = TypeVar(name="ValueT", bound=Value)
 

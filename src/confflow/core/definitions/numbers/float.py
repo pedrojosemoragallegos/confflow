@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, ClassVar
 
-from confflow.core.constraints.float import NotNaN, Range
 from confflow.core.definitions.base import Definition
+from confflow.core.definitions.constraints.float import NotNaN, Range
 
 if TYPE_CHECKING:
-    from confflow.core.constraints.base import Constraint
+    from confflow.core.definitions.constraints import Constraint
 
 
 class Float(Definition[float]):

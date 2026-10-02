@@ -5,6 +5,7 @@ from typing import Generic, TypeVar
 
 from typing_extensions import override
 
+from confflow.core.errors import ValidationError
 from confflow.core.schemas.base import Schema
 
 ItemT = TypeVar(name="ItemT")
@@ -13,8 +14,19 @@ ItemT = TypeVar(name="ItemT")
 class Array(Schema[list[ItemT]], Generic[ItemT]):
     @override
     def validate(self, value: list[ItemT], /) -> None:
-        for item in value:
-            self._validate_item(item)
+        for index, item in enumerate(iterable=value):
+            try:
+                self._validate_item(item)
+            except ValidationError as error:
+                error.prepend_path(index)
+                raise
+            except (TypeError, ValueError, RuntimeError) as error:
+                raise ValidationError(
+                    str(error),
+                    path=(index,),
+                    value=item,
+                    expected=type(self).__name__,
+                ) from error
 
     @abstractmethod
     def _validate_item(self, value: ItemT, /) -> None: ...

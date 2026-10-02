@@ -3,6 +3,8 @@ from __future__ import annotations
 from operator import eq, ge, gt, le, lt, ne
 from typing import TYPE_CHECKING, ClassVar
 
+from confflow.core.errors import SchemaError
+
 from .base import Constraint
 
 if TYPE_CHECKING:
@@ -31,10 +33,10 @@ class Compare(Constraint):
         /,
     ) -> None:
         if left == right:
-            raise ValueError("fields must be different")
+            raise SchemaError("fields must be different")
 
         if operator not in self.OPERATORS:
-            raise ValueError(f"unsupported comparison operator {operator!r}")
+            raise SchemaError(f"unsupported comparison operator {operator!r}")
 
         self.__left = left
         self.__operator = operator
@@ -51,6 +53,10 @@ class Compare(Constraint):
     @property
     def right(self) -> str:
         return self.__right
+
+    @property
+    def fields(self) -> tuple[str, ...]:
+        return (self.__left, self.__right)
 
     def __call__(self, value: Mapping[str, object], /) -> None:
         if self.__left not in value or self.__right not in value:

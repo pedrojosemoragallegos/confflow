@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from confflow.core.constraints.literal import Literal
+from confflow.core.definitions.constraints.literal import Literal
 from confflow.core.definitions.string import String as StringDefinition
 from confflow.core.schemas.scalars.base import Scalar
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from confflow.core.constraints import Constraint
+    from confflow.core.definitions.constraints import Constraint
 
 
 class String(Scalar[str]):

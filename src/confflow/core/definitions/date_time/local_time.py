@@ -3,11 +3,11 @@ from __future__ import annotations
 from datetime import time
 from typing import TYPE_CHECKING, ClassVar
 
-from confflow.core.constraints.local_time import Range
 from confflow.core.definitions.base import Definition
+from confflow.core.definitions.constraints.local_time import Range
 
 if TYPE_CHECKING:
-    from confflow.core.constraints.base import Constraint
+    from confflow.core.definitions.constraints import Constraint
 
 
 class LocalTime(Definition[time]):
