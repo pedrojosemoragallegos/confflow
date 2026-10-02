@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar
+from json import dumps
+from typing import TYPE_CHECKING
 
 from confflow.core.errors import SchemaError
 
+from ._validation import validate_names
 from .base import Constraint
 
 if TYPE_CHECKING:
@@ -13,12 +15,11 @@ if TYPE_CHECKING:
 class Requires(Constraint):
     __slots__ = ("__field", "__required")
 
-    NAME: ClassVar[str] = "requires"
-
-    def __init__(self, field: str, *required: str) -> None:
+    def __init__(self, field: str, /, *required: str) -> None:
         if not required:
             raise SchemaError("at least one required field is needed")
 
+        validate_names((field, *required))
         if field in required:
             raise SchemaError("field cannot require itself")
 
@@ -50,6 +51,17 @@ class Requires(Constraint):
 
         if missing:
             raise ValueError(f"field {self.__field!r} requires fields {missing!r}")
+
+    def __str__(self) -> str:
+        names = tuple(dumps(field) for field in self.required)
+        match names:
+            case (name,):
+                fields = name
+            case (left, right):
+                fields = f"{left} and {right}"
+            case _:
+                fields = f"{', '.join(names[:-1])}, and {names[-1]}"
+        return f"{dumps(self.field)} requires {fields} to be provided"
 
     def __repr__(self) -> str:
         return (

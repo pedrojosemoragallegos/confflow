@@ -84,10 +84,7 @@ class Mapping(
                 raise
             except (TypeError, ValueError, RuntimeError) as error:
                 raise ValidationError(
-                    str(error),
-                    path=("key",),
-                    value=key,
-                    expected="mapping key",
+                    str(object=error), path=("key",), value=key, expected="mapping key"
                 ) from error
 
             try:
@@ -97,7 +94,7 @@ class Mapping(
                 raise
             except (TypeError, ValueError, RuntimeError) as error:
                 raise ValidationError(
-                    str(error),
+                    str(object=error),
                     path=(f"[{key!r}]",),
                     value=item,
                     expected=type(self.__value).__name__,

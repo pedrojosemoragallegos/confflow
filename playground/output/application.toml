@@ -1,0 +1,169 @@
+# APPLICATION
+# Application configuration
+
+# Enable verbose logging
+# Optional | boolean | false
+verbose = false
+
+# Application configuration
+# Required
+[application]
+# Application name
+# Required | string | "confflow"
+# Length must be between 1 and 64
+name = "confflow"
+# Deployment environment
+# Required | string | "production"
+# Value must be one of "development", "staging", or "production"
+environment = "production"
+# Application contact email
+# Optional | string
+# contact_email =
+# Enable debug mode
+# Required | boolean | false
+debug = false
+# Application release date
+# Required | date | 2026-10-02
+release_date = 2026-10-02
+# Daily maintenance time
+# Required | time | 02:30:00
+maintenance_time = 02:30:00
+# Local creation timestamp
+# Required | local datetime | 2026-10-02T09:00:00
+created_at = 2026-10-02T09:00:00
+# Publication timestamp
+# Required | offset datetime | 2026-10-02T09:00:00Z
+published_at = 2026-10-02T09:00:00Z
+# Hosts accepted by the application
+# Optional | array of string
+# Length must be between 1 and 255
+# allowed_hosts =
+# Retry delays in seconds
+# Optional | array of float
+# Value must be between 0.0 and 60.0
+# retry_delays =
+# Groups of cluster node names
+# Optional | array of array of string
+# clusters =
+# Named service ports
+# Optional | mapping of integer
+# ports =
+
+# HTTP server configuration
+# Required
+[application.server]
+# Server host
+# Required | string | "localhost"
+# Length must be between 1 and 255
+host = "localhost"
+# Server port
+# Required | integer | 8080
+# Value must be between 1 and 65535
+port = 8080
+# Enable TLS
+# Required | boolean | false
+tls = false
+
+# Worker limits
+# Required
+# "minimum_workers" must be <= "maximum_workers" when both are provided
+[application.server.limits]
+# Minimum worker count
+# Required | integer | 2
+# Value must be between 1 and 128
+minimum_workers = 2
+# Maximum worker count
+# Required | integer | 16
+# Value must be between 1 and 128
+maximum_workers = 16
+
+# Authentication configuration
+# Optional
+# "username" requires "password" to be provided
+# At most one of "password" or "token" may be provided
+# "certificate" and "private_key" must be provided together
+# [application.authentication]
+# Authentication username
+# Optional | string
+# username =
+# Authentication password
+# Optional | string
+# Length must be at least 12
+# password =
+# Authentication token
+# Optional | string
+# token =
+# Client certificate
+# Optional | string
+# certificate =
+# Client private key
+# Optional | string
+# private_key =
+
+# Notification delivery
+# Required
+# At least one of "email" or "webhook" must be provided
+[application.notifications]
+# Notification email address
+# Optional | string
+# email =
+# Notification webhook URL
+# Optional | string
+# webhook =
+
+# Storage backend selection
+# Required
+# Exactly one of "local_path" or "bucket" must be provided
+# "region" must be omitted when "local_path" is provided
+[application.storage]
+# Local storage directory
+# Optional | string
+# local_path =
+# Cloud storage bucket
+# Optional | string
+# bucket =
+# Cloud storage region
+# Optional | string
+# region =
+
+# Replication compatibility and identity
+# Required
+# "primary_protocol" and "replica_protocol" must have equal values when provided
+# "primary_id" and "replica_id" must have different values when provided
+[application.replication]
+# Primary replication protocol
+# Required | string
+# primary_protocol =
+# Replica replication protocol
+# Required | string
+# replica_protocol =
+# Primary node identifier
+# Required | string
+# primary_id =
+# Replica node identifier
+# Required | string
+# replica_id =
+
+# Backend server definitions
+# Optional
+# [[application.backends]]
+# Backend role
+# Required | string
+# Value must be one of "primary" or "replica"
+# name =
+# Backend URL
+# Required | string
+# Length must be at least 1
+# url =
+# Request timeout in seconds
+# Optional | float | 5.0
+# Value must be between 0.0 and 60.0
+# timeout = 5.0
+
+# Application monitoring
+# Optional
+# [monitoring]
+# Monitoring endpoint
+# Required | string
+# Length must be at least 1
+# endpoint =

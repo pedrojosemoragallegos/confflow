@@ -1,15 +1,18 @@
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
-from typing import TYPE_CHECKING, Any, Final
+from collections.abc import Mapping
+from typing import Any, Final
 
 from typing_extensions import override
 
-from confflow.core.errors import SchemaError, ValidationError, constraint_rule
+from confflow.core.errors import (
+    SchemaError,
+    ValidationError,
+    constraint_name,
+    constraint_rule,
+)
 from confflow.core.schemas.base import Schema
-
-if TYPE_CHECKING:
-    from confflow.core.schemas.table.constraints import Constraint
+from confflow.core.schemas.table.constraints import Constraint
 
 
 class Table(Schema[Mapping[str, object]]):
@@ -20,28 +23,37 @@ class Table(Schema[Mapping[str, object]]):
         name: str,
         description: str,
         /,
-        *schemas: Schema[Any],
+        *items: Schema[Any] | Constraint,
         optional: bool = False,
-        constraints: Sequence[Constraint] | None = None,
     ) -> None:
         super().__init__(name, description, optional=optional)
 
         names: set[str] = set()
+        schemas: list[Schema[Any]] = []
+        constraints: list[Constraint] = []
 
-        for schema in schemas:
-            if schema.name in names:
-                raise SchemaError(f"duplicate table schema name {schema.name!r}")
+        for item in items:
+            if isinstance(item, Schema):
+                if constraints:
+                    raise SchemaError("table schemas must precede table constraints")
+                if item.name in names:
+                    raise SchemaError(f"duplicate table schema name {item.name!r}")
+                names.add(item.name)
+                schemas.append(item)
+            elif isinstance(item, Constraint):
+                constraints.append(item)
+            else:
+                raise SchemaError("table items must be schemas or table constraints")
 
-            names.add(schema.name)
-
-        table_constraints: tuple[Constraint, ...] = (
-            tuple(constraints) if constraints is not None else ()
-        )
+        table_constraints = tuple(constraints)
 
         for constraint in table_constraints:
+            if any(not isinstance(field, str) for field in constraint.fields):
+                raise SchemaError("table constraint operands must be child names")
+
             if len(set(constraint.fields)) != len(constraint.fields):
                 raise SchemaError(
-                    f"constraint {constraint.NAME!r} contains duplicate "
+                    f"constraint {constraint_name(constraint)!r} contains duplicate "
                     "field references"
                 )
 
@@ -51,11 +63,12 @@ class Table(Schema[Mapping[str, object]]):
 
             if missing:
                 raise SchemaError(
-                    f"constraint {constraint.NAME!r} references unknown table fields "
+                    f"constraint {constraint_name(constraint)!r} references "
+                    "unknown table fields "
                     f"{missing!r}"
                 )
 
-        self.__schemas: Final[tuple[Schema[Any], ...]] = schemas
+        self.__schemas: Final[tuple[Schema[Any], ...]] = tuple(schemas)
         self.__schema_names: Final[frozenset[str]] = frozenset(names)
         self.__constraints: Final[tuple[Constraint, ...]] = table_constraints
 
@@ -118,7 +131,7 @@ class Table(Schema[Mapping[str, object]]):
                 raise ValidationError(
                     str(error),
                     value=constraint_value,
-                    constraint=constraint.NAME,
+                    constraint=constraint_name(constraint),
                     expected=constraint_rule(constraint),
                 ) from error
 

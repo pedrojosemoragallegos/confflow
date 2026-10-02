@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -10,7 +10,8 @@ if TYPE_CHECKING:
 class Constraint(ABC):
     __slots__ = ()
 
-    NAME: ClassVar[str]
+    def __str__(self) -> str:
+        return ""
 
     @property
     @abstractmethod

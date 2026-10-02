@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from typing import Final, Generic, TypeVar
+from typing import Generic, TypeVar
+
+import tomlkit
 
 from confflow.core.types import Value
 
@@ -11,8 +13,6 @@ ValueT = TypeVar(name="ValueT", bound=Value)
 
 class Literal(Constraint[ValueT], Generic[ValueT]):
     __slots__ = ("__values",)
-
-    NAME: Final[str] = "literal"
 
     def __init__(self, *values: ValueT) -> None:
         if not values:
@@ -30,3 +30,18 @@ class Literal(Constraint[ValueT], Generic[ValueT]):
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}(values={self.__values!r})"
+
+    def __str__(self) -> str:
+        values: tuple[str, ...] = tuple(
+            tomlkit.dumps({"value": value}).rstrip("\n").partition(" = ")[2]
+            for value in self.values
+        )
+
+        match values:
+            case (value,):
+                return f"Value must be {value}"
+            case (left, right):
+                choices = f"{left} or {right}"
+            case _:
+                choices = f"{', '.join(values[:-1])}, or {values[-1]}"
+        return f"Value must be one of {choices}"

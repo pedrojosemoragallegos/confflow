@@ -3,6 +3,7 @@ from __future__ import annotations
 from math import isnan
 from typing import Final
 
+import tomlkit
 from typing_extensions import override
 
 from .base import Constraint
@@ -14,8 +15,6 @@ class Float(Constraint[float]):
 
 class Range(Float):
     __slots__ = ("__maximum", "__minimum")
-
-    NAME: Final[str] = "range"
 
     def __init__(
         self, *, minimum: float | None = None, maximum: float | None = None
@@ -50,6 +49,22 @@ class Range(Float):
             raise ValueError("float exceeds the maximum")
 
     @override
+    def __str__(self) -> str:
+        minimum, maximum = (
+            tomlkit.dumps({"value": value}).rstrip("\n").partition(" = ")[2]
+            if value is not None
+            else None
+            for value in (self.minimum, self.maximum)
+        )
+        if minimum is not None and maximum is not None:
+            return f"Value must be between {minimum} and {maximum}"
+        if minimum is not None:
+            return f"Value must be at least {minimum}"
+        if maximum is not None:
+            return f"Value must be at most {maximum}"
+        return ""
+
+    @override
     def __repr__(self) -> str:
         return (
             f"{type(self).__name__}("
@@ -60,8 +75,6 @@ class Range(Float):
 
 class NotNaN(Float):
     __slots__ = ()
-
-    NAME: Final[str] = "not_nan"
 
     @override
     def __call__(self, value: float, /) -> None:

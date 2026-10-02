@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, ClassVar, Generic, TypeVar
 
-from confflow.core.errors import ValidationError, constraint_rule
+from confflow.core.errors import ValidationError, constraint_name, constraint_rule
 from confflow.core.types import Value
 
 if TYPE_CHECKING:
@@ -32,9 +32,9 @@ class Definition(ABC, Generic[ValueT]):
                 raise
             except (TypeError, ValueError, RuntimeError) as error:
                 raise ValidationError(
-                    str(error),
+                    str(object=error),
                     value=value,
-                    constraint=constraint.NAME,
+                    constraint=constraint_name(constraint),
                     expected=constraint_rule(constraint),
                 ) from error
 

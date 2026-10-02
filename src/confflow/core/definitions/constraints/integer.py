@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Final
 
+import tomlkit
+
 from .base import Constraint
 
 
@@ -11,8 +13,6 @@ class Integer(Constraint[int]):
 
 class Range(Integer):
     __slots__ = ("__maximum", "__minimum")
-
-    NAME: Final[str] = "range"
 
     MINIMUM_TOML_INTEGER: Final[int] = -(2**63)
     MAXIMUM_TOML_INTEGER: Final[int] = (2**63) - 1
@@ -65,6 +65,21 @@ class Range(Integer):
 
         if self.__maximum is not None and value > self.__maximum:
             raise ValueError("integer exceeds the maximum")
+
+    def __str__(self) -> str:
+        minimum, maximum = (
+            tomlkit.dumps(data={"value": value}).rstrip("\n").partition(" = ")[2]
+            if value is not None
+            else None
+            for value in (self.minimum, self.maximum)
+        )
+        if minimum is not None and maximum is not None:
+            return f"Value must be between {minimum} and {maximum}"
+        if minimum is not None:
+            return f"Value must be at least {minimum}"
+        if maximum is not None:
+            return f"Value must be at most {maximum}"
+        return ""
 
     def __repr__(self) -> str:
         return (

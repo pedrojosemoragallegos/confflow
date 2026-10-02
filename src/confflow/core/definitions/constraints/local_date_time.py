@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Final
+
+import tomlkit
 
 from .base import Constraint
 
@@ -12,8 +13,6 @@ class LocalDateTime(Constraint[datetime]):
 
 class Range(LocalDateTime):
     __slots__ = ("__maximum", "__minimum")
-
-    NAME: Final[str] = "range"
 
     def __init__(
         self,
@@ -48,6 +47,22 @@ class Range(LocalDateTime):
 
         if self.__maximum is not None and value > self.__maximum:
             raise ValueError("date-time exceeds the maximum")
+
+    def __str__(self) -> str:
+        minimum, maximum = (
+            tomlkit.dumps({"value": value}).rstrip("\n").partition(" = ")[2]
+            if value is not None
+            else None
+            for value in (self.minimum, self.maximum)
+        )
+
+        if minimum is not None and maximum is not None:
+            return f"Value must be between {minimum} and {maximum}"
+        if minimum is not None:
+            return f"Value must be at least {minimum}"
+        if maximum is not None:
+            return f"Value must be at most {maximum}"
+        return ""
 
     def __repr__(self) -> str:
         return (

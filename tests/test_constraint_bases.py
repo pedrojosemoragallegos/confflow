@@ -5,7 +5,7 @@ from __future__ import annotations
 import unittest
 from datetime import UTC, date, datetime, time
 from inspect import isabstract
-from typing import ClassVar, TypeVar, get_args
+from typing import TypeVar, get_args
 
 from typing_extensions import get_original_bases
 
@@ -32,7 +32,7 @@ from confflow.core.definitions.constraints.offset_date_time import (
     Range as OffsetDateTimeRange,
 )
 from confflow.core.definitions.constraints.string import Length, Pattern
-from confflow.core.errors import ValidationError
+from confflow.core.errors import ValidationError, constraint_name
 from confflow.core.schemas import String as StringSchema
 from confflow.core.types import Value
 
@@ -42,8 +42,6 @@ ValueT = TypeVar(name="ValueT", bound=Value)
 class NonEmpty(String):
     __slots__ = ()
 
-    NAME: ClassVar[str] = "non_empty"
-
     def __call__(self, value: str, /) -> None:
         if not value:
             raise ValueError("string must not be empty")
@@ -52,14 +50,30 @@ class NonEmpty(String):
 class Enabled(Boolean):
     __slots__ = ()
 
-    NAME: ClassVar[str] = "enabled"
-
     def __call__(self, value: bool, /) -> None:  # noqa: FBT001
         if not value:
             raise ValueError("value must be enabled")
 
 
 class ConstraintBasesTest(unittest.TestCase):
+    def test_identifiers_come_from_class_names(self) -> None:
+        class HTTPValue(NonEmpty):
+            pass
+
+        for constraint, expected in (
+            (NonEmpty(), "non_empty"),
+            (Enabled(), "enabled"),
+            (HTTPValue(), "http_value"),
+            (IntegerRange(), "range"),
+        ):
+            with self.subTest(expected=expected):
+                self.assertFalse(hasattr(constraint, "NAME"))
+                self.assertEqual(constraint_name(constraint), expected)
+        schema = StringSchema("name", "", HTTPValue())
+        with self.assertRaises(ValidationError) as caught:
+            schema.validate("")
+        self.assertEqual(caught.exception.constraint, "http_value")
+
     def test_bases_are_abstract_and_specialize_supported_types(self) -> None:
         for base, value_type, module in (
             (Boolean, bool, "boolean"),
@@ -144,3 +158,52 @@ class ConstraintBasesTest(unittest.TestCase):
         constraint("production")
         with self.assertRaises(ValueError):
             constraint("unknown")
+
+    def test_human_readable_strings_are_separate_from_repr(self) -> None:
+        cases = (
+            (Length(minimum=1, maximum=64), "Length must be between 1 and 64"),
+            (Length(length=3), "Length must be exactly 3"),
+            (Length(minimum=1), "Length must be at least 1"),
+            (Length(maximum=64), "Length must be at most 64"),
+            (Length(), ""),
+            (Pattern("[a-z]+"), 'Value must match the pattern "[a-z]+"'),
+            (
+                IntegerRange(minimum=1, maximum=65535),
+                "Value must be between 1 and 65535",
+            ),
+            (IntegerRange(), ""),
+            (FloatRange(minimum=0.0), "Value must be at least 0.0"),
+            (NotNaN(), ""),
+            (
+                LocalDateRange(minimum=date(2026, 1, 1)),
+                "Value must be at least 2026-01-01",
+            ),
+            (LocalTimeRange(maximum=time(2, 30)), "Value must be at most 02:30:00"),
+            (
+                LocalDateTimeRange(
+                    minimum=datetime.fromisoformat("2026-01-01T09:00:00")
+                ),
+                "Value must be at least 2026-01-01T09:00:00",
+            ),
+            (
+                OffsetDateTimeRange(maximum=datetime(2026, 1, 1, tzinfo=UTC)),
+                "Value must be at most 2026-01-01T00:00:00Z",
+            ),
+            (
+                Literal("development", "production"),
+                'Value must be one of "development" or "production"',
+            ),
+            (
+                Literal("development", "staging", "production"),
+                'Value must be one of "development", "staging", or "production"',
+            ),
+            (Literal("production"), 'Value must be "production"'),
+            (Literal(True, False), "Value must be one of true or false"),  # noqa: FBT003
+            (NonEmpty(), ""),
+        )
+        for constraint, expected in cases:
+            with self.subTest(constraint=type(constraint).__name__):
+                self.assertEqual(str(constraint), expected)
+        constraint = IntegerRange(minimum=1, maximum=4)
+        self.assertEqual(repr(constraint), "Range(minimum=1, maximum=4)")
+        self.assertEqual(repr(Literal("a", "b")), "Literal(values=('a', 'b'))")

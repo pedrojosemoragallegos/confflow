@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import re
 from datetime import UTC, date, datetime, time
-from typing import Final
+from pathlib import Path
 
+import tomlkit
+
+from confflow import Config
 from confflow.core.definitions.constraints import String as StringConstraint
 from confflow.core.schemas import (
     Boolean,
@@ -22,8 +25,13 @@ from confflow.core.schemas import (
     TableArray,
 )
 from confflow.core.schemas.table.constraints import (
+    AtLeastOneOf,
     AtMostOneOf,
-    Compare,
+    Equal,
+    ExactlyOneOf,
+    Forbids,
+    LessThanOrEqual,
+    NotEqual,
     RequiredTogether,
     Requires,
 )
@@ -31,8 +39,6 @@ from confflow.core.schemas.table.constraints import (
 
 class Email(StringConstraint):
     __slots__ = ()
-
-    NAME: Final[str] = "email"
 
     def __call__(self, value: str, /) -> None:
         if (
@@ -156,12 +162,9 @@ schema = Table(
                 maximum=128,
                 default=16,
             ),
-            constraints=(
-                Compare(
-                    "minimum_workers",
-                    "<=",
-                    "maximum_workers",
-                ),
+            LessThanOrEqual(
+                "minimum_workers",
+                "maximum_workers",
             ),
         ),
     ),
@@ -194,12 +197,36 @@ schema = Table(
             "Client private key",
             optional=True,
         ),
+        Requires("username", "password"),
+        AtMostOneOf("password", "token"),
+        RequiredTogether("certificate", "private_key"),
         optional=True,
-        constraints=(
-            Requires("username", "password"),
-            AtMostOneOf("password", "token"),
-            RequiredTogether("certificate", "private_key"),
-        ),
+    ),
+    Table(
+        "notifications",
+        "Notification delivery",
+        String("email", "Notification email address", optional=True),
+        String("webhook", "Notification webhook URL", optional=True),
+        AtLeastOneOf("email", "webhook"),
+    ),
+    Table(
+        "storage",
+        "Storage backend selection",
+        String("local_path", "Local storage directory", optional=True),
+        String("bucket", "Cloud storage bucket", optional=True),
+        String("region", "Cloud storage region", optional=True),
+        ExactlyOneOf("local_path", "bucket"),
+        Forbids("local_path", "region"),
+    ),
+    Table(
+        "replication",
+        "Replication compatibility and identity",
+        String("primary_protocol", "Primary replication protocol"),
+        String("replica_protocol", "Replica replication protocol"),
+        String("primary_id", "Primary node identifier"),
+        String("replica_id", "Replica node identifier"),
+        Equal("primary_protocol", "replica_protocol"),
+        NotEqual("primary_id", "replica_id"),
     ),
     Mapping(
         "ports",
@@ -242,9 +269,30 @@ schema = Table(
 )
 
 
+monitoring = Table(
+    "monitoring",
+    "Application monitoring",
+    String(
+        "endpoint",
+        "Monitoring endpoint",
+        minimum=1,
+    ),
+    optional=True,
+)
+
+config = Config(
+    "Application",
+    "Application configuration",
+    schema,
+    monitoring,
+    Boolean("verbose", "Enable verbose logging", optional=True, default=False),
+)
+
+
 value_model = {
     "name": "confflow",
     "environment": "production",
+    "contact_email": "service@example.com",
     "debug": False,
     "release_date": date(2026, 10, 2),
     "maintenance_time": time(2, 30),
@@ -277,6 +325,18 @@ value_model = {
         "username": "service",
         "password": "example-secret",
     },
+    "notifications": {
+        "email": "alerts@example.com",
+    },
+    "storage": {
+        "local_path": "/var/lib/confflow",
+    },
+    "replication": {
+        "primary_protocol": "https",
+        "replica_protocol": "https",
+        "primary_id": "primary",
+        "replica_id": "replica",
+    },
     "ports": {
         "http": 80,
         "https": 443,
@@ -296,5 +356,23 @@ value_model = {
 }
 
 
-schema.validate(value_model)
-print(f"Validated {schema.name!r} configuration.")
+output = Path(__file__).parent / "output"
+template = config.template(output / "application.toml", parents=True, overwrite=True)
+
+print(f"Template written to {template}")
+print(template.read_text(encoding="utf-8"))
+
+source = output / "production.toml"
+
+source.write_text(
+    tomlkit.dumps(
+        {
+            "application": value_model,
+            "monitoring": {"endpoint": "https://monitoring.example.com"},
+            "verbose": True,
+        }
+    ),
+    encoding="utf-8",
+)
+loaded = config.load(source)
+print(f"Loaded and validated {config.name!r} from {source}: {loaded}")

@@ -3,6 +3,7 @@ from __future__ import annotations
 from re import Pattern as RegexPattern, compile as compile_pattern, error as regex_error
 from typing import Final
 
+import tomlkit
 from typing_extensions import override
 
 from confflow.core.errors import SchemaError
@@ -16,8 +17,6 @@ class String(Constraint[str]):
 
 class Length(String):
     __slots__ = ("__length", "__maximum", "__minimum")
-
-    NAME: Final[str] = "length"
 
     def __init__(
         self,
@@ -57,6 +56,19 @@ class Length(String):
         return self.__length
 
     @override
+    def __str__(self) -> str:
+        if self.length is not None:
+            return f"Length must be exactly {self.length}"
+
+        if self.minimum is not None and self.maximum is not None:
+            return f"Length must be between {self.minimum} and {self.maximum}"
+        if self.minimum is not None:
+            return f"Length must be at least {self.minimum}"
+        if self.maximum is not None:
+            return f"Length must be at most {self.maximum}"
+        return ""
+
+    @override
     def __call__(self, value: str, /) -> None:
         if (minimum := self.__minimum) is not None and len(value) < minimum:
             raise ValueError("string is shorter than the minimum length")
@@ -70,8 +82,6 @@ class Length(String):
 
 class Pattern(String):
     __slots__ = ("__compiled", "__flags", "__pattern")
-
-    NAME: Final[str] = "pattern"
 
     def __init__(self, pattern: str | RegexPattern[str]) -> None:
         if isinstance(pattern, RegexPattern):
@@ -105,6 +115,14 @@ class Pattern(String):
     @property
     def flags(self) -> int:
         return self.__flags
+
+    @override
+    def __str__(self) -> str:
+        pattern: str = (
+            tomlkit.dumps({"value": self.pattern}).rstrip("\n").partition(" = ")[2]
+        )
+
+        return f"Value must match the pattern {pattern}"
 
     @override
     def __call__(self, value: str, /) -> None:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from re import sub
 from typing import Final, TypeAlias
 
 _PathPart: TypeAlias = str | int
@@ -99,8 +100,14 @@ class ValidationError(ValueError):
         return f"{path}: {message}"
 
 
+def constraint_name(constraint: object, /) -> str:
+    name = type(constraint).__name__.strip("_")
+    name = sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", name)
+    return sub(r"([a-z0-9])([A-Z])", r"\1_\2", name).lower()
+
+
 def constraint_rule(constraint: object, /) -> str:
-    name: object = getattr(constraint, "NAME", type(constraint).__name__.lower())
+    name = constraint_name(constraint)
     if hasattr(constraint, "minimum") or hasattr(constraint, "maximum"):
         bounds: tuple[str, ...] = tuple(
             f"{field}={value!r}"
@@ -114,7 +121,7 @@ def constraint_rule(constraint: object, /) -> str:
     class_name: str = type(constraint).__name__
     prefix: str = f"{class_name}("
 
-    if isinstance(name, str) and representation.startswith(prefix):
+    if representation.startswith(prefix):
         return f"{name}{representation[len(class_name) :]}"
 
-    return str(name)
+    return name

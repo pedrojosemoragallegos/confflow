@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar
+from json import dumps
+from typing import TYPE_CHECKING
 
-from confflow.core.errors import SchemaError
-
+from ._validation import validate_fields
 from .base import Constraint
 
 if TYPE_CHECKING:
@@ -13,14 +13,8 @@ if TYPE_CHECKING:
 class ExactlyOneOf(Constraint):
     __slots__ = ("__fields",)
 
-    NAME: ClassVar[str] = "exactly_one_of"
-
     def __init__(self, *fields: str) -> None:
-        if len(fields) < 2:
-            raise SchemaError("at least two fields are required")
-
-        if len(set(fields)) != len(fields):
-            raise SchemaError("fields must be unique")
+        validate_fields(fields)
 
         self.__fields: tuple[str, ...] = fields
 
@@ -31,6 +25,15 @@ class ExactlyOneOf(Constraint):
     def __call__(self, value: Mapping[str, object], /) -> None:
         if sum(field in value for field in self.__fields) != 1:
             raise ValueError(f"exactly one of {self.__fields!r} must be provided")
+
+    def __str__(self) -> str:
+        names = tuple(dumps(field) for field in self.fields)
+        match names:
+            case (left, right):
+                fields = f"{left} or {right}"
+            case _:
+                fields = f"{', '.join(names[:-1])}, or {names[-1]}"
+        return f"Exactly one of {fields} must be provided"
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}(fields={self.__fields!r})"

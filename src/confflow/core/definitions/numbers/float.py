@@ -23,12 +23,7 @@ class Float(Definition[float]):
         constraints.append(NotNaN())
 
         if minimum is not None or maximum is not None:
-            constraints.append(
-                Range(
-                    minimum=minimum,
-                    maximum=maximum,
-                )
-            )
+            constraints.append(Range(minimum=minimum, maximum=maximum))
 
         # Reverse the constraints to maintain the intended order
         super().__init__(*list(reversed(constraints)))
