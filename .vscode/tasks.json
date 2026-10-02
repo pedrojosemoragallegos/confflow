@@ -1,0 +1,15 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run playground example",
+			"type": "shell",
+			"command": "/Users/pedrojose/Development/confflow/.venv/bin/python",
+			"args": [
+				"playground/example.py"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		}
+	]
+}

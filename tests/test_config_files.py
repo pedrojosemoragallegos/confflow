@@ -52,7 +52,128 @@ if TYPE_CHECKING:
 
 
 class ConfigFilesTest(unittest.TestCase):
-    def test_optional_subtrees_and_required_array_samples_parse(self) -> None:
+    def test_assignment_presence_and_spacing(self) -> None:
+        fields = (
+            Integer("required_value", "", default=0),
+            String("required_blank", ""),
+            Boolean("optional_value", "", default=False, optional=True),
+            String("optional_blank", "", optional=True),
+        )
+        config = Config(
+            "Application",
+            "Description",
+            *fields,
+            Table("settings", "Settings", *fields),
+            TableArray("items", "Items", Table("item", "", *fields), optional=True),
+            Table("disabled", "Disabled", *fields, optional=True),
+        )
+        assignments = (
+            "# Required | integer | 0\nrequired_value = 0\n"
+            "# Required | string\nrequired_blank =\n"
+            "# Optional | boolean | false\noptional_value = false\n"
+            "# Optional | string\noptional_blank ="
+        )
+        with TemporaryDirectory() as directory:
+            text = config.template(directory).read_text(encoding="utf-8")
+        self.assertEqual(text.count(assignments), 3)
+        self.assertIn(assignments + "\n\n# Settings", text)
+        self.assertIn("[settings]\n" + assignments, text)
+        commented_assignments = "\n".join(
+            f"# {line}" for line in assignments.splitlines()
+        )
+        self.assertIn(
+            "# [[items]]\n" + commented_assignments + "\n# --- </copy block> ---", text
+        )
+        self.assertIn("# --- </copy block> ---\n\n# Disabled", text)
+        self.assertIn("[disabled]\n" + assignments, text)
+        self.assertIn(
+            "# Optional | repeatable | items\n"
+            "# Copy the block below to add an entry:\n"
+            "# --- <copy block> ---",
+            text,
+        )
+        self.assertNotIn("\n\n\n", text)
+
+    def test_repeatable_sample_exact_format(self) -> None:
+        item = Table(
+            "backend",
+            "Backend",
+            String("name", "Backend role", literal=["primary", "replica"]),
+            String("url", "Backend URL", minimum=1),
+            Float(
+                "timeout",
+                "Request timeout in seconds",
+                default=5.0,
+                minimum=0.0,
+                maximum=60.0,
+                optional=True,
+            ),
+        )
+        for optional in (True, False):
+            config = Config(
+                "Application",
+                "Description",
+                Table(
+                    "application",
+                    "",
+                    TableArray(
+                        "backends",
+                        "Backend server definitions",
+                        item,
+                        optional=optional,
+                    ),
+                ),
+            )
+            with TemporaryDirectory() as directory:
+                text = config.template(directory).read_text(encoding="utf-8")
+                requirement = "Optional" if optional else "Required"
+                expected = (
+                    "# Backend server definitions\n"
+                    f"# {requirement} | repeatable | backends\n"
+                    "# Copy the block below to add an entry:\n"
+                    "# --- <copy block> ---\n"
+                    "# [[application.backends]]\n"
+                    "# # Backend role\n# # Required | string\n"
+                    '# # Value must be one of "primary" or "replica"\n# name =\n'
+                    "# # Backend URL\n# # Required | string\n"
+                    "# # Length must be at least 1\n# url =\n"
+                    "# # Request timeout in seconds\n# # Optional | float | 5.0\n"
+                    "# # Value must be between 0.0 and 60.0\n# timeout = 5.0\n"
+                    "# --- </copy block> ---\n"
+                )
+                self.assertTrue(text.endswith(expected))
+                self.assertEqual(text.count("# --- <copy block>"), 1)
+                self.assertEqual(text.count("# --- </copy block> ---"), 1)
+                self.assertEqual(tomllib.loads(text), {"application": {}})
+                block = text.split("# --- <copy block> ---\n", 1)[1].split(
+                    "# --- </copy block> ---", 1
+                )[0]
+                uncommented = (
+                    "\n".join(line.removeprefix("# ") for line in block.splitlines())
+                    + "\n"
+                )
+                self.assertIn("# Backend role\n# Required | string\n", uncommented)
+                completed = uncommented.replace(
+                    "name =\n", 'name = "primary"\n'
+                ).replace("url =\n", 'url = "https://example.com"\n')
+                self.assertEqual(
+                    tomllib.loads(completed),
+                    {
+                        "application": {
+                            "backends": [
+                                {
+                                    "name": "primary",
+                                    "url": "https://example.com",
+                                    "timeout": 5.0,
+                                }
+                            ]
+                        }
+                    },
+                )
+                config.validate(tomllib.loads(completed))
+                self.assertNotIn("\n\n\n", text)
+
+    def test_repeatable_samples_are_commented_in_optional_subtrees(self) -> None:
         item = Table(
             "item",
             "Sample",
@@ -90,36 +211,31 @@ class ConfigFilesTest(unittest.TestCase):
         )
         with TemporaryDirectory() as directory:
             text = config.template(directory).read_text(encoding="utf-8")
-            self.assertEqual(
-                tomllib.loads(text),
-                {
-                    "active": [
-                        {
-                            "timeout": 5.0,
-                            "limits": {"workers": 2},
-                            "children": [{"label": "child"}],
-                        }
-                    ]
-                },
-            )
             for header in (
-                "[[active]]",
-                "[[active.children]]",
+                "# [[active]]",
+                "# # [[active.children]]",
                 "# [[inactive]]",
-                "# [[inactive.children]]",
-                "# [monitoring]",
-                "# [monitoring.nested]",
+                "# # [[inactive.children]]",
+                "[monitoring]",
+                "[monitoring.nested]",
                 "# [[monitoring.samples]]",
             ):
                 self.assertEqual(text.splitlines().count(header), 1)
-            self.assertIn("# timeout = 5.0", text)
-            self.assertIn("# enabled = false", text)
-            self.assertIn("# port = 80", text)
-            self.assertIn("# [active.extra]", text)
-            self.assertIn("# name =", text)
-            self.assertIn("# ports =", text)
-            self.assertIn("# labels =", text)
-            self.assertNotIn("# #", text)
+            self.assertEqual(text.splitlines().count("# timeout = 5.0"), 3)
+            self.assertEqual(text.splitlines().count("# [active.limits]"), 1)
+            self.assertEqual(text.splitlines().count("# workers = 2"), 3)
+            self.assertEqual(text.splitlines().count('# # label = "child"'), 3)
+            self.assertEqual(text.count("# --- <copy block>"), 6)
+            self.assertEqual(text.count("# --- </copy block> ---"), 6)
+            self.assertIn("\nenabled = false\n", text)
+            self.assertIn("\nport = 80\n", text)
+            self.assertIn("\n# [active.extra]\n", text)
+            self.assertEqual(text.splitlines().count("# enabled = true"), 3)
+            self.assertEqual(text.splitlines().count("# name ="), 3)
+            self.assertIn("\nports =\n", text)
+            self.assertIn("\nlabels =\n", text)
+            self.assertIn("timeout = 5.0\n\n# # Limits", text)
+            self.assertIn("# [active.limits]\n# # Workers", text)
             self.assertNotIn("\n\n\n", text)
 
     def test_custom_constraints_are_hidden_by_default(self) -> None:
@@ -153,7 +269,7 @@ class ConfigFilesTest(unittest.TestCase):
                 text,
                 "# APPLICATION\n# Description\n\n"
                 "# Server\n# Required\n[server]\n"
-                "# Name\n# Required | string\n# name =\n",
+                "# Name\n# Required | string\nname =\n",
             )
 
     def test_identity_uses_schema_name_rules(self) -> None:
@@ -250,8 +366,8 @@ class ConfigFilesTest(unittest.TestCase):
             "# Worker limits\n# Required\n[server.limits]\n"
             "# Worker count\n"
             "# Required | integer\n"
-            "# workers =\n\n"
-            "# Monitoring settings\n# Optional\n# [monitoring]\n"
+            "workers =\n\n"
+            "# Monitoring settings\n# Optional\n[monitoring]\n"
         )
         with TemporaryDirectory() as directory:
             path = config.template(directory)
@@ -260,14 +376,15 @@ class ConfigFilesTest(unittest.TestCase):
             self.assertNotIn("\n\n\n", text)
             self.assertNotIn("#", text.splitlines())
             self.assertEqual(
-                tomllib.loads(text),
+                tomllib.loads(text.replace("workers =\n", "workers = 2\n")),
                 {
                     "name": "example",
                     "debug": False,
-                    "server": {"port": 8080, "limits": {}},
+                    "server": {"port": 8080, "limits": {"workers": 2}},
+                    "monitoring": {},
                 },
             )
-            with self.assertRaises(ValidationError):
+            with self.assertRaises(tomllib.TOMLDecodeError):
                 config.load(path)
             self.assertEqual(config.schemas[0].name, "server")
 
@@ -333,7 +450,7 @@ class ConfigFilesTest(unittest.TestCase):
         )
         with TemporaryDirectory() as directory:
             text = config.template(directory).read_text(encoding="utf-8")
-            self.assertIn("# Contact\n# Optional | string\n# email =", text)
+            self.assertIn("# Contact\n# Optional | string\nemail =", text)
             self.assertIn(
                 '# Value must match the pattern "[A-Z]+"\n# Length must be exactly 3',
                 text,
@@ -341,15 +458,15 @@ class ConfigFilesTest(unittest.TestCase):
             self.assertIn("# Required | array of array of integer", text)
             self.assertIn(
                 "# Authentication\n# Optional\n"
-                '# "username" requires "password" to be provided\n'
-                '# "token" must be omitted when "password" is provided\n'
+                '# When "username" is provided, "password" must also be provided\n'
+                '# When "password" is provided, "token" must be omitted\n'
                 '# At least one of "password" or "token" must be provided\n'
                 '# At most one of "password" or "token" may be provided\n'
                 '# Exactly one of "password" or "token" must be provided\n'
-                '# "username" and "password" must be provided together\n'
-                '# "username" and "password" must have equal values when provided\n'
-                '# "password" and "token" must have different values when provided\n'
-                "# [auth]",
+                '# When either "username" or "password" is provided, both must be provided\n'
+                '# When both "username" and "password" are provided, they must be equal\n'
+                '# When both "password" and "token" are provided, they must be different\n'
+                "[auth]",
                 text,
             )
             for forbidden in ("type:", "constraints:", "default:", "fields=(", "None"):
@@ -359,11 +476,11 @@ class ConfigFilesTest(unittest.TestCase):
     def test_collection_and_table_constraint_metadata(self) -> None:
         self.assertEqual(
             str(RequiredTogether("certificate", "private_key")),
-            '"certificate" and "private_key" must be provided together',
+            'When either "certificate" or "private_key" is provided, both must be provided',
         )
         self.assertEqual(
             str(RequiredTogether("first", "second", "third")),
-            '"first", "second", and "third" must be provided together',
+            'When any of "first", "second", or "third" is provided, all of them must be provided',
         )
         config = Config(
             "Application",
@@ -386,13 +503,15 @@ class ConfigFilesTest(unittest.TestCase):
         )
         with TemporaryDirectory() as directory:
             text = config.template(directory).read_text(encoding="utf-8")
-            self.assertIn("\n# ports =\n", text)
-            self.assertIn("\n# labels =\n", text)
+            self.assertIn("\nports =\n", text)
+            self.assertIn("\nlabels =\n", text)
             self.assertIn("\n# [[backends]]\n", text)
             self.assertIn("\n# [backends.limits]\n", text)
-            self.assertLess(text.index("\n# ports ="), text.index("\n# [[backends]]"))
+            self.assertIn("\n# count =\n", text)
+            self.assertLess(text.index("\nports ="), text.index("\n# [[backends]]"))
             self.assertIn(
-                '# Required\n# "low" must be <= "high" when both are provided', text
+                '# Required\n# When both "low" and "high" are provided, "low" must be <= "high"',
+                text,
             )
             self.assertIn(
                 "# Required | array of integer\n# Value must be at least 1", text
@@ -447,18 +566,20 @@ class ConfigFilesTest(unittest.TestCase):
         with TemporaryDirectory() as directory:
             text = config.template(directory).read_text(encoding="utf-8")
             self.assertIn(
-                "# Name\n# Required | string\n# Use a service identifier\n# name =",
+                "# Name\n# Required | string\n# Use a service identifier\nname =",
                 text,
             )
-            self.assertIn("# Names\n# Required | array of string\n# names =", text)
+            self.assertIn("# Names\n# Required | array of string\nnames =", text)
             self.assertIn(
                 "# Limits\n# Required\n"
                 "# Keep the lower bound below the upper bound\n[limits]",
                 text,
             )
             self.assertIn(
-                "# Backends\n# Required\n"
-                "# Keep the lower bound below the upper bound\n[[backends]]",
+                "# Backends\n# Required | repeatable | backends\n"
+                "# Copy the block below to add an entry:\n"
+                "# --- <copy block> ---\n# [[backends]]\n"
+                "# # Keep the lower bound below the upper bound",
                 text,
             )
             for unwanted in (

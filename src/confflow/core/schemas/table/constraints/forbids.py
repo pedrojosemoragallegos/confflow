@@ -54,7 +54,7 @@ class Forbids(Constraint):
                 fields = f"{left} and {right}"
             case _:
                 fields = f"{', '.join(names[:-1])}, and {names[-1]}"
-        return f"{fields} must be omitted when {dumps(self.field)} is provided"
+        return f"When {dumps(self.field)} is provided, {fields} must be omitted"
 
     def __repr__(self) -> str:
         return (

@@ -26,5 +26,6 @@ class GreaterThanOrEqual(Comparision):
 
     def __str__(self) -> str:
         return (
-            f"{dumps(self.left)} must be >= {dumps(self.right)} when both are provided"
+            f"When both {dumps(self.left)} and {dumps(self.right)} are provided, "
+            f"{dumps(self.left)} must be >= {dumps(self.right)}"
         )

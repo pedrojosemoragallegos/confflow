@@ -61,7 +61,7 @@ class Requires(Constraint):
                 fields = f"{left} and {right}"
             case _:
                 fields = f"{', '.join(names[:-1])}, and {names[-1]}"
-        return f"{dumps(self.field)} requires {fields} to be provided"
+        return f"When {dumps(self.field)} is provided, {fields} must also be provided"
 
     def __repr__(self) -> str:
         return (

@@ -40,7 +40,7 @@ class Equal(Constraint):
                 fields = f"{left} and {right}"
             case _:
                 fields = f"{', '.join(names[:-1])}, and {names[-1]}"
-        return f"{fields} must have equal values when provided"
+        return f"When both {fields} are provided, they must be equal"
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}(fields={self.__fields!r})"

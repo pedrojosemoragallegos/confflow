@@ -42,10 +42,14 @@ class RequiredTogether(Constraint):
         names = tuple(dumps(field) for field in self.fields)
         match names:
             case (left, right):
-                fields = f"{left} and {right}"
+                return (
+                    f"When either {left} or {right} is provided, both must be provided"
+                )
             case _:
-                fields = f"{', '.join(names[:-1])}, and {names[-1]}"
-        return f"{fields} must be provided together"
+                fields = f"{', '.join(names[:-1])}, or {names[-1]}"
+                return (
+                    f"When any of {fields} is provided, all of them must be provided"
+                )
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}(fields={self.__fields!r})"

@@ -31,13 +31,17 @@ def _comment(text: str) -> str:
     return "\n".join(f"# {line}" for line in text.split("\n"))
 
 
-def _metadata(schema: Schema[Any]) -> str:
+def _metadata(schema: Schema[Any], *, constraints: bool = True) -> str:
     parts = ["Optional" if schema.optional else "Required"]
-    if not isinstance(schema, (Table, TableArray)):
+    if isinstance(schema, TableArray):
+        parts.extend(("repeatable", schema.name))
+    elif not isinstance(schema, Table):
         parts.append(_type_name(schema))
     if isinstance(schema, Scalar) and schema.default is not None:
         parts.append(_toml_value(schema.default))
     lines = [" | ".join(parts)]
+    if not constraints:
+        return _comment("\n".join(lines))
     if isinstance(schema, (Table, TableArray)):
         table = schema.table if isinstance(schema, TableArray) else schema
         lines.extend(text for item in table.constraints if (text := str(item)))
@@ -87,8 +91,6 @@ def _toml_assignment(name: str, value: object) -> str:
 def _render_schemas(
     schemas: tuple[Schema[Any], ...],
     path: tuple[str, ...] = (),
-    *,
-    commented: bool = False,
 ) -> list[str]:
     fields = [
         schema for schema in schemas if not isinstance(schema, (Table, TableArray))
@@ -99,25 +101,47 @@ def _render_schemas(
         lines = []
         if schema.description:
             lines.append(_comment(schema.description))
-        lines.append(_metadata(schema))
-        if isinstance(schema, (Table, TableArray)):
-            section_commented = commented or schema.optional
+        lines.append(_metadata(schema, constraints=not isinstance(schema, TableArray)))
+        if isinstance(schema, TableArray):
+            child_path = (*path, schema.name)
+            sample = [
+                f"[[{'.'.join(child_path)}]]",
+            ]
+            sample.extend(
+                _comment(text)
+                for constraint in schema.table.constraints
+                if (text := str(constraint))
+            )
+            children = _render_schemas(schema.table.schemas, child_path)
+            if children:
+                sample.append("\n".join(children))
+            content = "\n".join(
+                f"# {line}" if line else "" for line in "\n".join(sample).split("\n")
+            )
+            sections.append(
+                "\n"
+                + "\n".join(lines)
+                + "\n# Copy the block below to add an entry:\n"
+                + "# --- <copy block> ---\n"
+                + content
+                + "\n# --- </copy block> ---"
+            )
+        elif isinstance(schema, Table):
             child_path = (*path, schema.name)
             name = ".".join(child_path)
-            header = f"[[{name}]]" if isinstance(schema, TableArray) else f"[{name}]"
-            lines.append(_comment(header) if section_commented else header)
+            header = f"[{name}]"
+            lines.append(header)
             sections.append("\n" + "\n".join(lines))
-            table = schema.table if isinstance(schema, TableArray) else schema
-            sections.extend(
-                _render_schemas(table.schemas, child_path, commented=section_commented)
+            children = _render_schemas(
+                schema.schemas,
+                child_path,
             )
+            sections.extend(children)
         else:
             if isinstance(schema, Scalar) and schema.default is not None:
                 assignment = _toml_assignment(schema.name, schema.default)
-                if commented:
-                    assignment = _comment(assignment)
             else:
-                assignment = _comment(f"{schema.name} =")
+                assignment = f"{schema.name} ="
             lines.append(assignment)
             sections.append("\n".join(lines))
     return sections

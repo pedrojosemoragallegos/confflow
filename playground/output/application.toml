@@ -18,7 +18,7 @@ name = "confflow"
 environment = "production"
 # Application contact email
 # Optional | string
-# contact_email =
+contact_email =
 # Enable debug mode
 # Required | boolean | false
 debug = false
@@ -37,17 +37,17 @@ published_at = 2026-10-02T09:00:00Z
 # Hosts accepted by the application
 # Optional | array of string
 # Length must be between 1 and 255
-# allowed_hosts =
+allowed_hosts =
 # Retry delays in seconds
 # Optional | array of float
 # Value must be between 0.0 and 60.0
-# retry_delays =
+retry_delays =
 # Groups of cluster node names
 # Optional | array of array of string
-# clusters =
+clusters =
 # Named service ports
 # Optional | mapping of integer
-# ports =
+ports =
 
 # HTTP server configuration
 # Required
@@ -66,7 +66,7 @@ tls = false
 
 # Worker limits
 # Required
-# "minimum_workers" must be <= "maximum_workers" when both are provided
+# If both are provided, "minimum_workers" must be <= "maximum_workers"
 [application.server.limits]
 # Minimum worker count
 # Required | integer | 2
@@ -79,26 +79,26 @@ maximum_workers = 16
 
 # Authentication configuration
 # Optional
-# "username" requires "password" to be provided
+# When "username" is provided, "password" must also be provided
 # At most one of "password" or "token" may be provided
-# "certificate" and "private_key" must be provided together
-# [application.authentication]
+# When either "certificate" or "private_key" is provided, both must be provided
+[application.authentication]
 # Authentication username
 # Optional | string
-# username =
+username =
 # Authentication password
 # Optional | string
 # Length must be at least 12
-# password =
+password =
 # Authentication token
 # Optional | string
-# token =
+token =
 # Client certificate
 # Optional | string
-# certificate =
+certificate =
 # Client private key
 # Optional | string
-# private_key =
+private_key =
 
 # Notification delivery
 # Required
@@ -106,10 +106,10 @@ maximum_workers = 16
 [application.notifications]
 # Notification email address
 # Optional | string
-# email =
+email =
 # Notification webhook URL
 # Optional | string
-# webhook =
+webhook =
 
 # Storage backend selection
 # Required
@@ -118,13 +118,13 @@ maximum_workers = 16
 [application.storage]
 # Local storage directory
 # Optional | string
-# local_path =
+local_path =
 # Cloud storage bucket
 # Optional | string
-# bucket =
+bucket =
 # Cloud storage region
 # Optional | string
-# region =
+region =
 
 # Replication compatibility and identity
 # Required
@@ -133,37 +133,40 @@ maximum_workers = 16
 [application.replication]
 # Primary replication protocol
 # Required | string
-# primary_protocol =
+primary_protocol =
 # Replica replication protocol
 # Required | string
-# replica_protocol =
+replica_protocol =
 # Primary node identifier
 # Required | string
-# primary_id =
+primary_id =
 # Replica node identifier
 # Required | string
-# replica_id =
+replica_id =
 
 # Backend server definitions
-# Optional
+# Optional | repeatable | backends
+# Copy the block below to add an entry:
+# --- <copy block> ---
 # [[application.backends]]
-# Backend role
-# Required | string
-# Value must be one of "primary" or "replica"
+# # Backend role
+# # Required | string
+# # Value must be one of "primary" or "replica"
 # name =
-# Backend URL
-# Required | string
-# Length must be at least 1
+# # Backend URL
+# # Required | string
+# # Length must be at least 1
 # url =
-# Request timeout in seconds
-# Optional | float | 5.0
-# Value must be between 0.0 and 60.0
+# # Request timeout in seconds
+# # Optional | float | 5.0
+# # Value must be between 0.0 and 60.0
 # timeout = 5.0
+# --- </copy block> ---
 
 # Application monitoring
 # Optional
-# [monitoring]
+[monitoring]
 # Monitoring endpoint
 # Required | string
 # Length must be at least 1
-# endpoint =
+endpoint =

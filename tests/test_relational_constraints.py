@@ -196,7 +196,10 @@ class RelationalConstraintTest(unittest.TestCase):
         self.assertEqual(compare.fields, ("a", "b"))
         compare({"a": 0, "b": 1})
         self.assertEqual(repr(compare), "LessThan(left='a', right='b')")
-        self.assertEqual(str(compare), '"a" must be < "b" when both are provided')
+        self.assertEqual(
+            str(compare),
+            'When both "a" and "b" are provided, "a" must be < "b"',
+        )
         forbidden = Forbids("a", "b")
         self.assertEqual(forbidden.field, "a")
         self.assertEqual(forbidden.forbidden, ("b",))

@@ -153,7 +153,7 @@ descriptions are stored as `None`, matching schemas.
 - `validate(value: Mapping[str, object], /) -> None` delegates to the existing
   table validator without root-level constraints.
 - `template(destination: str | Path, *, overwrite=False, parents=False) -> Path`
-  writes a parseable TOML template with commented documentation and missing-value
+  writes a semi-valid TOML template with commented documentation and missing-value
   examples. After `Path` normalization, only
   existing directories are directory destinations: they receive
   `<config-name-lowercase>.toml`. Every other destination is the exact file path,
@@ -190,16 +190,31 @@ port = 8080
 Loose fields precede table sections, preserving order within each group, both at
 the root and inside tables. Nested tables use dotted headers such as
 `[server.limits]`. Table arrays are also table sections and use
-`[[backends]]`. Every field without a schema default has a commented blank
-assignment, such as `# port =`, including arrays and mappings (not active empty
-collections). Fields with concrete defaults have active assignments, unless
-inside an optional table or table array: those entire subtrees, including headers,
-defaults, and nested content, are commented out. Documentation is not
-double-commented. Required table headers remain active. Each required table array
-has exactly one active sample block; optional table arrays have exactly one
-commented sample block. Users duplicate the block for additional items.
-Templates are valid TOML immediately, but can still fail schema validation until
-required values and table relationships are supplied. Loading never inserts
+`[[backends]]`. All fields without a concrete default have active blank
+assignments, such as `port =` or `contact_email =`, regardless of optionality.
+This includes arrays and mappings (not active empty collections). Fields with
+concrete defaults have active assignments, including inside optional ordinary
+tables. All table headers remain active, including optional and nested tables.
+Optional/Required is informational metadata in templates, not a commenting rule;
+runtime presence validation remains unchanged.
+Documentation is not double-commented. Every table array,
+required or optional, has exactly one commented sample block, with metadata
+`Required | repeatable | <field-name>` or
+`Optional | repeatable | <field-name>`. The frame uses exactly
+`# --- <copy block> ---` and `# --- </copy block> ---`, with the instruction
+`# Copy the block below to add an entry:` immediately before the opening marker.
+The content between the markers has one extra `# ` layer: headers and assignments
+are commented once, while documentation is commented twice. Remove one layer to
+activate the sample while preserving its documentation comments. Nested repeatable
+blocks retain their own comment layer until individually uncommented.
+No blank lines separate fields, including inside samples. One blank line separates
+tables/table sections. No blank line separates repeatable metadata from its
+opening copy-block marker.
+Users copy, uncomment one layer, fill in missing values, and duplicate the block
+for additional items.
+Templates containing active blank assignments are intentionally semi-valid:
+fill in those assignments before parsing TOML. Templates can still fail schema validation
+until required values and table relationships are supplied. Loading never inserts
 missing defaults. Defaults are rendered
 with the existing `tomlkit` dependency as TOML values, not Python representations.
 Descriptions are omitted when absent, except for the config header's description
