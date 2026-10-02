@@ -17,7 +17,7 @@ class Table(Array[Mapping[str, object]]):
     def __init__(
         self,
         name: str,
-        description: str,
+        description: str | None,
         table: TableSchema,
         /,
         *,

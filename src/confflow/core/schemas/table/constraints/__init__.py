@@ -2,7 +2,7 @@
 
 Operands are child names, never schema objects or paths. Presence means key
 membership, not truthiness: False, zero and empty values are still present.
-Config composes schemas but does not accept relational constraints.
+Configuration composes schemas but does not accept relational constraints.
 """
 
 from .at_least_one_of import AtLeastOneOf

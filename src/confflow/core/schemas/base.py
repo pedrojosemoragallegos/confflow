@@ -14,7 +14,9 @@ _NAME_PATTERN = compile_pattern(pattern=r"[A-Za-z0-9_-]+")
 class Schema(ABC, Generic[ValueT]):
     __slots__ = ("__description", "__name", "__optional")
 
-    def __init__(self, name: str, description: str, /, *, optional: bool) -> None:
+    def __init__(
+        self, name: str, description: str | None, /, *, optional: bool
+    ) -> None:
         if type(name) is not str or _NAME_PATTERN.fullmatch(string=name) is None:
             raise SchemaError(
                 "Name must contain only ASCII letters, digits, '_' or '-'"

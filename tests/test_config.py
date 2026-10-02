@@ -8,7 +8,7 @@ from inspect import signature
 from typing import TYPE_CHECKING, Any, cast
 
 import confflow
-from confflow import Config
+from confflow import Configuration
 from confflow.core.definitions.constraints.string import Length
 from confflow.core.errors import SchemaError, ValidationError
 from confflow.core.schemas import Integer, String, Table
@@ -25,7 +25,7 @@ class ConfigTest(unittest.TestCase):
         application = Table("application", "", String("name", ""))
         monitoring = Table("monitoring", "", String("endpoint", ""))
         workers = Integer("workers", "")
-        config = Config(
+        config = Configuration(
             "Application", "Application configuration", application, monitoring, workers
         )
         self.assertEqual(config.name, "Application")
@@ -41,7 +41,12 @@ class ConfigTest(unittest.TestCase):
 
     def test_duplicate_top_level_names_rejected(self) -> None:
         with self.assertRaisesRegex(SchemaError, "duplicate table schema name"):
-            Config("Application", "", Integer("workers", ""), String("workers", ""))
+            Configuration(
+                "Application",
+                "",
+                Integer("workers", ""),
+                String("workers", ""),
+            )
 
     def test_required_top_level_entries(self) -> None:
         for schema in (Integer("required", ""), Table("required", "")):
@@ -49,12 +54,12 @@ class ConfigTest(unittest.TestCase):
                 self.subTest(schema=type(schema).__name__),
                 self.assertRaises(ValidationError) as caught,
             ):
-                Config("Application", "", schema).validate({})
+                Configuration("Application", "", schema).validate({})
             self.assertEqual(caught.exception.path, ("required",))
             self.assertEqual(caught.exception.expected, "required field")
 
     def test_optional_top_level_entries_may_be_omitted(self) -> None:
-        config = Config(
+        config = Configuration(
             "Application",
             "",
             Integer("workers", "", optional=True),
@@ -64,7 +69,7 @@ class ConfigTest(unittest.TestCase):
         config.validate({"workers": 0, "monitoring": {}})
 
     def test_child_validation_propagates_with_path(self) -> None:
-        config = Config("Application", "", Integer("workers", "", minimum=1))
+        config = Configuration("Application", "", Integer("workers", "", minimum=1))
         with self.assertRaises(ValidationError) as caught:
             config.validate({"workers": 0})
         self.assertEqual(caught.exception.path, ("workers",))
@@ -72,7 +77,7 @@ class ConfigTest(unittest.TestCase):
         self.assertEqual(caught.exception.constraint, "range")
 
     def test_nested_tables_validate_normally(self) -> None:
-        config = Config(
+        config = Configuration(
             "Application",
             "",
             Table("server", "", Table("limits", "", Integer("workers", ""))),
@@ -97,7 +102,12 @@ class ConfigTest(unittest.TestCase):
             Integer("maximum", ""),
             LessThanOrEqual("minimum", "maximum"),
         )
-        config = Config("Application", "", authentication, Table("server", "", limits))
+        config = Configuration(
+            "Application",
+            "",
+            authentication,
+            Table("server", "", limits),
+        )
         config.validate(
             {
                 "authentication": {"username": "service", "password": "secret"},
@@ -124,7 +134,7 @@ class ConfigTest(unittest.TestCase):
         self.assertEqual(caught.exception.constraint, "less_than_or_equal")
 
     def test_field_constraints_are_preserved(self) -> None:
-        config = Config(
+        config = Configuration(
             "Application",
             "",
             Table("application", "", String("name", "", Length(minimum=1))),
@@ -138,26 +148,26 @@ class ConfigTest(unittest.TestCase):
 
     def test_unknown_top_level_entries_rejected(self) -> None:
         with self.assertRaises(ValidationError) as caught:
-            Config("Application", "").validate({"unknown": 1})
+            Configuration("Application", "").validate({"unknown": 1})
         self.assertEqual(caught.exception.path, ("unknown",))
         self.assertEqual(caught.exception.expected, "declared table field")
 
     def test_invalid_root_value_and_schema(self) -> None:
         with self.assertRaises(ValidationError) as caught:
-            Config("Application", "").validate(cast("Mapping[str, object]", []))
+            Configuration("Application", "").validate(cast("Mapping[str, object]", []))
         self.assertEqual(caught.exception.expected, "configuration mapping")
         with self.assertRaises(SchemaError):
-            Config("Application", "", cast("Schema[Any]", object()))
+            Configuration("Application", "", cast("Schema[Any]", object()))
 
     def test_empty_configuration(self) -> None:
-        config = Config("Application", "")
+        config = Configuration("Application", "")
         self.assertEqual(config.schemas, ())
         config.validate({})
 
     def test_no_global_constraint_api(self) -> None:
-        self.assertNotIn("constraints", signature(Config).parameters)
-        self.assertFalse(hasattr(Config("Application", ""), "constraints"))
-        constructor = cast("Callable[..., Config]", Config)
+        self.assertNotIn("constraints", signature(Configuration).parameters)
+        self.assertFalse(hasattr(Configuration("Application", ""), "constraints"))
+        constructor = cast("Callable[..., Configuration]", Configuration)
         with self.assertRaises(TypeError):
             constructor("Application", "", constraints=[])
         self.assertIsNone(find_spec("confflow.constraints"))

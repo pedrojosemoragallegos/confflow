@@ -21,7 +21,7 @@ class Table(Schema[Mapping[str, object]]):
     def __init__(
         self,
         name: str,
-        description: str,
+        description: str | None,
         /,
         *items: Schema[Any] | Constraint,
         optional: bool = False,

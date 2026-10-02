@@ -16,7 +16,7 @@ class String(Scalar[str]):
     def __init__(
         self,
         name: str,
-        description: str,
+        description: str | None,
         /,
         *constraints: Constraint[str],
         optional: bool = False,

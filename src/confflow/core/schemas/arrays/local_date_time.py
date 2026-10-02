@@ -19,7 +19,7 @@ class LocalDateTime(Array[datetime]):
     def __init__(
         self,
         name: str,
-        description: str,
+        description: str | None,
         /,
         *constraints: Constraint[datetime],
         optional: bool = False,

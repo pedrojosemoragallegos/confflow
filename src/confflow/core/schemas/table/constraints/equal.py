@@ -37,10 +37,10 @@ class Equal(Constraint):
         names = tuple(dumps(field) for field in self.fields)
         match names:
             case (left, right):
-                fields = f"{left} and {right}"
+                return f"{left} == {right}"
             case _:
                 fields = f"{', '.join(names[:-1])}, and {names[-1]}"
-        return f"When both {fields} are provided, they must be equal"
+                return f"Values for {fields} must be equal"
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}(fields={self.__fields!r})"

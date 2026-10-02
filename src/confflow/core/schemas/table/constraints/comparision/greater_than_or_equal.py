@@ -25,7 +25,4 @@ class GreaterThanOrEqual(Comparision):
             raise ValueError(f"field {self.left!r} must be >= field {self.right!r}")
 
     def __str__(self) -> str:
-        return (
-            f"When both {dumps(self.left)} and {dumps(self.right)} are provided, "
-            f"{dumps(self.left)} must be >= {dumps(self.right)}"
-        )
+        return f"{dumps(self.left)} must be >= {dumps(self.right)}"

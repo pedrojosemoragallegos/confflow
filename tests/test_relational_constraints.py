@@ -9,7 +9,7 @@ from inspect import isabstract, signature
 from itertools import product
 from typing import cast
 
-from confflow import Config
+from confflow import Configuration
 from confflow.core.errors import SchemaError, ValidationError, constraint_name
 from confflow.core.schemas import Boolean, Integer, String, StringArray, Table
 from confflow.core.schemas.table.constraints import (
@@ -176,7 +176,7 @@ class RelationalConstraintTest(unittest.TestCase):
         schema = Table("t", "", Integer("a", ""), Integer("b", ""), custom)
         schema.validate({"a": 1, "b": 1})
         with self.assertRaises(ValidationError) as caught:
-            Config("Application", "", schema).validate({"t": {"a": 1, "b": 2}})
+            Configuration("Application", "", schema).validate({"t": {"a": 1, "b": 2}})
         self.assertEqual(custom.calls, 2)
         self.assertEqual(caught.exception.path, ("t",))
         self.assertEqual(caught.exception.constraint, "custom_table_constraint")
@@ -198,11 +198,32 @@ class RelationalConstraintTest(unittest.TestCase):
         self.assertEqual(repr(compare), "LessThan(left='a', right='b')")
         self.assertEqual(
             str(compare),
-            'When both "a" and "b" are provided, "a" must be < "b"',
+            '"a" must be < "b"',
         )
         forbidden = Forbids("a", "b")
         self.assertEqual(forbidden.field, "a")
         self.assertEqual(forbidden.forbidden, ("b",))
+
+    def test_at_least_one_of_describes_multiple_fields(self) -> None:
+        self.assertEqual(
+            str(AtLeastOneOf("email", "webhook")),
+            'Either "email" or "webhook" must be provided; both may be provided',
+        )
+        self.assertEqual(
+            str(AtLeastOneOf("email", "webhook", "sms")),
+            'Either "email", "webhook", or "sms" must be provided; '
+            "any combination may be provided",
+        )
+
+    def test_at_most_one_of_describes_pair_and_group(self) -> None:
+        self.assertEqual(
+            str(AtMostOneOf("password", "token")),
+            'Either "password" or "token" may be provided, but not both',
+        )
+        self.assertEqual(
+            str(AtMostOneOf("email", "webhook", "sms")),
+            'At most one of "email", "webhook", or "sms" may be provided',
+        )
 
     def test_comparision_base_and_normal_subclassing(self) -> None:
         self.assertTrue(isabstract(Comparision))

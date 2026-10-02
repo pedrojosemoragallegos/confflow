@@ -30,10 +30,10 @@ class ExactlyOneOf(Constraint):
         names = tuple(dumps(field) for field in self.fields)
         match names:
             case (left, right):
-                fields = f"{left} or {right}"
+                return f"Either {left} or {right}, but not both, must be provided"
             case _:
                 fields = f"{', '.join(names[:-1])}, or {names[-1]}"
-        return f"Exactly one of {fields} must be provided"
+                return f"Exactly one of {fields} must be provided"
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}(fields={self.__fields!r})"

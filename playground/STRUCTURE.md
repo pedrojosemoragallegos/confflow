@@ -145,7 +145,7 @@ operations. `render.py` owns pure template text generation through
 `render_template(name, description, schemas) -> str`, including metadata, TOML
 values, ordering, and spacing. It performs no file operations or validation.
 
-The package root exports `Config(name, description, /, *schemas)`. A configuration
+The package root exports `Configuration(name, description, /, *schemas)`. A configuration
 has read-only `name`, `description`, and `schemas` properties, and composes both
 loose fields and tables. Names follow the existing schema name rules. Empty
 descriptions are stored as `None`, matching schemas.
@@ -167,11 +167,10 @@ descriptions are stored as `None`, matching schemas.
   errors retain their standard exceptions; value errors use `ValidationError`.
 
 Templates use the following format, with exactly one blank line after the config
-title and description and before each table section, and no blank lines between
-fields or after table headers:
+description and before each table section, and no blank lines between fields or
+after table headers:
 
 ```toml
-# APPLICATION
 # Application configuration
 
 # Application name
@@ -190,25 +189,31 @@ port = 8080
 Loose fields precede table sections, preserving order within each group, both at
 the root and inside tables. Nested tables use dotted headers such as
 `[server.limits]`. Table arrays are also table sections and use
-`[[backends]]`. All fields without a concrete default have active blank
-assignments, such as `port =` or `contact_email =`, regardless of optionality.
-This includes arrays and mappings (not active empty collections). Fields with
+`[[backends]]`. All non-table fields without a concrete default have active
+blank assignments, such as `port =` or `contact_email =`, regardless of
+optionality. This includes arrays (not active empty collections). Fields with
 concrete defaults have active assignments, including inside optional ordinary
-tables. All table headers remain active, including optional and nested tables.
+tables. All ordinary table and mapping headers remain active, including optional
+and nested tables.
 Optional/Required is informational metadata in templates, not a commenting rule;
 runtime presence validation remains unchanged.
-Documentation is not double-commented. Every table array,
-required or optional, has exactly one commented sample block, with metadata
-`Required | repeatable | <field-name>` or
-`Optional | repeatable | <field-name>`. The frame uses exactly
+Documentation is not double-commented. Every table array and mapping,
+required or optional, has exactly one commented sample block. Table arrays
+include metadata
+`Required | list` or `Optional | list`. The frame uses exactly
 `# --- <copy block> ---` and `# --- </copy block> ---`, with the instruction
 `# Copy the block below to add an entry:` immediately before the opening marker.
-The content between the markers has one extra `# ` layer: headers and assignments
-are commented once, while documentation is commented twice. Remove one layer to
-activate the sample while preserving its documentation comments. Nested repeatable
+Mapping sections show one scalar key assignment or one keyed table with its
+fields, depending on the mapped value schema. Mapping sample blocks use the
+placeholder key `<key>` and the frame
+`# --- <copy this block> ---` / `# --- </copy this block> ---`, without an
+additional copy instruction. The content
+between the markers has one extra `# ` layer: headers and assignments are
+commented once, while documentation is commented twice. Remove one layer to
+activate the sample while preserving its documentation comments. Nested copy
 blocks retain their own comment layer until individually uncommented.
 No blank lines separate fields, including inside samples. One blank line separates
-tables/table sections. No blank line separates repeatable metadata from its
+tables/table sections. No blank line separates structure metadata from its
 opening copy-block marker.
 Users copy, uncomment one layer, fill in missing values, and duplicate the block
 for additional items.
@@ -221,14 +226,15 @@ Descriptions are omitted when absent, except for the config header's description
 line. Every description/metadata line is commented, including multiline text.
 
 Metadata uses `Required | type | value` (omitting absent defaults), with
-human-facing type names such as `string`, `boolean`, `local datetime`, and
-`array of string`. Each visible constraint occupies a separate comment line.
+human-facing type names such as `string`, `boolean`, `local datetime`,
+`list of string`, and `mapping`. Each visible constraint occupies a separate
+comment line.
 Field constraints use sentences such as `Length must be between 1 and 64`,
 `Value must be at least 1`, and `Value must be one of "development" or "production"`.
 Patterns use `Value must match the pattern "[A-Z]+"`. Unbounded ranges and lengths
 have no template text. Table rules use
-sentences with quoted names, such as `"low" must be <= "high" when both are
-provided`, `"username" requires "password" to be provided`, and
+sentences with quoted names, such as `"low" must be <= "high"`,
+`"username" requires "password" to be provided`, and
 `At most one of "password" or "token" may be provided`.
 Constraint `__str__` methods provide all human-readable template text; the renderer
 uses `str(constraint)` and skips empty strings entirely, without placeholder comment
@@ -238,13 +244,17 @@ opt in to visible metadata by overriding `__str__`. Parameterized built-in
 constraints supply readable text; `NotNaN` and the playground's `Email` keep the
 empty base representation and do not appear in templates. `__repr__` remains
 separate developer/debug output and is never used for template rendering.
-Richer examples for nested arrays or
-dynamic mappings, and custom human-readable constraint documentation, would need
-an explicit metadata design before expanding this format. No global constraints,
-cross-table validation, merging, or runtime fallback behavior are provided.
+Richer examples for nested arrays and custom human-readable constraint
+documentation would need an explicit metadata design before expanding this
+format. No global constraints, cross-table validation, merging, or runtime
+fallback behavior are provided.
 
-`example.py` demonstrates generating a template and loading a separate, populated
-TOML file in `output/`, alongside field and table-local constraints.
-Notification delivery demonstrates `AtLeastOneOf`; storage selection demonstrates
-`ExactlyOneOf` and `Forbids`; replication demonstrates `Equal` and `NotEqual`.
-These complement the authentication and worker-limit constraint examples.
+`example.py` demonstrates every exported scalar and array schema, scalar- and
+table-valued mappings, and table arrays, then generates a template and loads a
+separate populated TOML file in `output/`. Its table constraints cover presence
+rules (`Requires`, `Forbids`, `RequiredTogether`, `AtLeastOneOf`, `AtMostOneOf`,
+and `ExactlyOneOf`), equality rules (`Equal` and `NotEqual`), and all four
+ordered comparisons (`LessThan`, `LessThanOrEqual`, `GreaterThan`, and
+`GreaterThanOrEqual`). Each ordered comparison has its own operand pair in the
+`comparison_examples` section so the examples show distinct rules without
+stacking redundant constraints on the same fields.

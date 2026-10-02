@@ -11,10 +11,12 @@ from confflow.core.schemas.base import Schema
 from confflow.render import render_template
 
 
-class Config:
+class Configuration:
     __slots__ = ("__root",)
 
-    def __init__(self, name: str, description: str, /, *schemas: Schema[Any]) -> None:
+    def __init__(
+        self, name: str, description: str | None, /, *schemas: Schema[Any]
+    ) -> None:
         if any(not isinstance(schema, Schema) for schema in schemas):
             raise SchemaError("root schemas must be Schema objects")
         self.__root: Final[Table] = Table(name, description, *schemas)
@@ -42,7 +44,12 @@ class Config:
         self.__root.validate(value)
 
     def template(
-        self, destination: str | Path, *, overwrite: bool = False, parents: bool = False
+        self,
+        destination: str | Path,
+        /,
+        *,
+        overwrite: bool = False,
+        parents: bool = False,
     ) -> Path:
         destination = Path(destination)
         if destination.is_dir():

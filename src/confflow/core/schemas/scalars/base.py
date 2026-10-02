@@ -20,7 +20,7 @@ class Scalar(Schema[ValueT], Generic[ValueT]):
     def __init__(
         self,
         name: str,
-        description: str,
+        description: str | None,
         /,
         *,
         optional: bool,

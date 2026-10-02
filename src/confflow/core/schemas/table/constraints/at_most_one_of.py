@@ -30,7 +30,7 @@ class AtMostOneOf(Constraint):
         names = tuple(dumps(field) for field in self.fields)
         match names:
             case (left, right):
-                return f"At most one of {left} or {right} may be provided"
+                return f"Either {left} or {right} may be provided, but not both"
             case _:
                 fields = f"{', '.join(names[:-1])}, or {names[-1]}"
                 return f"At most one of {fields} may be provided"

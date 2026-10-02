@@ -9,7 +9,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING, Any, cast
 
-from confflow import Config
+from confflow import Configuration
 from confflow.core.definitions.constraints.string import (
     Length,
     String as StringConstraint,
@@ -59,7 +59,7 @@ class ConfigFilesTest(unittest.TestCase):
             Boolean("optional_value", "", default=False, optional=True),
             String("optional_blank", "", optional=True),
         )
-        config = Config(
+        config = Configuration(
             "Application",
             "Description",
             *fields,
@@ -87,7 +87,7 @@ class ConfigFilesTest(unittest.TestCase):
         self.assertIn("# --- </copy block> ---\n\n# Disabled", text)
         self.assertIn("[disabled]\n" + assignments, text)
         self.assertIn(
-            "# Optional | repeatable | items\n"
+            "# Optional | list\n"
             "# Copy the block below to add an entry:\n"
             "# --- <copy block> ---",
             text,
@@ -110,7 +110,7 @@ class ConfigFilesTest(unittest.TestCase):
             ),
         )
         for optional in (True, False):
-            config = Config(
+            config = Configuration(
                 "Application",
                 "Description",
                 Table(
@@ -129,7 +129,7 @@ class ConfigFilesTest(unittest.TestCase):
                 requirement = "Optional" if optional else "Required"
                 expected = (
                     "# Backend server definitions\n"
-                    f"# {requirement} | repeatable | backends\n"
+                    f"# {requirement} | list\n"
                     "# Copy the block below to add an entry:\n"
                     "# --- <copy block> ---\n"
                     "# [[application.backends]]\n"
@@ -193,7 +193,7 @@ class ConfigFilesTest(unittest.TestCase):
                 Table("child", "", String("label", "", default="child")),
             ),
         )
-        config = Config(
+        config = Configuration(
             "Application",
             "Description",
             TableArray("active", "Active samples", item),
@@ -227,16 +227,113 @@ class ConfigFilesTest(unittest.TestCase):
             self.assertEqual(text.splitlines().count('# # label = "child"'), 3)
             self.assertEqual(text.count("# --- <copy block>"), 6)
             self.assertEqual(text.count("# --- </copy block> ---"), 6)
+            self.assertEqual(text.count("# --- <copy this block> ---"), 1)
+            self.assertEqual(text.count("# --- </copy this block> ---"), 1)
             self.assertIn("\nenabled = false\n", text)
             self.assertIn("\nport = 80\n", text)
             self.assertIn("\n# [active.extra]\n", text)
             self.assertEqual(text.splitlines().count("# enabled = true"), 3)
             self.assertEqual(text.splitlines().count("# name ="), 3)
             self.assertIn("\nports =\n", text)
-            self.assertIn("\nlabels =\n", text)
+            self.assertIn("\n[labels]\n", text)
+            self.assertIn("\n# <key> =\n", text)
             self.assertIn("timeout = 5.0\n\n# # Limits", text)
             self.assertIn("# [active.limits]\n# # Workers", text)
             self.assertNotIn("\n\n\n", text)
+
+    def test_mapping_samples_for_scalar_and_table_values(self) -> None:
+        config = Configuration(
+            "Application",
+            "Description",
+            Mapping(
+                "ports",
+                "Named service ports",
+                value=Integer("port", "Port number", minimum=1, default=8080),
+            ),
+            Mapping(
+                "backends",
+                "Named backend configurations",
+                value=Table(
+                    "backend",
+                    "Backend configuration",
+                    String("name", "Backend name", default="primary"),
+                    Integer("minimum_workers", "Minimum workers", default=1),
+                    Integer("maximum_workers", "Maximum workers", default=4),
+                    LessThanOrEqual("minimum_workers", "maximum_workers"),
+                ),
+            ),
+        )
+        with TemporaryDirectory() as directory:
+            text = config.template(directory).read_text(encoding="utf-8")
+
+        self.assertIn(
+            "# Named service ports\n"
+            "# Required | mapping\n"
+            "[ports]\n"
+            "# --- <copy this block> ---\n"
+            "# # Port number\n"
+            "# # Required | integer | 8080\n"
+            "# # Value must be at least 1\n"
+            "# <key> = 8080\n"
+            "# --- </copy this block> ---",
+            text,
+        )
+        self.assertIn(
+            "# Named backend configurations\n"
+            "# Required | mapping\n"
+            "[backends]\n"
+            "# --- <copy this block> ---\n"
+            "# # Backend configuration\n"
+            "# # Required\n"
+            '# # "minimum_workers" must be <= "maximum_workers"\n'
+            "# [backends.<key>]\n"
+            "# # Backend name\n"
+            '# # Required | string | "primary"\n'
+            '# name = "primary"\n'
+            "# # Minimum workers\n"
+            "# # Required | integer | 1\n"
+            "# minimum_workers = 1\n"
+            "# # Maximum workers\n"
+            "# # Required | integer | 4\n"
+            "# maximum_workers = 4\n"
+            "# --- </copy this block> ---",
+            text,
+        )
+        self.assertIn(
+            '# "minimum_workers" must be <= "maximum_workers"',
+            text,
+        )
+        self.assertEqual(
+            tomllib.loads(text),
+            {"ports": {}, "backends": {}},
+        )
+
+        uncommented = list(text.splitlines())
+        index = 0
+        while index < len(uncommented):
+            if uncommented[index] != "# --- <copy this block> ---":
+                index += 1
+                continue
+            end = uncommented.index("# --- </copy this block> ---", index + 1)
+            uncommented[index : end + 1] = [
+                line.removeprefix("# ").replace("<key>", "sample")
+                for line in uncommented[index + 1 : end]
+            ]
+        values = tomllib.loads("\n".join(uncommented))
+        self.assertEqual(
+            values,
+            {
+                "ports": {"sample": 8080},
+                "backends": {
+                    "sample": {
+                        "name": "primary",
+                        "minimum_workers": 1,
+                        "maximum_workers": 4,
+                    }
+                },
+            },
+        )
+        config.validate(values)
 
     def test_custom_constraints_are_hidden_by_default(self) -> None:
         class HiddenField(StringConstraint):
@@ -253,7 +350,7 @@ class ConfigFilesTest(unittest.TestCase):
 
         self.assertEqual(str(HiddenField()), "")
         self.assertEqual(str(HiddenTable()), "")
-        config = Config(
+        config = Configuration(
             "Application",
             "Description",
             Table(
@@ -267,7 +364,7 @@ class ConfigFilesTest(unittest.TestCase):
             text = config.template(directory).read_text(encoding="utf-8")
             self.assertEqual(
                 text,
-                "# APPLICATION\n# Description\n\n"
+                "# Description\n\n"
                 "# Server\n# Required\n[server]\n"
                 "# Name\n# Required | string\nname =\n",
             )
@@ -275,8 +372,8 @@ class ConfigFilesTest(unittest.TestCase):
     def test_identity_uses_schema_name_rules(self) -> None:
         for name in ("", "not a name", "../escape"):
             with self.subTest(name=name), self.assertRaises(SchemaError):
-                Config(name, "Description")
-        config = Config("Application", "Application configuration")
+                Configuration(name, "Description")
+        config = Configuration("Application", "Application configuration")
         self.assertEqual(config.name, "Application")
         self.assertEqual(config.description, "Application configuration")
 
@@ -289,14 +386,14 @@ class ConfigFilesTest(unittest.TestCase):
             ((table, field), {"port": 80, "server": {"port": 80}}),
         ):
             with self.subTest(schemas=schemas):
-                config = Config("Application", "Description", *schemas)
+                config = Configuration("Application", "Description", *schemas)
                 self.assertEqual(config.schemas, schemas)
                 config.validate(value)
         with self.assertRaises(SchemaError):
-            Config("Application", "", field, Table("port", ""))
+            Configuration("Application", "", field, Table("port", ""))
 
     def test_destination_types_and_existing_directory(self) -> None:
-        config = Config("Application", "Application configuration")
+        config = Configuration("Application", "Application configuration")
         with TemporaryDirectory() as directory:
             root = Path(directory)
             for destination, expected in (
@@ -312,11 +409,11 @@ class ConfigFilesTest(unittest.TestCase):
                     self.assertEqual(result, expected)
                     self.assertEqual(
                         result.read_text(encoding="utf-8"),
-                        "# APPLICATION\n# Application configuration\n\n",
+                        "# Application configuration\n\n",
                     )
 
     def test_parent_creation(self) -> None:
-        config = Config("Application", "")
+        config = Configuration("Application", "")
         with TemporaryDirectory() as directory:
             destination = Path(directory) / "missing" / "nested" / "prod.toml"
             with self.assertRaises(FileNotFoundError):
@@ -326,7 +423,7 @@ class ConfigFilesTest(unittest.TestCase):
             self.assertTrue(destination.is_file())
 
     def test_overwriting(self) -> None:
-        config = Config("Application", "Description")
+        config = Configuration("Application", "Description")
         with TemporaryDirectory() as directory:
             path = Path(directory) / "application.toml"
             path.write_text("original", encoding="utf-8")
@@ -335,11 +432,11 @@ class ConfigFilesTest(unittest.TestCase):
             self.assertEqual(path.read_text(encoding="utf-8"), "original")
             self.assertEqual(config.template(path, overwrite=True), path)
             self.assertEqual(
-                path.read_text(encoding="utf-8"), "# APPLICATION\n# Description\n\n"
+                path.read_text(encoding="utf-8"), "# Description\n\n"
             )
 
     def test_exact_format_ordering_and_nested_tables(self) -> None:
-        config = Config(
+        config = Configuration(
             "Application",
             "Application configuration",
             Table(
@@ -353,7 +450,7 @@ class ConfigFilesTest(unittest.TestCase):
             Boolean("debug", "Debug mode", default=False, optional=True),
         )
         expected = (
-            "# APPLICATION\n# Application configuration\n\n"
+            "# Application configuration\n\n"
             "# Application name\n"
             '# Required | string | "example"\n'
             'name = "example"\n'
@@ -401,7 +498,7 @@ class ConfigFilesTest(unittest.TestCase):
             ),
             OffsetDateTime("offset", "", default=datetime(2026, 10, 2, tzinfo=UTC)),
         )
-        config = Config("Application", "Description", *schemas)
+        config = Configuration("Application", "Description", *schemas)
         with TemporaryDirectory() as directory:
             text = config.template(directory).read_text(encoding="utf-8")
             parsed = tomllib.loads(text)
@@ -425,7 +522,7 @@ class ConfigFilesTest(unittest.TestCase):
             def __call__(self, value: str, /) -> None:
                 pass
 
-        config = Config(
+        config = Configuration(
             "Application",
             "",
             String("email", "Contact", Email(), optional=True),
@@ -455,17 +552,19 @@ class ConfigFilesTest(unittest.TestCase):
                 '# Value must match the pattern "[A-Z]+"\n# Length must be exactly 3',
                 text,
             )
-            self.assertIn("# Required | array of array of integer", text)
+            self.assertIn("# Required | list of list of integer", text)
             self.assertIn(
                 "# Authentication\n# Optional\n"
                 '# When "username" is provided, "password" must also be provided\n'
                 '# When "password" is provided, "token" must be omitted\n'
-                '# At least one of "password" or "token" must be provided\n'
-                '# At most one of "password" or "token" may be provided\n'
-                '# Exactly one of "password" or "token" must be provided\n'
-                '# When either "username" or "password" is provided, both must be provided\n'
-                '# When both "username" and "password" are provided, they must be equal\n'
-                '# When both "password" and "token" are provided, they must be different\n'
+                '# Either "password" or "token" must be provided; '
+                "both may be provided\n"
+                '# Either "password" or "token" may be provided, but not both\n'
+                '# Either "password" or "token", but not both, must be provided\n'
+                '# When either "username" or "password" is provided, '
+                "both must be provided\n"
+                '# "username" == "password"\n'
+                '# "password" != "token"\n'
                 "[auth]",
                 text,
             )
@@ -476,13 +575,15 @@ class ConfigFilesTest(unittest.TestCase):
     def test_collection_and_table_constraint_metadata(self) -> None:
         self.assertEqual(
             str(RequiredTogether("certificate", "private_key")),
-            'When either "certificate" or "private_key" is provided, both must be provided',
+            'When either "certificate" or "private_key" is provided, '
+            "both must be provided",
         )
         self.assertEqual(
             str(RequiredTogether("first", "second", "third")),
-            'When any of "first", "second", or "third" is provided, all of them must be provided',
+            'When any of "first", "second", or "third" is provided, '
+            "all of them must be provided",
         )
-        config = Config(
+        config = Configuration(
             "Application",
             "",
             TableArray(
@@ -504,19 +605,20 @@ class ConfigFilesTest(unittest.TestCase):
         with TemporaryDirectory() as directory:
             text = config.template(directory).read_text(encoding="utf-8")
             self.assertIn("\nports =\n", text)
-            self.assertIn("\nlabels =\n", text)
+            self.assertIn("\n[labels]\n", text)
+            self.assertIn("\n# <key> =\n", text)
             self.assertIn("\n# [[backends]]\n", text)
             self.assertIn("\n# [backends.limits]\n", text)
             self.assertIn("\n# count =\n", text)
             self.assertLess(text.index("\nports ="), text.index("\n# [[backends]]"))
             self.assertIn(
-                '# Required\n# When both "low" and "high" are provided, "low" must be <= "high"',
+                '# Required\n# "low" must be <= "high"',
                 text,
             )
             self.assertIn(
-                "# Required | array of integer\n# Value must be at least 1", text
+                "# Required | list of integer\n# Value must be at least 1", text
             )
-            self.assertIn("# Required | mapping of string", text)
+            self.assertIn("# Required | mapping", text)
 
     def test_constraints_use_str_and_skip_empty_strings(self) -> None:
         class Visible(StringConstraint):
@@ -555,7 +657,7 @@ class ConfigFilesTest(unittest.TestCase):
             HiddenCompare("low", "high"),
             VisibleCompare("low", "high"),
         )
-        config = Config(
+        config = Configuration(
             "Application",
             "Description",
             String("name", "Name", Visible(), HiddenLength(minimum=1)),
@@ -569,14 +671,14 @@ class ConfigFilesTest(unittest.TestCase):
                 "# Name\n# Required | string\n# Use a service identifier\nname =",
                 text,
             )
-            self.assertIn("# Names\n# Required | array of string\nnames =", text)
+            self.assertIn("# Names\n# Required | list of string\nnames =", text)
             self.assertIn(
                 "# Limits\n# Required\n"
                 "# Keep the lower bound below the upper bound\n[limits]",
                 text,
             )
             self.assertIn(
-                "# Backends\n# Required | repeatable | backends\n"
+                "# Backends\n# Required | list\n"
                 "# Copy the block below to add an entry:\n"
                 "# --- <copy block> ---\n# [[backends]]\n"
                 "# # Keep the lower bound below the upper bound",
@@ -600,7 +702,7 @@ class ConfigFilesTest(unittest.TestCase):
             )
 
     def test_literal_metadata_is_deterministic(self) -> None:
-        config = Config(
+        config = Configuration(
             "Application",
             "Description",
             String(
@@ -619,7 +721,7 @@ class ConfigFilesTest(unittest.TestCase):
             self.assertEqual(config.load(path), {"environment": "production"})
 
     def test_load_str_and_path_returns_only_user_values(self) -> None:
-        config = Config(
+        config = Configuration(
             "Application",
             "",
             Integer("port", "", default=8080),
@@ -638,7 +740,7 @@ class ConfigFilesTest(unittest.TestCase):
             )
 
     def test_load_validation_and_relational_constraints(self) -> None:
-        config = Config(
+        config = Configuration(
             "Application",
             "",
             Integer("port", "", default=8080, minimum=1),
@@ -675,7 +777,7 @@ class ConfigFilesTest(unittest.TestCase):
             )
 
     def test_optional_omission_and_standard_errors(self) -> None:
-        config = Config(
+        config = Configuration(
             "Application", "", Integer("port", "", optional=True, default=8080)
         )
         with TemporaryDirectory() as directory:
@@ -691,4 +793,4 @@ class ConfigFilesTest(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 config.load(source)
             with self.assertRaises(SchemaError):
-                Config("Application", "", cast("Schema[Any]", object()))
+                Configuration("Application", "", cast("Schema[Any]", object()))

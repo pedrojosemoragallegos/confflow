@@ -13,7 +13,7 @@ class Boolean(Array[bool]):
     __slots__ = ("__definition",)
 
     def __init__(
-        self, name: str, description: str, /, *, optional: bool = False
+        self, name: str, description: str | None, /, *, optional: bool = False
     ) -> None:
         super().__init__(name, description, optional=optional)
 

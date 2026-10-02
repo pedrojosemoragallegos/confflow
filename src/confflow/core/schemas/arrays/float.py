@@ -18,7 +18,7 @@ class Float(Array[float]):
     def __init__(
         self,
         name: str,
-        description: str,
+        description: str | None,
         /,
         *constraints: Constraint[float],
         optional: bool = False,

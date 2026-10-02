@@ -17,7 +17,7 @@ class Integer(Scalar[int]):
     def __init__(
         self,
         name: str,
-        description: str,
+        description: str | None,
         /,
         *constraints: Constraint[int],
         optional: bool = False,

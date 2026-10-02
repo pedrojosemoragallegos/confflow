@@ -18,7 +18,7 @@ class LocalTime(Scalar[time]):
     def __init__(
         self,
         name: str,
-        description: str,
+        description: str | None,
         /,
         *constraints: Constraint[time],
         optional: bool = False,

@@ -1,5 +1,5 @@
 from __future__ import annotations
 
-from confflow.config import Config
+from confflow.config import Configuration
 
-__all__: list[str] = ["Config"]
+__all__: list[str] = ["Configuration"]

@@ -1,4 +1,3 @@
-# APPLICATION
 # Application configuration
 
 # Enable verbose logging
@@ -22,6 +21,10 @@ contact_email =
 # Enable debug mode
 # Required | boolean | false
 debug = false
+# Current load factor
+# Required | float | 0.5
+# Value must be between 0.0 and 1.0
+load_factor = 0.5
 # Application release date
 # Required | date | 2026-10-02
 release_date = 2026-10-02
@@ -35,19 +38,35 @@ created_at = 2026-10-02T09:00:00
 # Required | offset datetime | 2026-10-02T09:00:00Z
 published_at = 2026-10-02T09:00:00Z
 # Hosts accepted by the application
-# Optional | array of string
+# Optional | list of string
 # Length must be between 1 and 255
 allowed_hosts =
 # Retry delays in seconds
-# Optional | array of float
+# Optional | list of float
 # Value must be between 0.0 and 60.0
 retry_delays =
+# Enabled feature flags
+# Optional | list of boolean
+feature_flags =
+# Retryable response codes
+# Optional | list of integer
+# Value must be between 100 and 599
+retry_codes =
+# Scheduled maintenance dates
+# Optional | list of date
+maintenance_dates =
+# Daily quiet-hour start times
+# Optional | list of time
+quiet_hours =
+# Scheduled local health checks
+# Optional | list of local datetime
+scheduled_checks =
+# Offset-aware audit timestamps
+# Optional | list of offset datetime
+audit_timestamps =
 # Groups of cluster node names
-# Optional | array of array of string
+# Optional | list of list of string
 clusters =
-# Named service ports
-# Optional | mapping of integer
-ports =
 
 # HTTP server configuration
 # Required
@@ -66,7 +85,7 @@ tls = false
 
 # Worker limits
 # Required
-# If both are provided, "minimum_workers" must be <= "maximum_workers"
+# "minimum_workers" must be <= "maximum_workers"
 [application.server.limits]
 # Minimum worker count
 # Required | integer | 2
@@ -77,10 +96,50 @@ minimum_workers = 2
 # Value must be between 1 and 128
 maximum_workers = 16
 
+# Examples of ordered comparison constraints
+# Required
+[application.comparison_examples]
+
+# Strictly increasing values
+# Required
+# "smaller" must be < "larger"
+[application.comparison_examples.less_than]
+# Required | integer | 1
+smaller = 1
+# Required | integer | 2
+larger = 2
+
+# Increasing or equal values
+# Required
+# "lower" must be <= "upper"
+[application.comparison_examples.less_than_or_equal]
+# Required | integer | 2
+lower = 2
+# Required | integer | 2
+upper = 2
+
+# Strictly decreasing values
+# Required
+# "larger" must be > "smaller"
+[application.comparison_examples.greater_than]
+# Required | integer | 2
+larger = 2
+# Required | integer | 1
+smaller = 1
+
+# Decreasing or equal values
+# Required
+# "left" must be >= "right"
+[application.comparison_examples.greater_than_or_equal]
+# Required | integer | 2
+left = 2
+# Required | integer | 2
+right = 2
+
 # Authentication configuration
 # Optional
 # When "username" is provided, "password" must also be provided
-# At most one of "password" or "token" may be provided
+# Either "password" or "token" may be provided, but not both
 # When either "certificate" or "private_key" is provided, both must be provided
 [application.authentication]
 # Authentication username
@@ -102,7 +161,7 @@ private_key =
 
 # Notification delivery
 # Required
-# At least one of "email" or "webhook" must be provided
+# Either "email" or "webhook" must be provided; both may be provided
 [application.notifications]
 # Notification email address
 # Optional | string
@@ -113,8 +172,8 @@ webhook =
 
 # Storage backend selection
 # Required
-# Exactly one of "local_path" or "bucket" must be provided
-# "region" must be omitted when "local_path" is provided
+# Either "local_path" or "bucket", but not both, must be provided
+# When "local_path" is provided, "region" must be omitted
 [application.storage]
 # Local storage directory
 # Optional | string
@@ -128,8 +187,8 @@ region =
 
 # Replication compatibility and identity
 # Required
-# "primary_protocol" and "replica_protocol" must have equal values when provided
-# "primary_id" and "replica_id" must have different values when provided
+# "primary_protocol" == "replica_protocol"
+# "primary_id" != "replica_id"
 [application.replication]
 # Primary replication protocol
 # Required | string
@@ -144,8 +203,35 @@ primary_id =
 # Required | string
 replica_id =
 
+# Named service ports
+# Optional | mapping
+[application.ports]
+# --- <copy this block> ---
+# # Port number
+# # Required | integer
+# # Value must be between 1 and 65535
+# <key> =
+# --- </copy this block> ---
+
+# Named service configurations
+# Optional | mapping
+[application.services]
+# --- <copy this block> ---
+# # Service configuration
+# # Required
+# [application.services.<key>]
+# # Service URL
+# # Required | string
+# # Length must be at least 1
+# url =
+# # Traffic weight
+# # Required | integer | 1
+# # Value must be at least 1
+# weight = 1
+# --- </copy this block> ---
+
 # Backend server definitions
-# Optional | repeatable | backends
+# Optional | list
 # Copy the block below to add an entry:
 # --- <copy block> ---
 # [[application.backends]]

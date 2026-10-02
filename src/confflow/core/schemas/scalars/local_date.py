@@ -18,7 +18,7 @@ class LocalDate(Scalar[date]):
     def __init__(
         self,
         name: str,
-        description: str,
+        description: str | None,
         /,
         *constraints: Constraint[date],
         optional: bool = False,

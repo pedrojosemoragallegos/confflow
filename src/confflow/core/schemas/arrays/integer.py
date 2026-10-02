@@ -18,7 +18,7 @@ class Integer(Array[int]):
     def __init__(
         self,
         name: str,
-        description: str,
+        description: str | None,
         /,
         *constraints: Constraint[int],
         optional: bool = False,

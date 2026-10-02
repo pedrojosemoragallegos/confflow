@@ -32,10 +32,13 @@ class AtLeastOneOf(Constraint):
             case (name,):
                 fields = name
             case (left, right):
-                fields = f"{left} or {right}"
+                fields = f"Either {left} or {right} must be provided"
+                return f"{fields}; both may be provided"
             case _:
-                fields = f"{', '.join(names[:-1])}, or {names[-1]}"
-        return f"At least one of {fields} must be provided"
+                listed = f"{', '.join(names[:-1])}, or {names[-1]}"
+                fields = f"Either {listed} must be provided"
+                return f"{fields}; any combination may be provided"
+        return f"Either {fields} must be provided"
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}(fields={self.__fields!r})"
