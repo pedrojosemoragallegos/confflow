@@ -7,7 +7,11 @@ from collections.abc import Callable, Mapping
 from importlib import import_module
 from inspect import isabstract, signature
 from itertools import product
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import cast
+
+import tomlkit
 
 from confflow import Configuration
 from confflow.core.errors import SchemaError, ValidationError, constraint_name
@@ -174,9 +178,20 @@ class RelationalConstraintTest(unittest.TestCase):
     def test_existing_custom_table_extension_contract(self) -> None:
         custom = _CustomTableConstraint()
         schema = Table("t", "", Integer("a", ""), Integer("b", ""), custom)
-        schema.validate({"a": 1, "b": 1})
-        with self.assertRaises(ValidationError) as caught:
-            Configuration("Application", "", schema).validate({"t": {"a": 1, "b": 2}})
+        configuration = Configuration("Application", "", schema)
+        with TemporaryDirectory() as directory:
+            source = Path(directory) / "configuration.toml"
+            source.write_text(
+                tomlkit.dumps({"t": {"a": 1, "b": 1}}),
+                encoding="utf-8",
+            )
+            configuration.load(source)
+            source.write_text(
+                tomlkit.dumps({"t": {"a": 1, "b": 2}}),
+                encoding="utf-8",
+            )
+            with self.assertRaises(ValidationError) as caught:
+                configuration.load(source)
         self.assertEqual(custom.calls, 2)
         self.assertEqual(caught.exception.path, ("t",))
         self.assertEqual(caught.exception.constraint, "custom_table_constraint")

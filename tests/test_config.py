@@ -5,7 +5,11 @@ from __future__ import annotations
 import unittest
 from importlib.util import find_spec
 from inspect import signature
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING, Any, cast
+
+import tomlkit
 
 import confflow
 from confflow import Configuration
@@ -21,6 +25,14 @@ if TYPE_CHECKING:
 
 
 class ConfigTest(unittest.TestCase):
+    def load_value(
+        self, config: Configuration, value: Mapping[str, object]
+    ) -> Mapping[str, object]:
+        with TemporaryDirectory() as directory:
+            source = Path(directory) / "config.toml"
+            source.write_text(tomlkit.dumps(dict(value)), encoding="utf-8")
+            return config.load(source)
+
     def test_multiple_top_level_schemas(self) -> None:
         application = Table("application", "", String("name", ""))
         monitoring = Table("monitoring", "", String("endpoint", ""))
@@ -28,10 +40,8 @@ class ConfigTest(unittest.TestCase):
         config = Configuration(
             "Application", "Application configuration", application, monitoring, workers
         )
-        self.assertEqual(config.name, "Application")
-        self.assertEqual(config.description, "Application configuration")
-        self.assertEqual(config.schemas, (application, monitoring, workers))
-        config.validate(
+        self.load_value(
+            config,
             {
                 "application": {"name": "example"},
                 "monitoring": {"endpoint": "https://monitoring.example.com"},
@@ -54,7 +64,7 @@ class ConfigTest(unittest.TestCase):
                 self.subTest(schema=type(schema).__name__),
                 self.assertRaises(ValidationError) as caught,
             ):
-                Configuration("Application", "", schema).validate({})
+                self.load_value(Configuration("Application", "", schema), {})
             self.assertEqual(caught.exception.path, ("required",))
             self.assertEqual(caught.exception.expected, "required field")
 
@@ -65,13 +75,13 @@ class ConfigTest(unittest.TestCase):
             Integer("workers", "", optional=True),
             Table("monitoring", "", optional=True),
         )
-        config.validate({})
-        config.validate({"workers": 0, "monitoring": {}})
+        self.load_value(config, {})
+        self.load_value(config, {"workers": 0, "monitoring": {}})
 
     def test_child_validation_propagates_with_path(self) -> None:
         config = Configuration("Application", "", Integer("workers", "", minimum=1))
         with self.assertRaises(ValidationError) as caught:
-            config.validate({"workers": 0})
+            self.load_value(config, {"workers": 0})
         self.assertEqual(caught.exception.path, ("workers",))
         self.assertEqual(caught.exception.value, 0)
         self.assertEqual(caught.exception.constraint, "range")
@@ -82,9 +92,9 @@ class ConfigTest(unittest.TestCase):
             "",
             Table("server", "", Table("limits", "", Integer("workers", ""))),
         )
-        config.validate({"server": {"limits": {"workers": 4}}})
+        self.load_value(config, {"server": {"limits": {"workers": 4}}})
         with self.assertRaises(ValidationError) as caught:
-            config.validate({"server": {"limits": {}}})
+            self.load_value(config, {"server": {"limits": {}}})
         self.assertEqual(caught.exception.path, ("server", "limits", "workers"))
 
     def test_table_constraints_are_preserved(self) -> None:
@@ -108,14 +118,16 @@ class ConfigTest(unittest.TestCase):
             authentication,
             Table("server", "", limits),
         )
-        config.validate(
+        self.load_value(
+            config,
             {
                 "authentication": {"username": "service", "password": "secret"},
                 "server": {"limits": {"minimum": 1, "maximum": 4}},
             }
         )
         with self.assertRaises(ValidationError) as caught:
-            config.validate(
+            self.load_value(
+                config,
                 {
                     "authentication": {"username": "service"},
                     "server": {"limits": {"minimum": 1, "maximum": 4}},
@@ -124,7 +136,8 @@ class ConfigTest(unittest.TestCase):
         self.assertEqual(caught.exception.path, ("authentication",))
         self.assertEqual(caught.exception.constraint, "requires")
         with self.assertRaises(ValidationError) as caught:
-            config.validate(
+            self.load_value(
+                config,
                 {
                     "authentication": {},
                     "server": {"limits": {"minimum": 4, "maximum": 1}},
@@ -139,30 +152,32 @@ class ConfigTest(unittest.TestCase):
             "",
             Table("application", "", String("name", "", Length(minimum=1))),
         )
-        config.validate({"application": {"name": "example"}})
+        self.load_value(config, {"application": {"name": "example"}})
         with self.assertRaises(ValidationError) as caught:
-            config.validate({"application": {"name": ""}})
+            self.load_value(config, {"application": {"name": ""}})
         self.assertEqual(caught.exception.path, ("application", "name"))
         self.assertEqual(caught.exception.constraint, "length")
         self.assertEqual(caught.exception.value, "")
 
     def test_unknown_top_level_entries_rejected(self) -> None:
         with self.assertRaises(ValidationError) as caught:
-            Configuration("Application", "").validate({"unknown": 1})
+            self.load_value(Configuration("Application", ""), {"unknown": 1})
         self.assertEqual(caught.exception.path, ("unknown",))
         self.assertEqual(caught.exception.expected, "declared table field")
 
-    def test_invalid_root_value_and_schema(self) -> None:
-        with self.assertRaises(ValidationError) as caught:
-            Configuration("Application", "").validate(cast("Mapping[str, object]", []))
-        self.assertEqual(caught.exception.expected, "configuration mapping")
+    def test_invalid_schema(self) -> None:
         with self.assertRaises(SchemaError):
             Configuration("Application", "", cast("Schema[Any]", object()))
 
     def test_empty_configuration(self) -> None:
         config = Configuration("Application", "")
-        self.assertEqual(config.schemas, ())
-        config.validate({})
+        self.load_value(config, {})
+
+    def test_schema_metadata_is_not_exposed(self) -> None:
+        config = Configuration("Application", "Description", Integer("port", "Port"))
+        for attribute in ("name", "description", "schemas", "validate"):
+            with self.subTest(attribute=attribute):
+                self.assertFalse(hasattr(config, attribute))
 
     def test_no_global_constraint_api(self) -> None:
         self.assertNotIn("constraints", signature(Configuration).parameters)

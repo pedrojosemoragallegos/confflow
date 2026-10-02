@@ -5,7 +5,7 @@ Snapshot of `src/confflow/` as of 2026-10-02. Generated caches are excluded.
 ```text
 confflow/
 ├── __init__.py
-├── config.py
+├── configuration.py
 ├── render.py
 ├── core/
 │   ├── __init__.py
@@ -140,18 +140,15 @@ The existing table constraint package re-exports the base and all four classes.
 
 ## Configuration documents
 
-`config.py` owns document identity, composition, validation, and filesystem
-operations. `render.py` owns pure template text generation through
+`configuration.py` owns document identity, composition, loading and validation,
+and filesystem operations. `render.py` owns pure template text generation through
 `render_template(name, description, schemas) -> str`, including metadata, TOML
 values, ordering, and spacing. It performs no file operations or validation.
 
-The package root exports `Configuration(name, description, /, *schemas)`. A configuration
-has read-only `name`, `description`, and `schemas` properties, and composes both
-loose fields and tables. Names follow the existing schema name rules. Empty
-descriptions are stored as `None`, matching schemas.
+The package root exports `Configuration(name, description, /, *schemas)`. A
+configuration composes both loose fields and tables. Names follow the existing
+schema name rules. Empty descriptions are stored as `None`, matching schemas.
 
-- `validate(value: Mapping[str, object], /) -> None` delegates to the existing
-  table validator without root-level constraints.
 - `template(destination: str | Path, *, overwrite=False, parents=False) -> Path`
   writes a semi-valid TOML template with commented documentation and missing-value
   examples. After `Path` normalization, only
@@ -162,9 +159,10 @@ descriptions are stored as `None`, matching schemas.
   is the default; `overwrite=True` permits replacement.
 - `load(source: str | Path) -> Mapping[str, object]` opens the file in binary mode,
   parses it with Python 3.11's `tomllib`, validates it, and returns the parsed
-  mapping unchanged. Missing required fields fail even if they have defaults.
-  Missing optional fields succeed; no defaults are inserted. Parse and filesystem
-  errors retain their standard exceptions; value errors use `ValidationError`.
+  values as an immutable structure: tables are read-only mappings and arrays are
+  tuples. Missing required fields fail even if they have defaults. Missing optional
+  fields succeed; no defaults are inserted. Parse and filesystem errors retain
+  their standard exceptions; value errors use `ValidationError`.
 
 Templates use the following format, with exactly one blank line after the config
 description and before each table section, and no blank lines between fields or

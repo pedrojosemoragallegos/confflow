@@ -9,6 +9,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING, Any, cast
 
+import tomlkit
+
 from confflow import Configuration
 from confflow.core.definitions.constraints.string import (
     Length,
@@ -52,6 +54,16 @@ if TYPE_CHECKING:
 
 
 class ConfigFilesTest(unittest.TestCase):
+    def load_value(
+        self,
+        config: Configuration,
+        value: MappingABC[str, object],
+    ) -> MappingABC[str, object]:
+        with TemporaryDirectory() as directory:
+            source = Path(directory) / "config.toml"
+            source.write_text(tomlkit.dumps(dict(value)), encoding="utf-8")
+            return config.load(source)
+
     def test_assignment_presence_and_spacing(self) -> None:
         fields = (
             Integer("required_value", "", default=0),
@@ -168,7 +180,7 @@ class ConfigFilesTest(unittest.TestCase):
                         }
                     },
                 )
-                config.validate(tomllib.loads(completed))
+                self.load_value(config, tomllib.loads(completed))
                 self.assertNotIn("\n\n\n", text)
 
     def test_repeatable_samples_are_commented_in_optional_subtrees(self) -> None:
@@ -331,7 +343,7 @@ class ConfigFilesTest(unittest.TestCase):
                 },
             },
         )
-        config.validate(values)
+        self.load_value(config, values)
 
     def test_custom_constraints_are_hidden_by_default(self) -> None:
         class HiddenField(StringConstraint):
@@ -371,9 +383,7 @@ class ConfigFilesTest(unittest.TestCase):
         for name in ("", "not a name", "../escape"):
             with self.subTest(name=name), self.assertRaises(SchemaError):
                 Configuration(name, "Description")
-        config = Configuration("Application", "Application configuration")
-        self.assertEqual(config.name, "Application")
-        self.assertEqual(config.description, "Application configuration")
+        Configuration("Application", "Application configuration")
 
     def test_loose_fields_and_tables(self) -> None:
         field = Integer("port", "Port")
@@ -385,8 +395,7 @@ class ConfigFilesTest(unittest.TestCase):
         ):
             with self.subTest(schemas=schemas):
                 config = Configuration("Application", "Description", *schemas)
-                self.assertEqual(config.schemas, schemas)
-                config.validate(value)
+                self.load_value(config, value)
         with self.assertRaises(SchemaError):
             Configuration("Application", "", field, Table("port", ""))
 
@@ -481,7 +490,6 @@ class ConfigFilesTest(unittest.TestCase):
             )
             with self.assertRaises(tomllib.TOMLDecodeError):
                 config.load(path)
-            self.assertEqual(config.schemas[0].name, "server")
 
     def test_toml_defaults_round_trip_and_comment_safety(self) -> None:
         schemas: tuple[Scalar[Any], ...] = (
@@ -689,7 +697,8 @@ class ConfigFilesTest(unittest.TestCase):
                 "\n# \n",
             ):
                 self.assertNotIn(unwanted, text)
-            config.validate(
+            self.load_value(
+                config,
                 {
                     "name": "service",
                     "names": ["service"],
@@ -735,6 +744,39 @@ class ConfigFilesTest(unittest.TestCase):
             self.assertEqual(
                 source.read_text(encoding="utf-8"), "port = 9000\n[server]\n"
             )
+
+    def test_load_returns_deeply_immutable_values(self) -> None:
+        config = Configuration(
+            "Application",
+            "",
+            StringArray("tags", ""),
+            Table("server", "", StringArray("hosts", "")),
+            Mapping("labels", "", value=String("label", "")),
+        )
+        with TemporaryDirectory() as directory:
+            source = Path(directory) / "config.toml"
+            source.write_text(
+                'tags = ["stable"]\n'
+                '[server]\n'
+                'hosts = ["localhost"]\n'
+                '[labels]\n'
+                'environment = "production"\n',
+                encoding="utf-8",
+            )
+            value = config.load(source)
+
+        with self.assertRaises(TypeError):
+            cast("dict[str, object]", value)["new"] = "value"
+
+        server = cast("Mapping[str, object]", value["server"])
+        hosts = cast("tuple[str, ...]", server["hosts"])
+        self.assertEqual(hosts, ("localhost",))
+        with self.assertRaises(TypeError):
+            cast("dict[str, object]", server)["new"] = "value"
+
+        labels = cast("Mapping[str, object]", value["labels"])
+        self.assertEqual(labels["environment"], "production")
+        self.assertEqual(value["tags"], ("stable",))
 
     def test_load_validation_and_relational_constraints(self) -> None:
         config = Configuration(
