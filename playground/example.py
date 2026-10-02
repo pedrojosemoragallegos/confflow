@@ -54,39 +54,179 @@ class Email(StringConstraint):
 
 
 def create_config() -> Configuration:
-    schema = Table(
+    limits = Table(
+        "limits",
+        "Worker limits",
+        Integer(
+            "minimum_workers", "Minimum worker count", minimum=1, maximum=128, default=2
+        ),
+        Integer(
+            "maximum_workers",
+            "Maximum worker count",
+            minimum=1,
+            maximum=128,
+            default=16,
+        ),
+        LessThanOrEqual("minimum_workers", "maximum_workers"),
+    )
+
+    server = Table(
+        "server",
+        "HTTP server configuration",
+        String("host", "Server host", minimum=1, maximum=255, default="localhost"),
+        Integer("port", "Server port", minimum=1, maximum=65535, default=8080),
+        Boolean("tls", "Enable TLS", default=False),
+        limits,
+    )
+
+    less_than_example = Table(
+        "less_than",
+        "Strictly increasing values",
+        Integer("smaller", None, default=1),
+        Integer("larger", None, default=2),
+        LessThan("smaller", "larger"),
+    )
+
+    less_than_or_equal_example = Table(
+        "less_than_or_equal",
+        "Increasing or equal values",
+        Integer("lower", None, default=2),
+        Integer("upper", None, default=2),
+        LessThanOrEqual("lower", "upper"),
+    )
+
+    greater_than_example = Table(
+        "greater_than",
+        "Strictly decreasing values",
+        Integer("larger", None, default=2),
+        Integer("smaller", None, default=1),
+        GreaterThan("larger", "smaller"),
+    )
+
+    greater_than_or_equal_example = Table(
+        "greater_than_or_equal",
+        "Decreasing or equal values",
+        Integer("left", None, default=2),
+        Integer("right", None, default=2),
+        GreaterThanOrEqual("left", "right"),
+    )
+
+    comparison_examples = Table(
+        "comparison_examples",
+        "Examples of ordered comparison constraints",
+        less_than_example,
+        less_than_or_equal_example,
+        greater_than_example,
+        greater_than_or_equal_example,
+    )
+
+    authentication = Table(
+        "authentication",
+        "Authentication configuration",
+        String("username", "Authentication username", optional=True),
+        String("password", "Authentication password", minimum=12, optional=True),
+        String("token", "Authentication token", optional=True),
+        String("certificate", "Client certificate", optional=True),
+        String("private_key", "Client private key", optional=True),
+        Requires("username", "password"),
+        AtMostOneOf("password", "token"),
+        RequiredTogether("certificate", "private_key"),
+        optional=True,
+    )
+
+    notifications = Table(
+        "notifications",
+        "Notification delivery",
+        String("email", "Notification email address", optional=True),
+        String("webhook", "Notification webhook URL", optional=True),
+        AtLeastOneOf("email", "webhook"),
+    )
+
+    storage = Table(
+        "storage",
+        "Storage backend selection",
+        String("local_path", "Local storage directory", optional=True),
+        String("bucket", "Cloud storage bucket", optional=True),
+        String("region", "Cloud storage region", optional=True),
+        ExactlyOneOf("local_path", "bucket"),
+        Forbids("local_path", "region"),
+    )
+
+    replication = Table(
+        "replication",
+        "Replication compatibility and identity",
+        String("primary_protocol", "Primary replication protocol"),
+        String("replica_protocol", "Replica replication protocol"),
+        String("primary_id", "Primary node identifier"),
+        String("replica_id", "Replica node identifier"),
+        Equal("primary_protocol", "replica_protocol"),
+        NotEqual("primary_id", "replica_id"),
+    )
+
+    service_config = Table(
+        "service",
+        "Service configuration",
+        String("url", "Service URL", minimum=1),
+        Integer("weight", "Traffic weight", minimum=1, default=1),
+    )
+
+    services = Mapping(
+        "services",
+        "Named service configurations",
+        value=service_config,
+        optional=True,
+    )
+
+    ports = Mapping(
+        "ports",
+        "Named service ports",
+        value=Integer("port", "Port number", minimum=1, maximum=65535),
+        optional=True,
+    )
+
+    backend = Table(
+        "backend",
+        "Backend configuration",
+        String("name", "Backend role", literal=["primary", "replica"]),
+        String("url", "Backend URL", minimum=1),
+        Float(
+            "timeout",
+            "Request timeout in seconds",
+            minimum=0.0,
+            maximum=60.0,
+            default=5.0,
+            optional=True,
+        ),
+    )
+
+    backends = TableArray(
+        "backends",
+        "Backend server definitions",
+        backend,
+        optional=True,
+    )
+
+    monitoring = Table(
+        "monitoring",
+        "Application monitoring",
+        String("endpoint", "Monitoring endpoint", minimum=1),
+        optional=True,
+    )
+
+    application = Table(
         "application",
         "Application configuration",
-        String(
-            "name",
-            "Application name",
-            minimum=1,
-            maximum=64,
-            default="confflow",
-        ),
+        String("name", "Application name", minimum=1, maximum=64, default="confflow"),
         String(
             "environment",
             "Deployment environment",
             literal=["development", "staging", "production"],
             default="production",
         ),
-        String(
-            "contact_email",
-            "Application contact email",
-            Email(),
-            optional=True,
-        ),
-        Boolean(
-            "debug",
-            "Enable debug mode",
-            default=False,
-        ),
+        String("contact_email", "Application contact email", Email(), optional=True),
+        Boolean("debug", "Enable debug mode", default=False),
         Float(
-            "load_factor",
-            "Current load factor",
-            minimum=0.0,
-            maximum=1.0,
-            default=0.5,
+            "load_factor", "Current load factor", minimum=0.0, maximum=1.0, default=0.5
         ),
         LocalDate(
             "release_date",
@@ -122,11 +262,7 @@ def create_config() -> Configuration:
             maximum=60.0,
             optional=True,
         ),
-        BooleanArray(
-            "feature_flags",
-            "Enabled feature flags",
-            optional=True,
-        ),
+        BooleanArray("feature_flags", "Enabled feature flags", optional=True),
         IntegerArray(
             "retry_codes",
             "Retryable response codes",
@@ -135,239 +271,36 @@ def create_config() -> Configuration:
             optional=True,
         ),
         LocalDateArray(
-            "maintenance_dates",
-            "Scheduled maintenance dates",
-            optional=True,
+            "maintenance_dates", "Scheduled maintenance dates", optional=True
         ),
-        LocalTimeArray(
-            "quiet_hours",
-            "Daily quiet-hour start times",
-            optional=True,
-        ),
+        LocalTimeArray("quiet_hours", "Daily quiet-hour start times", optional=True),
         LocalDateTimeArray(
-            "scheduled_checks",
-            "Scheduled local health checks",
-            optional=True,
+            "scheduled_checks", "Scheduled local health checks", optional=True
         ),
         OffsetDateTimeArray(
-            "audit_timestamps",
-            "Offset-aware audit timestamps",
-            optional=True,
+            "audit_timestamps", "Offset-aware audit timestamps", optional=True
         ),
         NestedArray(
             "clusters",
             "Groups of cluster node names",
-            array=StringArray(
-                "cluster",
-                "Cluster node names",
-                minimum=1,
-                maximum=64,
-            ),
+            array=StringArray("cluster", "Cluster node names", minimum=1, maximum=64),
             optional=True,
         ),
-        Table(
-            "server",
-            "HTTP server configuration",
-            String(
-                "host",
-                "Server host",
-                minimum=1,
-                maximum=255,
-                default="localhost",
-            ),
-            Integer(
-                "port",
-                "Server port",
-                minimum=1,
-                maximum=65535,
-                default=8080,
-            ),
-            Boolean(
-                "tls",
-                "Enable TLS",
-                default=False,
-            ),
-            Table(
-                "limits",
-                "Worker limits",
-                Integer(
-                    "minimum_workers",
-                    "Minimum worker count",
-                    minimum=1,
-                    maximum=128,
-                    default=2,
-                ),
-                Integer(
-                    "maximum_workers",
-                    "Maximum worker count",
-                    minimum=1,
-                    maximum=128,
-                    default=16,
-                ),
-                LessThanOrEqual(
-                    "minimum_workers",
-                    "maximum_workers",
-                ),
-            ),
-        ),
-        Table(
-            "comparison_examples",
-            "Examples of ordered comparison constraints",
-            Table(
-                "less_than",
-                "Strictly increasing values",
-                Integer("smaller", None, default=1),
-                Integer("larger", None, default=2),
-                LessThan("smaller", "larger"),
-            ),
-            Table(
-                "less_than_or_equal",
-                "Increasing or equal values",
-                Integer("lower", None, default=2),
-                Integer("upper", None, default=2),
-                LessThanOrEqual("lower", "upper"),
-            ),
-            Table(
-                "greater_than",
-                "Strictly decreasing values",
-                Integer("larger", None, default=2),
-                Integer("smaller", None, default=1),
-                GreaterThan("larger", "smaller"),
-            ),
-            Table(
-                "greater_than_or_equal",
-                "Decreasing or equal values",
-                Integer("left", None, default=2),
-                Integer("right", None, default=2),
-                GreaterThanOrEqual("left", "right"),
-            ),
-        ),
-        Table(
-            "authentication",
-            "Authentication configuration",
-            String(
-                "username",
-                "Authentication username",
-                optional=True,
-            ),
-            String(
-                "password",
-                "Authentication password",
-                minimum=12,
-                optional=True,
-            ),
-            String(
-                "token",
-                "Authentication token",
-                optional=True,
-            ),
-            String(
-                "certificate",
-                "Client certificate",
-                optional=True,
-            ),
-            String(
-                "private_key",
-                "Client private key",
-                optional=True,
-            ),
-            Requires("username", "password"),
-            AtMostOneOf("password", "token"),
-            RequiredTogether("certificate", "private_key"),
-            optional=True,
-        ),
-        Table(
-            "notifications",
-            "Notification delivery",
-            String("email", "Notification email address", optional=True),
-            String("webhook", "Notification webhook URL", optional=True),
-            AtLeastOneOf("email", "webhook"),
-        ),
-        Table(
-            "storage",
-            "Storage backend selection",
-            String("local_path", "Local storage directory", optional=True),
-            String("bucket", "Cloud storage bucket", optional=True),
-            String("region", "Cloud storage region", optional=True),
-            ExactlyOneOf("local_path", "bucket"),
-            Forbids("local_path", "region"),
-        ),
-        Table(
-            "replication",
-            "Replication compatibility and identity",
-            String("primary_protocol", "Primary replication protocol"),
-            String("replica_protocol", "Replica replication protocol"),
-            String("primary_id", "Primary node identifier"),
-            String("replica_id", "Replica node identifier"),
-            Equal("primary_protocol", "replica_protocol"),
-            NotEqual("primary_id", "replica_id"),
-        ),
-        Mapping(
-            "ports",
-            "Named service ports",
-            value=Integer(
-                "port",
-                "Port number",
-                minimum=1,
-                maximum=65535,
-            ),
-            optional=True,
-        ),
-        Mapping(
-            "services",
-            "Named service configurations",
-            value=Table(
-                "service",
-                "Service configuration",
-                String("url", "Service URL", minimum=1),
-                Integer("weight", "Traffic weight", minimum=1, default=1),
-            ),
-            optional=True,
-        ),
-        TableArray(
-            "backends",
-            "Backend server definitions",
-            Table(
-                "backend",
-                "Backend configuration",
-                String(
-                    "name",
-                    "Backend role",
-                    literal=["primary", "replica"],
-                ),
-                String(
-                    "url",
-                    "Backend URL",
-                    minimum=1,
-                ),
-                Float(
-                    "timeout",
-                    "Request timeout in seconds",
-                    minimum=0.0,
-                    maximum=60.0,
-                    default=5.0,
-                    optional=True,
-                ),
-            ),
-            optional=True,
-        ),
-    )
-
-    monitoring = Table(
-        "monitoring",
-        "Application monitoring",
-        String(
-            "endpoint",
-            "Monitoring endpoint",
-            minimum=1,
-        ),
-        optional=True,
+        server,
+        comparison_examples,
+        authentication,
+        notifications,
+        storage,
+        replication,
+        ports,
+        services,
+        backends,
     )
 
     return Configuration(
         "Application",
         "Application configuration",
-        schema,
+        application,
         monitoring,
         Boolean("verbose", "Enable verbose logging", optional=True, default=False),
     )
