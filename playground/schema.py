@@ -1,16 +1,10 @@
-# Ruff treats this standalone playground as a package and flags its status output.
-# ruff: noqa: INP001, T201
 from __future__ import annotations
 
 import re
 from datetime import UTC, date, datetime, time
-from pathlib import Path
 from typing import Final
 
-from confflow.renderer.markdown import MarkdownRenderer
-from tomlkit import dumps
-
-from confflow.core.definitions.constraints import Constraint
+from confflow.core.definitions.constraints import String as StringConstraint
 from confflow.core.schemas import (
     Boolean,
     Float,
@@ -35,7 +29,7 @@ from confflow.core.schemas.table.constraints import (
 )
 
 
-class Email(Constraint[str]):
+class Email(StringConstraint):
     __slots__ = ()
 
     NAME: Final[str] = "email"
@@ -81,22 +75,22 @@ schema = Table(
     LocalDate(
         "release_date",
         "Application release date",
-        default=date(2026, 10, 1),
+        default=date(year=2026, month=10, day=2),
     ),
     LocalTime(
         "maintenance_time",
         "Daily maintenance time",
-        default=time(2, 30),
+        default=time(hour=2, minute=30),
     ),
     LocalDateTime(
         "created_at",
         "Local creation timestamp",
-        default=datetime.fromisoformat("2026-10-01T09:00:00"),
+        default=datetime.fromisoformat("2026-10-02T09:00:00"),
     ),
     OffsetDateTime(
         "published_at",
         "Publication timestamp",
-        default=datetime(2026, 10, 1, 9, 0, tzinfo=UTC),
+        default=datetime(year=2026, month=10, day=2, hour=9, minute=0, tzinfo=UTC),
     ),
     StringArray(
         "allowed_hosts",
@@ -252,10 +246,10 @@ value_model = {
     "name": "confflow",
     "environment": "production",
     "debug": False,
-    "release_date": date(2026, 10, 1),
+    "release_date": date(2026, 10, 2),
     "maintenance_time": time(2, 30),
-    "created_at": datetime.fromisoformat("2026-10-01T09:00:00"),
-    "published_at": datetime(2026, 10, 1, 9, 0, tzinfo=UTC),
+    "created_at": datetime.fromisoformat("2026-10-02T09:00:00"),
+    "published_at": datetime(2026, 10, 2, 9, 0, tzinfo=UTC),
     "allowed_hosts": [
         "example.com",
         "api.example.com",
@@ -303,13 +297,4 @@ value_model = {
 
 
 schema.validate(value_model)
-
-toml_path = Path(__file__).with_name("renderer-test.toml")
-toml_path.write_text(dumps(value_model), encoding="utf-8")
-print(f"Wrote {toml_path}")
-
-reference = MarkdownRenderer().render(schema)
-
-markdown_path = Path(__file__).with_name("renderer-test.md")
-markdown_path.write_text(f"{reference}\n", encoding="utf-8")
-print(f"Wrote {markdown_path}")
+print(f"Validated {schema.name!r} configuration.")

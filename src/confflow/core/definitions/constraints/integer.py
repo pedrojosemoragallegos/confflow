@@ -5,7 +5,11 @@ from typing import Final
 from .base import Constraint
 
 
-class Range(Constraint[int]):
+class Integer(Constraint[int]):
+    __slots__ = ()
+
+
+class Range(Integer):
     __slots__ = ("__maximum", "__minimum")
 
     NAME: Final[str] = "range"

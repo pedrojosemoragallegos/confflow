@@ -8,7 +8,11 @@ from typing_extensions import override
 from .base import Constraint
 
 
-class Range(Constraint[float]):
+class Float(Constraint[float]):
+    __slots__ = ()
+
+
+class Range(Float):
     __slots__ = ("__maximum", "__minimum")
 
     NAME: Final[str] = "range"
@@ -54,7 +58,7 @@ class Range(Constraint[float]):
         )
 
 
-class NotNaN(Constraint[float]):
+class NotNaN(Float):
     __slots__ = ()
 
     NAME: Final[str] = "not_nan"

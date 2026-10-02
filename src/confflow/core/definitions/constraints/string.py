@@ -5,11 +5,16 @@ from typing import Final
 
 from typing_extensions import override
 
-from confflow.core.definitions.constraints import Constraint
 from confflow.core.errors import SchemaError
 
+from .base import Constraint
 
-class Length(Constraint[str]):
+
+class String(Constraint[str]):
+    __slots__ = ()
+
+
+class Length(String):
     __slots__ = ("__length", "__maximum", "__minimum")
 
     NAME: Final[str] = "length"
@@ -63,7 +68,7 @@ class Length(Constraint[str]):
             raise ValueError("string does not have the required exact length")
 
 
-class Pattern(Constraint[str]):
+class Pattern(String):
     __slots__ = ("__compiled", "__flags", "__pattern")
 
     NAME: Final[str] = "pattern"
@@ -83,7 +88,7 @@ class Pattern(Constraint[str]):
                     "string pattern must be a valid regular expression"
                 ) from error
 
-            pattern_text = pattern
+            pattern_text: str = pattern
         else:
             raise SchemaError(
                 "pattern must be a string or compiled text regular expression"
@@ -103,5 +108,5 @@ class Pattern(Constraint[str]):
 
     @override
     def __call__(self, value: str, /) -> None:
-        if self.__compiled.fullmatch(value) is None:
+        if self.__compiled.fullmatch(string=value) is None:
             raise ValueError("string does not match the required pattern")

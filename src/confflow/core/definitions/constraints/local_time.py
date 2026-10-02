@@ -6,7 +6,11 @@ from typing import Final
 from .base import Constraint
 
 
-class Range(Constraint[time]):
+class LocalTime(Constraint[time]):
+    __slots__ = ()
+
+
+class Range(LocalTime):
     __slots__ = ("__maximum", "__minimum")
 
     NAME: Final[str] = "range"
