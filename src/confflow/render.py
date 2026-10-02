@@ -35,9 +35,7 @@ def _comment(text: str) -> str:
 
 def _metadata(schema: Schema[Any], *, constraints: bool = True) -> str:
     parts = ["Optional" if schema.optional else "Required"]
-    if isinstance(schema, TableArray):
-        parts.append("list")
-    elif not isinstance(schema, Table):
+    if not isinstance(schema, Table):
         parts.append(_type_name(schema))
     if isinstance(schema, Scalar) and schema.default is not None:
         parts.append(_toml_value(schema.default))
@@ -56,11 +54,11 @@ def _metadata(schema: Schema[Any], *, constraints: bool = True) -> str:
 
 def _type_name(schema: Schema[Any]) -> str:
     if isinstance(schema, TableArray):
-        return "list of tables"
+        return "array of tables"
     if isinstance(schema, NestedArray):
-        return f"list of {_type_name(schema.array)}"
+        return f"array of {_type_name(schema.array)}"
     if isinstance(schema, MappingSchema):
-        return "mapping"
+        return "table"
     if isinstance(schema, Table):
         return "table"
     definition = getattr(schema, "definition", None)
@@ -72,14 +70,18 @@ def _type_name(schema: Schema[Any]) -> str:
             bool: "boolean",
         }
         name = names.get(definition.VALUE_TYPE, definition.VALUE_TYPE.__name__)
+        if name == "date":
+            name = "local date"
+        elif name == "time":
+            name = "local time"
         if name == "datetime":
             name = (
-                "offset datetime"
+                "offset date-time"
                 if isinstance(definition, OffsetDateTime)
-                else "local datetime"
+                else "local date-time"
             )
-        return f"list of {name}" if isinstance(schema, Array) else name
-    return "list" if isinstance(schema, Array) else "value"
+        return f"array of {name}" if isinstance(schema, Array) else name
+    return "array" if isinstance(schema, Array) else "value"
 
 
 def _toml_value(value: object) -> str:
@@ -94,15 +96,11 @@ def _copy_block(
     content: str,
     *,
     label: str = "copy block",
-    instruction: bool = True,
 ) -> str:
     commented = "\n".join(
         f"# {line}" if line else "" for line in content.split("\n")
     )
-    lines = [f"# --- <{label}> ---", commented, f"# --- </{label}> ---"]
-    if instruction:
-        lines.insert(0, "# Copy the block below to add an entry:")
-    return "\n".join(lines)
+    return "\n".join((f"# --- <{label}> ---", commented, f"# --- </{label}> ---"))
 
 
 def _render_mapping(schema: MappingSchema, path: tuple[str, ...]) -> str:
@@ -133,7 +131,6 @@ def _render_mapping(schema: MappingSchema, path: tuple[str, ...]) -> str:
         + _copy_block(
             "\n".join(sample),
             label="copy this block",
-            instruction=False,
         )
     )
 

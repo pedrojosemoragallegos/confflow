@@ -26,46 +26,46 @@ debug = false
 # Value must be between 0.0 and 1.0
 load_factor = 0.5
 # Application release date
-# Required | date | 2026-10-02
+# Required | local date | 2026-10-02
 release_date = 2026-10-02
 # Daily maintenance time
-# Required | time | 02:30:00
+# Required | local time | 02:30:00
 maintenance_time = 02:30:00
 # Local creation timestamp
-# Required | local datetime | 2026-10-02T09:00:00
+# Required | local date-time | 2026-10-02T09:00:00
 created_at = 2026-10-02T09:00:00
 # Publication timestamp
-# Required | offset datetime | 2026-10-02T09:00:00Z
+# Required | offset date-time | 2026-10-02T09:00:00Z
 published_at = 2026-10-02T09:00:00Z
 # Hosts accepted by the application
-# Optional | list of string
+# Optional | array of string
 # Length must be between 1 and 255
 allowed_hosts =
 # Retry delays in seconds
-# Optional | list of float
+# Optional | array of float
 # Value must be between 0.0 and 60.0
 retry_delays =
 # Enabled feature flags
-# Optional | list of boolean
+# Optional | array of boolean
 feature_flags =
 # Retryable response codes
-# Optional | list of integer
+# Optional | array of integer
 # Value must be between 100 and 599
 retry_codes =
 # Scheduled maintenance dates
-# Optional | list of date
+# Optional | array of local date
 maintenance_dates =
 # Daily quiet-hour start times
-# Optional | list of time
+# Optional | array of local time
 quiet_hours =
 # Scheduled local health checks
-# Optional | list of local datetime
+# Optional | array of local date-time
 scheduled_checks =
 # Offset-aware audit timestamps
-# Optional | list of offset datetime
+# Optional | array of offset date-time
 audit_timestamps =
 # Groups of cluster node names
-# Optional | list of list of string
+# Optional | array of array of string
 clusters =
 
 # HTTP server configuration
@@ -204,7 +204,7 @@ primary_id =
 replica_id =
 
 # Named service ports
-# Optional | mapping
+# Optional | table
 [application.ports]
 # --- <copy this block> ---
 # # Port number
@@ -214,7 +214,7 @@ replica_id =
 # --- </copy this block> ---
 
 # Named service configurations
-# Optional | mapping
+# Optional | table
 [application.services]
 # --- <copy this block> ---
 # # Service configuration
@@ -231,8 +231,7 @@ replica_id =
 # --- </copy this block> ---
 
 # Backend server definitions
-# Optional | list
-# Copy the block below to add an entry:
+# Optional | array of tables
 # --- <copy block> ---
 # [[application.backends]]
 # # Backend role

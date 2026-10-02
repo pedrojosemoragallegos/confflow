@@ -200,9 +200,9 @@ runtime presence validation remains unchanged.
 Documentation is not double-commented. Every table array and mapping,
 required or optional, has exactly one commented sample block. Table arrays
 include metadata
-`Required | list` or `Optional | list`. The frame uses exactly
-`# --- <copy block> ---` and `# --- </copy block> ---`, with the instruction
-`# Copy the block below to add an entry:` immediately before the opening marker.
+`Required | array of tables` or `Optional | array of tables`. The frame uses exactly
+`# --- <copy block> ---` and `# --- </copy block> ---`, without an introductory
+copy instruction.
 Mapping sections show one scalar key assignment or one keyed table with its
 fields, depending on the mapped value schema. Mapping sample blocks use the
 placeholder key `<key>` and the frame
@@ -226,8 +226,8 @@ Descriptions are omitted when absent, except for the config header's description
 line. Every description/metadata line is commented, including multiline text.
 
 Metadata uses `Required | type | value` (omitting absent defaults), with
-human-facing type names such as `string`, `boolean`, `local datetime`,
-`list of string`, and `mapping`. Each visible constraint occupies a separate
+TOML type names such as `string`, `boolean`, `local date-time`,
+`array of string`, and `table`. Each visible constraint occupies a separate
 comment line.
 Field constraints use sentences such as `Length must be between 1 and 64`,
 `Value must be at least 1`, and `Value must be one of "development" or "production"`.

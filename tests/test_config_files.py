@@ -87,8 +87,7 @@ class ConfigFilesTest(unittest.TestCase):
         self.assertIn("# --- </copy block> ---\n\n# Disabled", text)
         self.assertIn("[disabled]\n" + assignments, text)
         self.assertIn(
-            "# Optional | list\n"
-            "# Copy the block below to add an entry:\n"
+            "# Optional | array of tables\n"
             "# --- <copy block> ---",
             text,
         )
@@ -129,8 +128,7 @@ class ConfigFilesTest(unittest.TestCase):
                 requirement = "Optional" if optional else "Required"
                 expected = (
                     "# Backend server definitions\n"
-                    f"# {requirement} | list\n"
-                    "# Copy the block below to add an entry:\n"
+                    f"# {requirement} | array of tables\n"
                     "# --- <copy block> ---\n"
                     "# [[application.backends]]\n"
                     "# # Backend role\n# # Required | string\n"
@@ -268,7 +266,7 @@ class ConfigFilesTest(unittest.TestCase):
 
         self.assertIn(
             "# Named service ports\n"
-            "# Required | mapping\n"
+            "# Required | table\n"
             "[ports]\n"
             "# --- <copy this block> ---\n"
             "# # Port number\n"
@@ -280,7 +278,7 @@ class ConfigFilesTest(unittest.TestCase):
         )
         self.assertIn(
             "# Named backend configurations\n"
-            "# Required | mapping\n"
+            "# Required | table\n"
             "[backends]\n"
             "# --- <copy this block> ---\n"
             "# # Backend configuration\n"
@@ -509,10 +507,10 @@ class ConfigFilesTest(unittest.TestCase):
                 "integer",
                 "float",
                 "boolean",
-                "date",
-                "time",
-                "local datetime",
-                "offset datetime",
+                "local date",
+                "local time",
+                "local date-time",
+                "offset date-time",
             ):
                 self.assertIn(f"# Required | {label} | ", text)
             self.assertNotIn("default", text)
@@ -552,7 +550,7 @@ class ConfigFilesTest(unittest.TestCase):
                 '# Value must match the pattern "[A-Z]+"\n# Length must be exactly 3',
                 text,
             )
-            self.assertIn("# Required | list of list of integer", text)
+            self.assertIn("# Required | array of array of integer", text)
             self.assertIn(
                 "# Authentication\n# Optional\n"
                 '# When "username" is provided, "password" must also be provided\n'
@@ -616,9 +614,9 @@ class ConfigFilesTest(unittest.TestCase):
                 text,
             )
             self.assertIn(
-                "# Required | list of integer\n# Value must be at least 1", text
+                "# Required | array of integer\n# Value must be at least 1", text
             )
-            self.assertIn("# Required | mapping", text)
+            self.assertIn("# Required | table", text)
 
     def test_constraints_use_str_and_skip_empty_strings(self) -> None:
         class Visible(StringConstraint):
@@ -671,15 +669,14 @@ class ConfigFilesTest(unittest.TestCase):
                 "# Name\n# Required | string\n# Use a service identifier\nname =",
                 text,
             )
-            self.assertIn("# Names\n# Required | list of string\nnames =", text)
+            self.assertIn("# Names\n# Required | array of string\nnames =", text)
             self.assertIn(
                 "# Limits\n# Required\n"
                 "# Keep the lower bound below the upper bound\n[limits]",
                 text,
             )
             self.assertIn(
-                "# Backends\n# Required | list\n"
-                "# Copy the block below to add an entry:\n"
+                "# Backends\n# Required | array of tables\n"
                 "# --- <copy block> ---\n# [[backends]]\n"
                 "# # Keep the lower bound below the upper bound",
                 text,
