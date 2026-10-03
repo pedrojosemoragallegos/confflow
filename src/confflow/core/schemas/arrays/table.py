@@ -8,6 +8,7 @@ from typing_extensions import override
 from .base import Array
 
 if TYPE_CHECKING:
+    from confflow.core.errors import ValidationError
     from confflow.core.schemas.table import Table as TableSchema
 
 
@@ -30,6 +31,13 @@ class Table(Array[Mapping[str, object]]):
     @property
     def table(self) -> TableSchema:
         return self.__table
+
+    @override
+    def redact_error(self, error: ValidationError, value: object, /) -> None:
+        if not isinstance(value, list):
+            return
+        for item in value:
+            self.__table.redact_error(error, item)
 
     @override
     def _validate_item(self, value: Mapping[str, object], /) -> None:

@@ -1,10 +1,31 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from re import sub
 from typing import Final, TypeAlias
 
 _PathPart: TypeAlias = str | int
 _MISSING: Final[object] = object()
+REDACTED_VALUE: Final[str] = "<secret>"
+
+
+def redact_text(text: str, value: object, /) -> str:
+    representations = sorted({repr(value), str(value)} - {""}, key=len, reverse=True)
+    for representation in representations:
+        text = text.replace(representation, REDACTED_VALUE)
+    return text
+
+
+def _redact_value(value: object, secret: object) -> object:
+    if value == secret:
+        return REDACTED_VALUE
+    if isinstance(value, Mapping):
+        return {key: _redact_value(item, secret) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_redact_value(item, secret) for item in value]
+    if isinstance(value, tuple):
+        return tuple(_redact_value(item, secret) for item in value)
+    return value
 
 
 class SchemaError(ValueError):
@@ -72,6 +93,19 @@ class ValidationError(ValueError):
 
     def prepend_path(self, part: _PathPart, /) -> None:
         self._path: tuple[_PathPart, ...] = (part, *self._path)
+
+    def redact(self, value: object, /) -> None:
+        self._detail = redact_text(self._detail, value)
+        if self._expected is not None:
+            self._expected = redact_text(self._expected, value)
+        if self._has_value:
+            self._value = _redact_value(self._value, value)
+        self.args = (self._detail,)
+        self.__cause__ = None
+        self.__context__ = None
+        self.__suppress_context__ = True
+        if hasattr(self, "__notes__"):
+            self.__notes__ = [redact_text(note, value) for note in self.__notes__]
 
     def __str__(self) -> str:
         if self._expected is not None and self._has_value:

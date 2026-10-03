@@ -13,12 +13,14 @@ class Boolean(Scalar[bool]):
         /,
         *,
         optional: bool = False,
+        secret: bool = False,
         default: bool | None = None,
     ) -> None:
         super().__init__(
             name,
             description,
             optional=optional,
+            secret=secret,
             definition=BooleanDefinition(),
             default=default,
         )

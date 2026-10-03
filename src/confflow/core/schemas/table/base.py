@@ -81,6 +81,14 @@ class Table(Schema[Mapping[str, object]]):
         return self.__constraints
 
     @override
+    def redact_error(self, error: ValidationError, value: object, /) -> None:
+        if not isinstance(value, Mapping):
+            return
+        for schema in self.__schemas:
+            if schema.name in value:
+                schema.redact_error(error, value[schema.name])
+
+    @override
     def validate(self, value: Mapping[str, object], /) -> None:
         unknown: tuple[str, ...] = tuple(
             name for name in value if name not in self.__schema_names
@@ -119,21 +127,29 @@ class Table(Schema[Mapping[str, object]]):
                     expected=type(schema).__name__,
                 ) from error
 
+        self._validate_constraints(value)
+
+    def _validate_constraints(self, value: Mapping[str, object]) -> None:
         for constraint in self.__constraints:
             try:
                 constraint(value)
-            except ValidationError:
+            except ValidationError as error:
+                self.redact_error(error, value)
                 raise
             except (TypeError, ValueError, RuntimeError) as error:
                 constraint_value: dict[str, object] = {
                     name: value[name] for name in constraint.fields if name in value
                 }
-                raise ValidationError(
+                validation_error = ValidationError(
                     str(error),
                     value=constraint_value,
                     constraint=constraint_name(constraint),
                     expected=constraint_rule(constraint),
-                ) from error
+                )
+                self.redact_error(validation_error, value)
+                if validation_error.__suppress_context__:
+                    raise validation_error from None
+                raise validation_error from error
 
     @override
     def __repr__(self) -> str:

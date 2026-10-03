@@ -22,6 +22,7 @@ class LocalDateTime(Scalar[datetime]):
         /,
         *constraints: Constraint[datetime],
         optional: bool = False,
+        secret: bool = False,
         default: datetime | None = None,
         minimum: datetime | None = None,
         maximum: datetime | None = None,
@@ -35,6 +36,7 @@ class LocalDateTime(Scalar[datetime]):
             name,
             description,
             optional=optional,
+            secret=secret,
             definition=LocalDateTimeDefinition(
                 *constraints,
                 *literal_constraint,

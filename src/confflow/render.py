@@ -6,6 +6,7 @@ import tomlkit
 
 from confflow.core.definitions.base import Definition
 from confflow.core.definitions.date_time.offset_date_time import OffsetDateTime
+from confflow.core.errors import constraint_name
 from confflow.core.schemas import (
     Array,
     Mapping as MappingSchema,
@@ -37,7 +38,10 @@ def _metadata(schema: Schema[Any], *, constraints: bool = True) -> str:
     parts = ["Optional" if schema.optional else "Required"]
     if not isinstance(schema, Table):
         parts.append(_type_name(schema))
-    if isinstance(schema, Scalar) and schema.default is not None:
+    secret = isinstance(schema, Scalar) and schema.secret
+    if secret:
+        parts.append("secret")
+    elif isinstance(schema, Scalar) and schema.default is not None:
         parts.append(_toml_value(schema.default))
     lines = [" | ".join(parts)]
     if not constraints:
@@ -48,7 +52,12 @@ def _metadata(schema: Schema[Any], *, constraints: bool = True) -> str:
     else:
         definition = getattr(schema, "definition", None)
         if isinstance(definition, Definition):
-            lines.extend(text for item in definition.constraints if (text := str(item)))
+            for item in definition.constraints:
+                text = str(item)
+                if text and secret:
+                    text = f"Value must satisfy {constraint_name(item)}"
+                if text:
+                    lines.append(text)
     return _comment("\n".join(lines))
 
 
@@ -119,7 +128,7 @@ def _render_mapping(schema: MappingSchema, path: tuple[str, ...]) -> str:
         entry_path = (*path, schema.name, "<key>")
         sample.append(f"[{'.'.join(entry_path)}]")
         sample.extend(_render_schemas(value.schemas, entry_path))
-    elif isinstance(value, Scalar) and value.default is not None:
+    elif isinstance(value, Scalar) and value.default is not None and not value.secret:
         sample.append(f"<key> = {_toml_value(value.default)}")
     else:
         sample.append("<key> =")
@@ -190,7 +199,11 @@ def _render_schemas(
             )
             sections.extend(children)
         else:
-            if isinstance(schema, Scalar) and schema.default is not None:
+            if (
+                isinstance(schema, Scalar)
+                and schema.default is not None
+                and not schema.secret
+            ):
                 assignment = _toml_assignment(schema.name, schema.default)
             else:
                 assignment = f"{schema.name} ="

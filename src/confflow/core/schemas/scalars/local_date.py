@@ -22,6 +22,7 @@ class LocalDate(Scalar[date]):
         /,
         *constraints: Constraint[date],
         optional: bool = False,
+        secret: bool = False,
         default: date | None = None,
         minimum: date | None = None,
         maximum: date | None = None,
@@ -35,6 +36,7 @@ class LocalDate(Scalar[date]):
             name,
             description,
             optional=optional,
+            secret=secret,
             definition=LocalDateDefinition(
                 *constraints,
                 *literal_constraint,

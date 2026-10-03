@@ -22,6 +22,7 @@ class LocalTime(Scalar[time]):
         /,
         *constraints: Constraint[time],
         optional: bool = False,
+        secret: bool = False,
         default: time | None = None,
         minimum: time | None = None,
         maximum: time | None = None,
@@ -35,6 +36,7 @@ class LocalTime(Scalar[time]):
             name,
             description,
             optional=optional,
+            secret=secret,
             definition=LocalTimeDefinition(
                 *constraints,
                 *literal_constraint,

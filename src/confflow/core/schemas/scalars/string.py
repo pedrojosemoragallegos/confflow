@@ -20,6 +20,7 @@ class String(Scalar[str]):
         /,
         *constraints: Constraint[str],
         optional: bool = False,
+        secret: bool = False,
         default: str | None = None,
         minimum: int | None = None,
         maximum: int | None = None,
@@ -34,6 +35,7 @@ class String(Scalar[str]):
             name,
             description,
             optional=optional,
+            secret=secret,
             default=default,
             definition=StringDefinition(
                 *constraints,

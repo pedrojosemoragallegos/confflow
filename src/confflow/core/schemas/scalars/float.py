@@ -21,6 +21,7 @@ class Float(Scalar[float]):
         /,
         *constraints: Constraint[float],
         optional: bool = False,
+        secret: bool = False,
         default: float | None = None,
         minimum: float | None = None,
         maximum: float | None = None,
@@ -34,6 +35,7 @@ class Float(Scalar[float]):
             name,
             description,
             optional=optional,
+            secret=secret,
             definition=FloatDefinition(
                 *constraints,
                 *literal_constraint,

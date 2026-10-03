@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from re import compile as compile_pattern
 from typing import Final, Generic, TypeVar
 
-from confflow.core.errors import SchemaError
+from confflow.core.errors import SchemaError, ValidationError
 
 ValueT = TypeVar(name="ValueT")
 
@@ -40,6 +40,9 @@ class Schema(ABC, Generic[ValueT]):
 
     @abstractmethod
     def validate(self, value: ValueT, /) -> None: ...
+
+    def redact_error(self, error: ValidationError, value: object, /) -> None:
+        del error, value
 
     @abstractmethod
     def __repr__(self) -> str: ...

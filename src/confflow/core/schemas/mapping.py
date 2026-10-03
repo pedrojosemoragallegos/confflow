@@ -75,6 +75,13 @@ class Mapping(
         return self.__value
 
     @override
+    def redact_error(self, error: ValidationError, value: object, /) -> None:
+        if not isinstance(value, MappingABC):
+            return
+        for item in value.values():
+            self.__value.redact_error(error, item)
+
+    @override
     def validate(self, value: MappingABC[str, ValueT], /) -> None:
         for key, item in value.items():
             try:

@@ -15,7 +15,7 @@ name = "confflow"
 # Required | string | "production"
 # Value must be one of "development", "staging", or "production"
 environment = "production"
-contact_email = 
+contact_email =
 # Enable debug mode# Application contact email
 # Optional | string
 # Required | boolean | false

@@ -21,6 +21,7 @@ class Integer(Scalar[int]):
         /,
         *constraints: Constraint[int],
         optional: bool = False,
+        secret: bool = False,
         default: int | None = None,
         minimum: int | None = None,
         maximum: int | None = None,
@@ -34,6 +35,7 @@ class Integer(Scalar[int]):
             name,
             description,
             optional=optional,
+            secret=secret,
             definition=IntegerDefinition(
                 *constraints,
                 *literal_constraint,

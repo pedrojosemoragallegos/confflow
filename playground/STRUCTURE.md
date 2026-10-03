@@ -158,11 +158,22 @@ schema name rules. Empty descriptions are stored as `None`, matching schemas.
   it does not turn a nonexistent destination into a directory. Exclusive creation
   is the default; `overwrite=True` permits replacement.
 - `load(source: str | Path) -> Mapping[str, object]` opens the file in binary mode,
-  parses it with Python 3.11's `tomllib`, validates it, and returns the parsed
+  parses it with Python 3.11's `tomllib`, resolves explicit scalar environment
+  references, validates it, and returns the parsed
   values as an immutable structure: tables are read-only mappings and arrays are
   tuples. Missing required fields fail even if they have defaults. Missing optional
   fields succeed; no defaults are inserted. Parse and filesystem errors retain
   their standard exceptions; value errors use `ValidationError`.
+
+The eight scalar field schemas accept `secret=False`. Setting `secret=True`
+changes metadata and diagnostic redaction only: literal and explicitly referenced
+environment values still load normally, with the real values available to the
+application. Schema and loaded-configuration representations redact secret values
+as `<secret>`, as do validation errors (including relational errors). Paths, schema
+names, constraint names, and validation messages remain visible. Explicitly reading
+a field returns its real value; applications must avoid logging those values.
+Tables, mappings, and array schemas do not accept `secret`, but can contain secret
+scalar fields.
 
 Templates use the following format, with exactly one blank line after the config
 description and before each table section, and no blank lines between fields or
@@ -190,7 +201,7 @@ the root and inside tables. Nested tables use dotted headers such as
 `[[backends]]`. All non-table fields without a concrete default have active
 blank assignments, such as `port =` or `contact_email =`, regardless of
 optionality. This includes arrays (not active empty collections). Fields with
-concrete defaults have active assignments, including inside optional ordinary
+non-secret concrete defaults have active assignments, including inside optional ordinary
 tables. All ordinary table and mapping headers remain active, including optional
 and nested tables.
 Optional/Required is informational metadata in templates, not a commenting rule;
@@ -218,7 +229,7 @@ for additional items.
 Templates containing active blank assignments are intentionally semi-valid:
 fill in those assignments before parsing TOML. Templates can still fail schema validation
 until required values and table relationships are supplied. Loading never inserts
-missing defaults. Defaults are rendered
+missing defaults. Non-secret defaults are rendered
 with the existing `tomlkit` dependency as TOML values, not Python representations.
 Descriptions are omitted when absent, except for the config header's description
 line. Every description/metadata line is commented, including multiline text.
@@ -227,6 +238,11 @@ Metadata uses `Required | type | value` (omitting absent defaults), with
 TOML type names such as `string`, `boolean`, `local date-time`,
 `array of string`, and `table`. Each visible constraint occupies a separate
 comment line.
+Secret fields instead use `Required | type | secret` or
+`Optional | type | secret`. They always have blank assignments, even with a
+default, including in mapping samples and table-array samples. Value-bearing
+constraint metadata is summarized by constraint name for secret fields.
+Templates never generate environment references automatically.
 Field constraints use sentences such as `Length must be between 1 and 64`,
 `Value must be at least 1`, and `Value must be one of "development" or "production"`.
 Patterns use `Value must match the pattern "[A-Z]+"`. Unbounded ranges and lengths
