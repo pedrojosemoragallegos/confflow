@@ -54,7 +54,7 @@ class Email(StringConstraint):
 
 
 def create_config() -> Configuration:
-    limits = Table(
+    limits: Table = Table(
         "limits",
         "Worker limits",
         Integer(
@@ -70,7 +70,7 @@ def create_config() -> Configuration:
         LessThanOrEqual("minimum_workers", "maximum_workers"),
     )
 
-    server = Table(
+    server: Table = Table(
         "server",
         "HTTP server configuration",
         String("host", "Server host", minimum=1, maximum=255, default="localhost"),
@@ -79,7 +79,7 @@ def create_config() -> Configuration:
         limits,
     )
 
-    less_than_example = Table(
+    less_than_example: Table = Table(
         "less_than",
         "Strictly increasing values",
         Integer("smaller", None, default=1),
@@ -87,7 +87,7 @@ def create_config() -> Configuration:
         LessThan("smaller", "larger"),
     )
 
-    less_than_or_equal_example = Table(
+    less_than_or_equal_example: Table = Table(
         "less_than_or_equal",
         "Increasing or equal values",
         Integer("lower", None, default=2),
@@ -95,7 +95,7 @@ def create_config() -> Configuration:
         LessThanOrEqual("lower", "upper"),
     )
 
-    greater_than_example = Table(
+    greater_than_example: Table = Table(
         "greater_than",
         "Strictly decreasing values",
         Integer("larger", None, default=2),
@@ -103,7 +103,7 @@ def create_config() -> Configuration:
         GreaterThan("larger", "smaller"),
     )
 
-    greater_than_or_equal_example = Table(
+    greater_than_or_equal_example: Table = Table(
         "greater_than_or_equal",
         "Decreasing or equal values",
         Integer("left", None, default=2),
@@ -111,7 +111,7 @@ def create_config() -> Configuration:
         GreaterThanOrEqual("left", "right"),
     )
 
-    comparison_examples = Table(
+    comparison_examples: Table = Table(
         "comparison_examples",
         "Examples of ordered comparison constraints",
         less_than_example,
@@ -120,7 +120,7 @@ def create_config() -> Configuration:
         greater_than_or_equal_example,
     )
 
-    authentication = Table(
+    authentication: Table = Table(
         "authentication",
         "Authentication configuration",
         String("username", "Authentication username", optional=True),
@@ -140,7 +140,7 @@ def create_config() -> Configuration:
         optional=True,
     )
 
-    notifications = Table(
+    notifications: Table = Table(
         "notifications",
         "Notification delivery",
         String("email", "Notification email address", optional=True),
@@ -148,7 +148,7 @@ def create_config() -> Configuration:
         AtLeastOneOf("email", "webhook"),
     )
 
-    storage = Table(
+    storage: Table = Table(
         "storage",
         "Storage backend selection",
         String("local_path", "Local storage directory", optional=True),
@@ -158,7 +158,7 @@ def create_config() -> Configuration:
         Forbids("local_path", "region"),
     )
 
-    replication = Table(
+    replication: Table = Table(
         "replication",
         "Replication compatibility and identity",
         String("primary_protocol", "Primary replication protocol"),
@@ -169,28 +169,25 @@ def create_config() -> Configuration:
         NotEqual("primary_id", "replica_id"),
     )
 
-    service_config = Table(
+    service_config: Table = Table(
         "service",
         "Service configuration",
         String("url", "Service URL", minimum=1),
         Integer("weight", "Traffic weight", minimum=1, default=1),
     )
 
-    services = Mapping(
-        "services",
-        "Named service configurations",
-        value=service_config,
-        optional=True,
+    services: Mapping = Mapping(
+        "services", "Named service configurations", value=service_config, optional=True
     )
 
-    ports = Mapping(
+    ports: Mapping = Mapping(
         "ports",
         "Named service ports",
         value=Integer("port", "Port number", minimum=1, maximum=65535),
         optional=True,
     )
 
-    backend = Table(
+    backend: Table = Table(
         "backend",
         "Backend configuration",
         String("name", "Backend role", literal=["primary", "replica"]),
@@ -205,21 +202,18 @@ def create_config() -> Configuration:
         ),
     )
 
-    backends = TableArray(
-        "backends",
-        "Backend server definitions",
-        backend,
-        optional=True,
+    backends: TableArray = TableArray(
+        "backends", "Backend server definitions", backend, optional=True
     )
 
-    monitoring = Table(
+    monitoring: Table = Table(
         "monitoring",
         "Application monitoring",
         String("endpoint", "Monitoring endpoint", minimum=1),
         optional=True,
     )
 
-    application = Table(
+    application: Table = Table(
         "application",
         "Application configuration",
         String("name", "Application name", minimum=1, maximum=64, default="confflow"),
