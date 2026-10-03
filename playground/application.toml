@@ -15,10 +15,9 @@ name = "confflow"
 # Required | string | "production"
 # Value must be one of "development", "staging", or "production"
 environment = "production"
-# Application contact email
+contact_email = 
+# Enable debug mode# Application contact email
 # Optional | string
-contact_email =
-# Enable debug mode
 # Required | boolean | false
 debug = false
 # Current load factor
@@ -37,38 +36,29 @@ created_at = 2026-10-02T09:00:00
 # Publication timestamp
 # Required | offset date-time | 2026-10-02T09:00:00Z
 published_at = 2026-10-02T09:00:00Z
-# Hosts accepted by the application
+allowed_hosts =
+# Retry delays in secondsretry_delays =
+# Enabled feature flagsfeature_flags =
+# Retryable response codesretry_codes =
+# Scheduled maintenance datesmaintenance_dates =
+# Daily quiet-hour start timesquiet_hours =
+# Scheduled local health checksscheduled_checks =
+# Offset-aware audit timestampsaudit_timestamps =
+# Groups of cluster node namesclusters =
+
+# HTTP server configuration# Hosts accepted by the application
 # Optional | array of string
 # Length must be between 1 and 255
-allowed_hosts =
-# Retry delays in seconds
 # Optional | array of float
 # Value must be between 0.0 and 60.0
-retry_delays =
-# Enabled feature flags
 # Optional | array of boolean
-feature_flags =
-# Retryable response codes
 # Optional | array of integer
 # Value must be between 100 and 599
-retry_codes =
-# Scheduled maintenance dates
 # Optional | array of local date
-maintenance_dates =
-# Daily quiet-hour start times
 # Optional | array of local time
-quiet_hours =
-# Scheduled local health checks
 # Optional | array of local date-time
-scheduled_checks =
-# Offset-aware audit timestamps
 # Optional | array of offset date-time
-audit_timestamps =
-# Groups of cluster node names
 # Optional | array of array of string
-clusters =
-
-# HTTP server configuration
 # Required
 [application.server]
 # Server host
@@ -142,68 +132,54 @@ right = 2
 # Either "password" or "token" may be provided, but not both
 # When either "certificate" or "private_key" is provided, both must be provided
 [application.authentication]
-# Authentication username
-# Optional | string
 username =
-# Authentication password
+# Authentication passwordpassword =
+# Authentication tokentoken =
+# Client certificatecertificate =
+# Client private keyprivate_key =
+
+# Notification delivery# Authentication username
+# Optional | string
 # Optional | string
 # Length must be at least 12
-password =
-# Authentication token
 # Optional | string
-token =
-# Client certificate
 # Optional | string
-certificate =
-# Client private key
 # Optional | string
-private_key =
-
-# Notification delivery
 # Required
 # Either "email" or "webhook" must be provided; both may be provided
 [application.notifications]
-# Notification email address
-# Optional | string
 email =
-# Notification webhook URL
-# Optional | string
-webhook =
+# Notification webhook URLwebhook =
 
-# Storage backend selection
+# Storage backend selection# Notification email address
+# Optional | string
+# Optional | string
 # Required
 # Either "local_path" or "bucket", but not both, must be provided
 # When "local_path" is provided, "region" must be omitted
 [application.storage]
-# Local storage directory
-# Optional | string
 local_path =
-# Cloud storage bucket
-# Optional | string
-bucket =
-# Cloud storage region
-# Optional | string
-region =
+# Cloud storage bucketbucket =
+# Cloud storage regionregion =
 
-# Replication compatibility and identity
+# Replication compatibility and identity# Local storage directory
+# Optional | string
+# Optional | string
+# Optional | string
 # Required
 # "primary_protocol" == "replica_protocol"
 # "primary_id" != "replica_id"
 [application.replication]
-# Primary replication protocol
-# Required | string
 primary_protocol =
-# Replica replication protocol
-# Required | string
-replica_protocol =
-# Primary node identifier
-# Required | string
-primary_id =
-# Replica node identifier
-# Required | string
-replica_id =
+# Replica replication protocolreplica_protocol =
+# Primary node identifierprimary_id =
+# Replica node identifierreplica_id =
 
-# Named service ports
+# Named service ports# Primary replication protocol
+# Required | string
+# Required | string
+# Required | string
+# Required | string
 # Optional | table
 [application.ports]
 # --- <copy this block> ---
@@ -251,7 +227,7 @@ replica_id =
 # Application monitoring
 # Optional
 [monitoring]
+endpoint =
 # Monitoring endpoint
 # Required | string
 # Length must be at least 1
-endpoint =
