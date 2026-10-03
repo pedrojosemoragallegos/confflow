@@ -101,15 +101,13 @@ def _toml_assignment(name: str, value: object) -> str:
     return tomlkit.dumps({name: value}).rstrip("\n")
 
 
-def _copy_block(
-    content: str,
-    *,
-    label: str = "copy block",
-) -> str:
+def _copy_block(content: str) -> str:
     commented = "\n".join(
         f"# {line}" if line else "" for line in content.split("\n")
     )
-    return "\n".join((f"# --- <{label}> ---", commented, f"# --- </{label}> ---"))
+    return "\n".join(
+        ("# --- <copy block> ---", commented, "# --- </copy block> ---")
+    )
 
 
 def _render_mapping(schema: MappingSchema, path: tuple[str, ...]) -> str:
@@ -137,10 +135,7 @@ def _render_mapping(schema: MappingSchema, path: tuple[str, ...]) -> str:
         "\n"
         + "\n".join(lines)
         + "\n"
-        + _copy_block(
-            "\n".join(sample),
-            label="copy this block",
-        )
+        + _copy_block("\n".join(sample))
     )
 
 

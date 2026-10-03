@@ -75,7 +75,7 @@ def create_config() -> Configuration:
         "HTTP server configuration",
         String("host", "Server host", minimum=1, maximum=255, default="localhost"),
         Integer("port", "Server port", minimum=1, maximum=65535, default=8080),
-        Boolean("tls", "Enable TLS", default=False),
+        Boolean("tls", "TLS mode", default=False),
         limits,
     )
 
@@ -230,7 +230,7 @@ def create_config() -> Configuration:
             default="production",
         ),
         String("contact_email", "Application contact email", Email(), optional=True),
-        Boolean("debug", "Enable debug mode", default=False),
+        Boolean("debug", "Debug mode", default=False),
         Float(
             "load_factor", "Current load factor", minimum=0.0, maximum=1.0, default=0.5
         ),
@@ -308,7 +308,7 @@ def create_config() -> Configuration:
         "Application configuration",
         application,
         monitoring,
-        Boolean("verbose", "Enable verbose logging", optional=True, default=False),
+        Boolean("verbose", "Verbose logging", optional=True, default=False),
     )
 
 

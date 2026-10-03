@@ -1,6 +1,6 @@
 # Application configuration
 
-# Enable verbose logging
+# Verbose logging
 # Optional | boolean | false
 verbose = false
 
@@ -15,9 +15,10 @@ name = "confflow"
 # Required | string | "production"
 # Value must be one of "development", "staging", or "production"
 environment = "production"
-contact_email =
-# Enable debug mode# Application contact email
+# Application contact email
 # Optional | string
+contact_email =
+# Debug mode
 # Required | boolean | false
 debug = false
 # Current load factor
@@ -36,29 +37,38 @@ created_at = 2026-10-02T09:00:00
 # Publication timestamp
 # Required | offset date-time | 2026-10-02T09:00:00Z
 published_at = 2026-10-02T09:00:00Z
-allowed_hosts =
-# Retry delays in secondsretry_delays =
-# Enabled feature flagsfeature_flags =
-# Retryable response codesretry_codes =
-# Scheduled maintenance datesmaintenance_dates =
-# Daily quiet-hour start timesquiet_hours =
-# Scheduled local health checksscheduled_checks =
-# Offset-aware audit timestampsaudit_timestamps =
-# Groups of cluster node namesclusters =
-
-# HTTP server configuration# Hosts accepted by the application
+# Hosts accepted by the application
 # Optional | array of string
 # Length must be between 1 and 255
+allowed_hosts =
+# Retry delays in seconds
 # Optional | array of float
 # Value must be between 0.0 and 60.0
+retry_delays =
+# Enabled feature flags
 # Optional | array of boolean
+feature_flags =
+# Retryable response codes
 # Optional | array of integer
 # Value must be between 100 and 599
+retry_codes =
+# Scheduled maintenance dates
 # Optional | array of local date
+maintenance_dates =
+# Daily quiet-hour start times
 # Optional | array of local time
+quiet_hours =
+# Scheduled local health checks
 # Optional | array of local date-time
+scheduled_checks =
+# Offset-aware audit timestamps
 # Optional | array of offset date-time
+audit_timestamps =
+# Groups of cluster node names
 # Optional | array of array of string
+clusters =
+
+# HTTP server configuration
 # Required
 [application.server]
 # Server host
@@ -69,7 +79,7 @@ host = "localhost"
 # Required | integer | 8080
 # Value must be between 1 and 65535
 port = 8080
-# Enable TLS
+# TLS mode
 # Required | boolean | false
 tls = false
 
@@ -132,67 +142,81 @@ right = 2
 # Either "password" or "token" may be provided, but not both
 # When either "certificate" or "private_key" is provided, both must be provided
 [application.authentication]
+# Authentication username
+# Optional | string
 username =
-# Authentication passwordpassword =
-# Authentication tokentoken =
-# Client certificatecertificate =
-# Client private keyprivate_key =
+# Authentication password
+# Optional | string | secret
+# Value must satisfy length
+password =
+# Authentication token
+# Optional | string | secret
+token =
+# Client certificate
+# Optional | string
+certificate =
+# Client private key
+# Optional | string | secret
+private_key =
 
-# Notification delivery# Authentication username
-# Optional | string
-# Optional | string
-# Length must be at least 12
-# Optional | string
-# Optional | string
-# Optional | string
+# Notification delivery
 # Required
 # Either "email" or "webhook" must be provided; both may be provided
 [application.notifications]
+# Notification email address
+# Optional | string
 email =
-# Notification webhook URLwebhook =
+# Notification webhook URL
+# Optional | string
+webhook =
 
-# Storage backend selection# Notification email address
-# Optional | string
-# Optional | string
+# Storage backend selection
 # Required
 # Either "local_path" or "bucket", but not both, must be provided
 # When "local_path" is provided, "region" must be omitted
 [application.storage]
+# Local storage directory
+# Optional | string
 local_path =
-# Cloud storage bucketbucket =
-# Cloud storage regionregion =
+# Cloud storage bucket
+# Optional | string
+bucket =
+# Cloud storage region
+# Optional | string
+region =
 
-# Replication compatibility and identity# Local storage directory
-# Optional | string
-# Optional | string
-# Optional | string
+# Replication compatibility and identity
 # Required
 # "primary_protocol" == "replica_protocol"
 # "primary_id" != "replica_id"
 [application.replication]
+# Primary replication protocol
+# Required | string
 primary_protocol =
-# Replica replication protocolreplica_protocol =
-# Primary node identifierprimary_id =
-# Replica node identifierreplica_id =
+# Replica replication protocol
+# Required | string
+replica_protocol =
+# Primary node identifier
+# Required | string
+primary_id =
+# Replica node identifier
+# Required | string
+replica_id =
 
-# Named service ports# Primary replication protocol
-# Required | string
-# Required | string
-# Required | string
-# Required | string
+# Named service ports
 # Optional | table
 [application.ports]
-# --- <copy this block> ---
+# --- <copy block> ---
 # # Port number
 # # Required | integer
 # # Value must be between 1 and 65535
 # <key> =
-# --- </copy this block> ---
+# --- </copy block> ---
 
 # Named service configurations
 # Optional | table
 [application.services]
-# --- <copy this block> ---
+# --- <copy block> ---
 # # Service configuration
 # # Required
 # [application.services.<key>]
@@ -204,7 +228,7 @@ primary_protocol =
 # # Required | integer | 1
 # # Value must be at least 1
 # weight = 1
-# --- </copy this block> ---
+# --- </copy block> ---
 
 # Backend server definitions
 # Optional | array of tables
@@ -227,7 +251,7 @@ primary_protocol =
 # Application monitoring
 # Optional
 [monitoring]
-endpoint =
 # Monitoring endpoint
 # Required | string
 # Length must be at least 1
+endpoint =

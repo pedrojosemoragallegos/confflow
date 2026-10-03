@@ -208,19 +208,16 @@ Optional/Required is informational metadata in templates, not a commenting rule;
 runtime presence validation remains unchanged.
 Documentation is not double-commented. Every table array and mapping,
 required or optional, has exactly one commented sample block. Table arrays
-include metadata
-`Required | array of tables` or `Optional | array of tables`. The frame uses exactly
-`# --- <copy block> ---` and `# --- </copy block> ---`, without an introductory
-copy instruction.
-Mapping sections show one scalar key assignment or one keyed table with its
-fields, depending on the mapped value schema. Mapping sample blocks use the
-placeholder key `<key>` and the frame
-`# --- <copy this block> ---` / `# --- </copy this block> ---`, without an
-additional copy instruction. The content
-between the markers has one extra `# ` layer: headers and assignments are
-commented once, while documentation is commented twice. Remove one layer to
-activate the sample while preserving its documentation comments. Nested copy
-blocks retain their own comment layer until individually uncommented.
+include metadata `Required | array of tables` or `Optional | array of tables`.
+All sample blocks use the same frame:
+`# --- <copy block> ---` and `# --- </copy block> ---`, without an
+introductory copy instruction. Mapping sections show one scalar key assignment
+or one keyed table with its fields, depending on the mapped value schema, using
+the placeholder key `<key>`. The content between the markers has one extra
+`# ` layer: headers and assignments are commented once, while documentation
+is commented twice. Remove one layer to activate the sample while preserving
+its documentation comments. Nested copy blocks retain their own comment layer
+until individually uncommented.
 No blank lines separate fields, including inside samples. One blank line separates
 tables/table sections. No blank line separates structure metadata from its
 opening copy-block marker.

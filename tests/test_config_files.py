@@ -235,10 +235,8 @@ class ConfigFilesTest(unittest.TestCase):
             self.assertEqual(text.splitlines().count("# [active.limits]"), 1)
             self.assertEqual(text.splitlines().count("# workers = 2"), 3)
             self.assertEqual(text.splitlines().count('# # label = "child"'), 3)
-            self.assertEqual(text.count("# --- <copy block>"), 6)
-            self.assertEqual(text.count("# --- </copy block> ---"), 6)
-            self.assertEqual(text.count("# --- <copy this block> ---"), 1)
-            self.assertEqual(text.count("# --- </copy this block> ---"), 1)
+            self.assertEqual(text.count("# --- <copy block> ---"), 7)
+            self.assertEqual(text.count("# --- </copy block> ---"), 7)
             self.assertIn("\nenabled = false\n", text)
             self.assertIn("\nport = 80\n", text)
             self.assertIn("\n# [active.extra]\n", text)
@@ -280,19 +278,19 @@ class ConfigFilesTest(unittest.TestCase):
             "# Named service ports\n"
             "# Required | table\n"
             "[ports]\n"
-            "# --- <copy this block> ---\n"
+            "# --- <copy block> ---\n"
             "# # Port number\n"
             "# # Required | integer | 8080\n"
             "# # Value must be at least 1\n"
             "# <key> = 8080\n"
-            "# --- </copy this block> ---",
+            "# --- </copy block> ---",
             text,
         )
         self.assertIn(
             "# Named backend configurations\n"
             "# Required | table\n"
             "[backends]\n"
-            "# --- <copy this block> ---\n"
+            "# --- <copy block> ---\n"
             "# # Backend configuration\n"
             "# # Required\n"
             '# # "minimum_workers" must be <= "maximum_workers"\n'
@@ -306,7 +304,7 @@ class ConfigFilesTest(unittest.TestCase):
             "# # Maximum workers\n"
             "# # Required | integer | 4\n"
             "# maximum_workers = 4\n"
-            "# --- </copy this block> ---",
+            "# --- </copy block> ---",
             text,
         )
         self.assertIn(
@@ -321,10 +319,10 @@ class ConfigFilesTest(unittest.TestCase):
         uncommented = list(text.splitlines())
         index = 0
         while index < len(uncommented):
-            if uncommented[index] != "# --- <copy this block> ---":
+            if uncommented[index] != "# --- <copy block> ---":
                 index += 1
                 continue
-            end = uncommented.index("# --- </copy this block> ---", index + 1)
+            end = uncommented.index("# --- </copy block> ---", index + 1)
             uncommented[index : end + 1] = [
                 line.removeprefix("# ").replace("<key>", "sample")
                 for line in uncommented[index + 1 : end]
