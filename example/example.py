@@ -6,8 +6,22 @@ from pathlib import Path
 from typing import Final
 
 from confflow import Configuration
-from confflow.core.definitions.constraints import String as StringConstraint
-from confflow.core.schemas import (
+from confflow.constraints import (
+    AtLeastOneOf,
+    AtMostOneOf,
+    Equal,
+    ExactlyOneOf,
+    Forbids,
+    GreaterThan,
+    GreaterThanOrEqual,
+    LessThan,
+    LessThanOrEqual,
+    NotEqual,
+    RequiredTogether,
+    Requires,
+    StringConstraint,
+)
+from confflow.schemas import (
     Boolean,
     BooleanArray,
     Float,
@@ -28,20 +42,6 @@ from confflow.core.schemas import (
     StringArray,
     Table,
     TableArray,
-)
-from confflow.core.schemas.table.constraints import (
-    AtLeastOneOf,
-    AtMostOneOf,
-    Equal,
-    ExactlyOneOf,
-    Forbids,
-    GreaterThan,
-    GreaterThanOrEqual,
-    LessThan,
-    LessThanOrEqual,
-    NotEqual,
-    RequiredTogether,
-    Requires,
 )
 
 

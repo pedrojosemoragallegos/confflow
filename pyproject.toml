@@ -1,5 +1,5 @@
 [project]
-description = "A Python library for schema-based TOML configuration management with built-in validation, constraints, and type safety"
+description = "Schema-based TOML configuration with validation, custom constraints, and template generation"
 readme = "README.md"
 name = "confflow"
 version = "6.0.0"
@@ -15,7 +15,7 @@ keywords = [
     "schema",
     "validation",
     "config-management",
-    "type-checking",
+    "configuration-validation",
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -40,5 +40,6 @@ requires = ["uv_build>=0.8.17,<0.9.0"]
 build-backend = "uv_build"
 
 [project.urls]
-Homepage = "https://www.linkedin.com/in/pedro-jose-mora-gallegos"
+Homepage = "https://github.com/pedrojosemoragallegos/confflow"
 Repository = "https://github.com/pedrojosemoragallegos/confflow"
+Issues = "https://github.com/pedrojosemoragallegos/confflow/issues"
