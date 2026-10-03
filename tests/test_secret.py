@@ -169,6 +169,16 @@ class SecretTest(unittest.TestCase):
         self.assertEqual(caught.exception.constraint, "reject_value")
         self.assertIn("rejected input", caught.exception.detail)
         self.assertIsNone(caught.exception.__cause__)
+        with self.assertRaises(ValidationError) as caught:
+            self.load_value(
+                Configuration("Application", "", field),
+                {"password": "$PASSWORD"},
+                {"PASSWORD": secret},
+            )
+        self.assert_redacted(caught.exception, secret)
+        self.assertEqual(caught.exception.path, ("password",))
+        self.assertEqual(caught.exception.constraint, "reject_value")
+        self.assertIn("rejected input", caught.exception.detail)
         try:
             field.validate(secret)
         except ValidationError as error:
