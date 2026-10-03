@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, Final, final
 
 from typing_extensions import override
 
@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from confflow.core.schemas.table import Table as TableSchema
 
 
+@final
 class Table(Array[Mapping[str, object]]):
     __slots__ = ("__table",)
 

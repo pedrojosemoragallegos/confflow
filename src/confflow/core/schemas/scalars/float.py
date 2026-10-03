@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, final
 
 from confflow.core.definitions import Float as FloatDefinition
 from confflow.core.definitions.constraints.literal import Literal
@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from confflow.core.definitions.constraints import Constraint
 
 
+@final
 class Float(Scalar[float]):
     def __init__(
         self,
@@ -37,10 +38,7 @@ class Float(Scalar[float]):
             optional=optional,
             secret=secret,
             definition=FloatDefinition(
-                *constraints,
-                *literal_constraint,
-                minimum=minimum,
-                maximum=maximum,
+                *constraints, *literal_constraint, minimum=minimum, maximum=maximum
             ),
             default=default,
         )

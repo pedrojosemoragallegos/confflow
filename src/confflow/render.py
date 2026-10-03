@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any
 
 import tomlkit
 
+from confflow._utils import get_definition_value_type
 from confflow.core.definitions.base import Definition
 from confflow.core.definitions.date_time.offset_date_time import OffsetDateTime
 from confflow.core.errors import constraint_name
@@ -72,13 +73,14 @@ def _type_name(schema: Schema[Any]) -> str:
         return "table"
     definition = getattr(schema, "definition", None)
     if isinstance(definition, Definition):
+        value_type = get_definition_value_type(definition)
         names = {
             str: "string",
             int: "integer",
             float: "float",
             bool: "boolean",
         }
-        name = names.get(definition.VALUE_TYPE, definition.VALUE_TYPE.__name__)
+        name = names.get(value_type, value_type.__name__)
         if name == "date":
             name = "local date"
         elif name == "time":
@@ -102,12 +104,11 @@ def _toml_assignment(name: str, value: object) -> str:
 
 
 def _copy_block(content: str) -> str:
-    commented = "\n".join(
+    commented: str = "\n".join(
         f"# {line}" if line else "" for line in content.split("\n")
     )
-    return "\n".join(
-        ("# --- <copy block> ---", commented, "# --- </copy block> ---")
-    )
+
+    return f"# --- <copy block> ---\n{commented}\n# --- </copy block> ---"
 
 
 def _render_mapping(schema: MappingSchema, path: tuple[str, ...]) -> str:
@@ -131,12 +132,7 @@ def _render_mapping(schema: MappingSchema, path: tuple[str, ...]) -> str:
     else:
         sample.append("<key> =")
 
-    return (
-        "\n"
-        + "\n".join(lines)
-        + "\n"
-        + _copy_block("\n".join(sample))
-    )
+    return "\n" + "\n".join(lines) + "\n" + _copy_block("\n".join(sample))
 
 
 def _render_schemas(
@@ -177,10 +173,7 @@ def _render_schemas(
             if children:
                 sample.append("\n".join(children))
             sections.append(
-                "\n"
-                + "\n".join(lines)
-                + "\n"
-                + _copy_block("\n".join(sample))
+                "\n" + "\n".join(lines) + "\n" + _copy_block("\n".join(sample))
             )
         elif isinstance(schema, Table):
             child_path = (*path, schema.name)

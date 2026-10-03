@@ -9,6 +9,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any
 
+from confflow._utils import get_definition_value_type
 from confflow.core.definitions.base import Definition
 from confflow.core.errors import REDACTED_VALUE, ValidationError
 from confflow.core.schemas import (
@@ -31,8 +32,9 @@ _ENVIRONMENT_REFERENCE = re.compile(pattern=r"(\$\$?)([A-Za-z_][A-Za-z0-9_]*)")
 def load_configuration(schema: Table, source: str | Path, /) -> Mapping[str, object]:
     source = Path(source)
 
-    with source.open("rb") as file:
+    with source.open(mode="rb") as file:
         value = tomllib.load(file)
+
     value = _resolve_table(schema, value, ())
     schema.validate(value)
 
@@ -43,6 +45,7 @@ def _resolve_table(
     schema: Table, value: Mapping[str, object], path: tuple[str | int, ...]
 ) -> dict[str, object]:
     schemas = {child.name: child for child in schema.schemas}
+
     return {
         key: _resolve_environment(schemas[key], item, (*path, key))
         if key in schemas
@@ -92,9 +95,7 @@ def _resolve_environment(
 
 
 def _resolve_string(
-    value: str,
-    definition: Definition[Any] | None,
-    path: tuple[str | int, ...],
+    value: str, definition: Definition[Any] | None, path: tuple[str | int, ...]
 ) -> object:
     match = _ENVIRONMENT_REFERENCE.fullmatch(value)
     if match is None:
@@ -117,15 +118,16 @@ def _resolve_string(
             path=path,
             value=value,
         ) from error
+    value_type = get_definition_value_type(definition)
     try:
-        return _convert_environment(environment_value, definition.VALUE_TYPE)
+        return _convert_environment(environment_value, value_type)
     except ValueError as error:
         raise ValidationError(
             f"environment variable {name!r} cannot be converted to "
-            f"{definition.VALUE_TYPE.__name__}",
+            f"{value_type.__name__}",
             path=path,
             value=value,
-            expected=definition.VALUE_TYPE.__name__,
+            expected=value_type.__name__,
         ) from error
 
 

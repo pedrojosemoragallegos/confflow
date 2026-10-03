@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, final
 
 from confflow.core.definitions import LocalTime as LocalTimeDefinition
 from confflow.core.definitions.constraints.literal import Literal
@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from confflow.core.definitions.constraints import Constraint
 
 
+@final
 class LocalTime(Scalar[time]):
     def __init__(
         self,
@@ -38,10 +39,7 @@ class LocalTime(Scalar[time]):
             optional=optional,
             secret=secret,
             definition=LocalTimeDefinition(
-                *constraints,
-                *literal_constraint,
-                minimum=minimum,
-                maximum=maximum,
+                *constraints, *literal_constraint, minimum=minimum, maximum=maximum
             ),
             default=default,
         )

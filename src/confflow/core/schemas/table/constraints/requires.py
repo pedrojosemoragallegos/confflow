@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from json import dumps
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 from confflow.core.errors import SchemaError
 
@@ -26,8 +26,8 @@ class Requires(Constraint):
         if len(set(required)) != len(required):
             raise SchemaError("required fields must be unique")
 
-        self.__field: str = field
-        self.__required: tuple[str, ...] = required
+        self.__field: Final[str] = field
+        self.__required: Final[tuple[str, ...]] = required
 
     @property
     def field(self) -> str:

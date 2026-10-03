@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, final
 
 from confflow.core.definitions.base import Definition
 from confflow.core.definitions.constraints.integer import Range
@@ -9,9 +9,8 @@ if TYPE_CHECKING:
     from confflow.core.definitions.constraints import Constraint
 
 
+@final
 class Integer(Definition[int]):
-    VALUE_TYPE: ClassVar[type[int]] = int
-
     def __init__(
         self,
         *constraints: Constraint[int],

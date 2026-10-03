@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Final
 
 import tomlkit
 
@@ -15,10 +16,7 @@ class Range(LocalDateTime):
     __slots__ = ("__maximum", "__minimum")
 
     def __init__(
-        self,
-        *,
-        minimum: datetime | None = None,
-        maximum: datetime | None = None,
+        self, *, minimum: datetime | None = None, maximum: datetime | None = None
     ) -> None:
         for value in (minimum, maximum):
             if value is not None and (
@@ -30,8 +28,8 @@ class Range(LocalDateTime):
         if minimum is not None and maximum is not None and minimum > maximum:
             raise ValueError("minimum cannot exceed maximum")
 
-        self.__minimum: datetime | None = minimum
-        self.__maximum: datetime | None = maximum
+        self.__minimum: Final[datetime | None] = minimum
+        self.__maximum: Final[datetime | None] = maximum
 
     @property
     def minimum(self) -> datetime | None:

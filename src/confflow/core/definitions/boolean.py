@@ -1,16 +1,15 @@
 from __future__ import annotations
 
-from typing import ClassVar
+from typing import final
 
 from typing_extensions import override
 
 from .base import Definition
 
 
+@final
 class Boolean(Definition[bool]):
     __slots__ = ()
-
-    VALUE_TYPE: ClassVar[type[bool]] = bool
 
     @override
     def __repr__(self) -> str:

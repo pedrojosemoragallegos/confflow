@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Final, Generic, TypeVar
+from typing import TYPE_CHECKING, Final, Generic, TypeVar, final
 
 from typing_extensions import override
 
@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 ItemT = TypeVar(name="ItemT")
 
 
+@final
 class Nested(Array[list[ItemT]], Generic[ItemT]):
     __slots__ = ("__array",)
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, ClassVar, Generic, TypeVar
+from typing import TYPE_CHECKING, Final, Generic, TypeVar, final
 
 from confflow.core.errors import ValidationError, constraint_name, constraint_rule
 from confflow.core.types import Value
@@ -15,12 +15,11 @@ ValueT = TypeVar(name="ValueT", bound=Value)
 class Definition(ABC, Generic[ValueT]):
     __slots__ = ("__constraints",)
 
-    VALUE_TYPE: ClassVar[type[Value]]
-
     def __init__(self, *constraints: Constraint[ValueT]) -> None:
-        self.__constraints: tuple[Constraint[ValueT], ...] = constraints
+        self.__constraints: Final[tuple[Constraint[ValueT], ...]] = constraints
 
     @property
+    @final
     def constraints(self) -> tuple[Constraint[ValueT], ...]:
         return self.__constraints
 

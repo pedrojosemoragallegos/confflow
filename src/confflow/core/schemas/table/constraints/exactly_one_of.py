@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from json import dumps
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 from ._validation import validate_fields
 from .base import Constraint
@@ -16,7 +16,7 @@ class ExactlyOneOf(Constraint):
     def __init__(self, *fields: str) -> None:
         validate_fields(fields)
 
-        self.__fields: tuple[str, ...] = fields
+        self.__fields: Final[tuple[str, ...]] = fields
 
     @property
     def fields(self) -> tuple[str, ...]:

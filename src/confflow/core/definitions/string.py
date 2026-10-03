@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, final
 
 from typing_extensions import override
 
@@ -12,9 +12,8 @@ if TYPE_CHECKING:
     from confflow.core.definitions.constraints import Constraint
 
 
+@final
 class String(Definition[str]):
-    VALUE_TYPE: ClassVar[type[str]] = str
-
     def __init__(
         self,
         *constraints: Constraint[str],

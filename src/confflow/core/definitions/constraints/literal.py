@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Generic, TypeVar
+from typing import Final, Generic, TypeVar
 
 import tomlkit
 
@@ -18,7 +18,7 @@ class Literal(Constraint[ValueT], Generic[ValueT]):
         if not values:
             raise ValueError("literal constraint requires at least one value")
 
-        self.__values: tuple[ValueT, ...] = values
+        self.__values: Final[tuple[ValueT, ...]] = values
 
     @property
     def values(self) -> tuple[ValueT, ...]:

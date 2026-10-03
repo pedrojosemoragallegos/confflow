@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from re import compile as compile_pattern
-from typing import Final, Generic, TypeVar
+from re import Pattern, compile as compile_pattern
+from typing import Final, Generic, TypeVar, final
 
 from confflow.core.errors import SchemaError, ValidationError
 
 ValueT = TypeVar(name="ValueT")
 
-_NAME_PATTERN = compile_pattern(pattern=r"[A-Za-z0-9_-]+")
+_NAME_PATTERN: Final[Pattern[str]] = compile_pattern(pattern=r"[A-Za-z0-9_-]+")
 
 
 class Schema(ABC, Generic[ValueT]):
@@ -27,14 +27,17 @@ class Schema(ABC, Generic[ValueT]):
         self.__optional: Final[bool] = optional
 
     @property
+    @final
     def name(self) -> str:
         return self.__name
 
     @property
+    @final
     def description(self) -> str | None:
         return self.__description
 
     @property
+    @final
     def optional(self) -> bool:
         return self.__optional
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from json import dumps
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 from confflow.core.errors import SchemaError
 
@@ -23,8 +23,8 @@ class Forbids(Constraint):
             raise SchemaError("field cannot forbid itself")
         if len(set(forbidden)) != len(forbidden):
             raise SchemaError("forbidden fields must be unique")
-        self.__field: str = field
-        self.__forbidden: tuple[str, ...] = forbidden
+        self.__field: Final[str] = field
+        self.__forbidden: Final[tuple[str, ...]] = forbidden
 
     @property
     def field(self) -> str:

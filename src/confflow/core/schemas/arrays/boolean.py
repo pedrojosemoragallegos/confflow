@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Final
+from typing import Final, final
 
 from typing_extensions import override
 
@@ -9,6 +9,7 @@ from confflow.core.definitions import Boolean as BooleanDefinition
 from .base import Array
 
 
+@final
 class Boolean(Array[bool]):
     __slots__ = ("__definition",)
 

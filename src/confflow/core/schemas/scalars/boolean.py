@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+from typing import final
+
 from confflow.core.definitions import Boolean as BooleanDefinition
 
 from .base import Scalar
 
 
+@final
 class Boolean(Scalar[bool]):
     def __init__(
         self,

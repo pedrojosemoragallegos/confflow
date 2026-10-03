@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
+from typing import Final
 
 import tomlkit
 
@@ -24,8 +25,8 @@ class Range(LocalDate):
         if minimum is not None and maximum is not None and minimum > maximum:
             raise ValueError("minimum cannot exceed maximum")
 
-        self.__minimum: date | None = minimum
-        self.__maximum: date | None = maximum
+        self.__minimum: Final[date | None] = minimum
+        self.__maximum: Final[date | None] = maximum
 
     @property
     def minimum(self) -> date | None:

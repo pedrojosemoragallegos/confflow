@@ -5,9 +5,4 @@ from .local_date_time import LocalDateTime
 from .local_time import LocalTime
 from .offset_date_time import OffsetDateTime
 
-__all__: list[str] = [
-    "LocalDate",
-    "LocalDateTime",
-    "LocalTime",
-    "OffsetDateTime",
-]
+__all__: list[str] = ["LocalDate", "LocalDateTime", "LocalTime", "OffsetDateTime"]

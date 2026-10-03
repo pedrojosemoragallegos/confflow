@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, final
 
 from typing_extensions import override
 
@@ -13,6 +13,7 @@ ItemT = TypeVar(name="ItemT")
 
 class Array(Schema[list[ItemT]], Generic[ItemT]):
     @override
+    @final
     def validate(self, value: list[ItemT], /) -> None:
         for index, item in enumerate(iterable=value):
             try:

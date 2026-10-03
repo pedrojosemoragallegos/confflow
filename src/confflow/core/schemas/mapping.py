@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping as MappingABC
-from typing import TYPE_CHECKING, Final, Generic, TypeVar
+from typing import TYPE_CHECKING, Final, Generic, TypeVar, final
 
 from typing_extensions import override
 
@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 ValueT = TypeVar(name="ValueT")
 
 
+@final
 class Key:
     __slots__ = ("__definition",)
 
@@ -41,10 +42,8 @@ class Key:
         return f"{type(self).__name__}(definition={self.__definition!r})"
 
 
-class Mapping(
-    Schema[MappingABC[str, ValueT]],
-    Generic[ValueT],
-):
+@final
+class Mapping(Schema[MappingABC[str, ValueT]], Generic[ValueT]):
     __slots__ = ("__key", "__value")
 
     def __init__(
@@ -57,11 +56,7 @@ class Mapping(
         key: Key | None = None,
         value: Schema[ValueT],
     ) -> None:
-        super().__init__(
-            name,
-            description,
-            optional=optional,
-        )
+        super().__init__(name, description, optional=optional)
 
         self.__key: Final[Key] = key or Key()
         self.__value: Final[Schema[ValueT]] = value

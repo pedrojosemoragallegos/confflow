@@ -45,8 +45,8 @@ class Range(Integer):
         if minimum is not None and maximum is not None and minimum > maximum:
             raise ValueError("minimum cannot exceed maximum")
 
-        self.__minimum: int | None = minimum
-        self.__maximum: int | None = maximum
+        self.__minimum: Final[int | None] = minimum
+        self.__maximum: Final[int | None] = maximum
 
     @property
     def minimum(self) -> int | None:

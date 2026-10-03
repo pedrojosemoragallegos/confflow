@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any, Final
+from typing import Any, Final, final
 
 from typing_extensions import override
 
@@ -15,6 +15,7 @@ from confflow.core.schemas.base import Schema
 from confflow.core.schemas.table.constraints import Constraint
 
 
+@final
 class Table(Schema[Mapping[str, object]]):
     __slots__ = ("__constraints", "__schema_names", "__schemas")
 

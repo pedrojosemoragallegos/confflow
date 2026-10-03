@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, final
 
 from confflow.core.definitions.constraints.literal import Literal
 from confflow.core.definitions.string import String as StringDefinition
@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from confflow.core.definitions.constraints import Constraint
 
 
+@final
 class String(Scalar[str]):
     def __init__(
         self,

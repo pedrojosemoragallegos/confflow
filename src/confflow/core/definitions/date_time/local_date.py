@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, final
 
 from confflow.core.definitions.base import Definition
 from confflow.core.definitions.constraints.local_date import Range
@@ -10,9 +10,8 @@ if TYPE_CHECKING:
     from confflow.core.definitions.constraints import Constraint
 
 
+@final
 class LocalDate(Definition[date]):
-    VALUE_TYPE: ClassVar[type[date]] = date
-
     def __init__(
         self,
         *constraints: Constraint[date],

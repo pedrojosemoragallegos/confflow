@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from re import sub
-from typing import Final, TypeAlias
+from typing import Final, TypeAlias, final
 
 _PathPart: TypeAlias = str | int
 _MISSING: Final[object] = object()
@@ -28,10 +28,12 @@ def _redact_value(value: object, secret: object) -> object:
     return value
 
 
+@final
 class SchemaError(ValueError):
     __slots__ = ()
 
 
+@final
 class ValidationError(ValueError):
     __slots__ = (
         "_constraint",

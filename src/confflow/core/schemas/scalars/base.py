@@ -34,6 +34,7 @@ class Scalar(Schema[ValueT], Generic[ValueT]):
         self.__definition: Final[Definition[ValueT]] = definition
         self.__default: Final[ValueT | None] = default
         self.__secret: Final[bool] = secret
+
         if default is not None:
             try:
                 Scalar.validate(self, default)
